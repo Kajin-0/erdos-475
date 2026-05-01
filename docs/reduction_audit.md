@@ -24,9 +24,46 @@ p = 29, t = 21..25
 p = 31, t = 24..27
 ```
 
-## Internal finite proof status
+## Small-prime residue witness supplement
 
-The finite certificate is organized into three descent mechanisms.
+A direct witness supplement has also been generated and independently checked for the smaller residue exposed by the bookkeeping audit:
+
+```text
+p = 17, |B| = 3
+p = 19, |B| = 3..5
+p = 23, |B| = 3..9
+```
+
+Verification status:
+
+```text
+small_prime_residue_witness_traces_full.jsonl
+records = 50508
+failures = 0
+VERDICT: PASS
+```
+
+Per-case record counts:
+
+```text
+p=17 |B|=3: 35
+p=19 |B|=3: 46
+p=19 |B|=4: 172
+p=19 |B|=5: 476
+p=23 |B|=3: 70
+p=23 |B|=4: 201
+p=23 |B|=5: 1197
+p=23 |B|=6: 3399
+p=23 |B|=7: 7752
+p=23 |B|=8: 14550
+p=23 |B|=9: 22610
+```
+
+This supplement is currently a direct witness trace, not the same three-branch descent certificate used for the p=29 and p=31 cases.
+
+## Internal finite proof status for p=29 and p=31
+
+The main finite certificate is organized into three descent mechanisms.
 
 ### 1. Non-atomic branch
 
@@ -130,11 +167,16 @@ or
 The unresolved global question is:
 
 ```text
-Do the known analytic reductions leave exactly the certified complement cases
-p = 29, |B| = 3..7 and p = 31, |B| = 3..6?
+Do the known analytic reductions leave only cases covered by:
+
+p = 17, |B| = 3
+p = 19, |B| = 3..5
+p = 23, |B| = 3..9
+p = 29, |B| = 3..7
+p = 31, |B| = 3..6
 ```
 
-If yes, then the finite certificate likely completes the remaining finite check.
+If yes, then the finite package plus the small-prime witness supplement likely completes the remaining finite check.
 
 If no, the missing residue cases must be added to the trace/certificate pipeline.
 
@@ -146,6 +188,8 @@ Fill this table from the published sources.
 |---|---|---|---|
 | Small-set theorem | t <= 12 | direct small original set size | known covered |
 | Very-large-set theorem | p - 3 <= t <= p - 1 | |B| <= 2 | known covered |
+| Small-prime witness supplement | p=17, |B|=3; p=19, |B|=3..5; p=23, |B|=3..9 | direct witness traces | verified PASS |
+| Main finite certificate | p=29, |B|=3..7; p=31, |B|=3..6 | three-branch descent certificate | verified PASS |
 | Sufficiently-large-prime theorem | TBD | TBD | needs audit |
 | Public finite-check residue | TBD | TBD | needs audit |
 
@@ -157,19 +201,22 @@ For each prime `p` not covered automatically by sufficiently-large-prime results
 2. remove ranges covered by published theorems;
 3. translate remaining `t` into complement size `|B| = p - 1 - t`;
 4. quotient by multiplicative scaling if needed;
-5. compare the residue with the certified domain.
+5. compare the residue with the certified or witnessed domain.
 
 ## Target outcome
 
 The strongest possible outcome is:
 
 ```text
-finite residue = certified domain
+finite residue is contained in verified domain
 ```
 
-meaning:
+where the verified domain is:
 
 ```text
+p = 17, |B| = 3
+p = 19, |B| = 3..5
+p = 23, |B| = 3..9
 p = 29, |B| = 3..7
 p = 31, |B| = 3..6
 ```
@@ -184,6 +231,8 @@ and then certified or eliminated analytically.
 
 ## Current status
 
-Internal finite proof: stable.
+Internal p=29/p=31 finite proof: stable.
+
+Small-prime witness supplement: verified for 50508 records.
 
 External reduction audit: not complete.
