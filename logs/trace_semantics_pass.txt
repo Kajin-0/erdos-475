@@ -1,0 +1,32 @@
+=== Erdős 475 trace-semantics verifier ===
+Claim checked: initial_order = Q_p \ B, so B is the complement/defect set.
+
+file=..\traces\p29_r3_to_r7_repair_traces_strict.jsonl
+records=60118
+  p=29 |B|=3 |A|=p-1-|B|=25: 117
+  p=29 |B|=4 |A|=p-1-|B|=24: 735
+  p=29 |B|=5 |A|=p-1-|B|=23: 3510
+  p=29 |B|=6 |A|=p-1-|B|=22: 13468
+  p=29 |B|=7 |A|=p-1-|B|=21: 42288
+
+file=..\traces\p31_r3_to_r6_repair_traces_strict.jsonl
+records=25615
+  p=31 |B|=3 |A|=p-1-|B|=27: 136
+  p=31 |B|=4 |A|=p-1-|B|=26: 917
+  p=31 |B|=5 |A|=p-1-|B|=25: 4751
+  p=31 |B|=6 |A|=p-1-|B|=24: 19811
+
+Combined complement-domain counts:
+  p=29 |B|=3 |A|=25: 117
+  p=29 |B|=4 |A|=24: 735
+  p=29 |B|=5 |A|=23: 3510
+  p=29 |B|=6 |A|=22: 13468
+  p=29 |B|=7 |A|=21: 42288
+  p=31 |B|=3 |A|=27: 136
+  p=31 |B|=4 |A|=26: 917
+  p=31 |B|=5 |A|=25: 4751
+  p=31 |B|=6 |A|=24: 19811
+
+total_records=85733
+failures=0
+VERDICT: PASS

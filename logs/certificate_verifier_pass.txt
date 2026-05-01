@@ -1,0 +1,10 @@
+=== Erdős 475 independent certificate verifier ===
+trace_files=2
+nonatomic: ok=101385 fail=0
+onecollision: ok=39812 fail=0
+atomic-instances-candidate: ok=28717 fail=0
+atomic-signature-certs: ok=28717 fail=0
+
+TOTAL ok=198631 fail=0
+
+VERDICT: PASS

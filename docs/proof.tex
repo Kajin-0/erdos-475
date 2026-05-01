@@ -1,0 +1,680 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{question}{Question}
+
+\newcommand{\Fp}{\mathbb{F}_p}
+\newcommand{\Fpx}{\mathbb{F}_p^\times}
+\newcommand{\PhiPot}{\Phi}
+
+\title{A Certified Finite-Check Package for Complement Cases in Erd\H{o}s Problem 475}
+\author{Terence Fisher}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Erd\H{o}s Problem 475 asks whether, for every prime \(p\) and every finite set
+\(A\subseteq \mathbb F_p\setminus\{0\}\), there is a rearrangement
+\(A=\{a_1,\ldots,a_t\}\) such that the partial sums
+\[
+a_1,\quad a_1+a_2,\quad \ldots,\quad a_1+\cdots+a_t
+\]
+are pairwise distinct modulo \(p\).
+
+This document gives a certified finite-domain proof for the complement cases
+\[
+p=29,\quad |A|\in\{21,22,23,24,25\},
+\]
+and
+\[
+p=31,\quad |A|\in\{24,25,26,27\}.
+\]
+Equivalently, if
+\[
+B=\mathbb F_p^\times\setminus A,
+\]
+then the certified complement sizes are
+\[
+p=29,\quad 3\le |B|\le 7,
+\qquad
+p=31,\quad 3\le |B|\le 6.
+\]
+
+The proof is computer-assisted but independently checkable. The verifier reconstructs each trace state, recomputes the collision potential
+\[
+\Phi=(E,P,L),
+\]
+applies the certified move or path, and checks strict lexicographic descent. A separate coverage audit confirms that all canonical multiplicative-scaling representatives in the audited complement domain are present.
+\end{abstract}
+
+\section{Status and Scope}
+
+This paper proves a certified finite-domain theorem for the complement cases listed above. It should be read as a completion of a finite check, not as a proof of all analytic reductions leading to that finite check.
+
+The external reduction question is the following.
+
+\begin{quote}
+After applying the known analytic results for Erd\H{o}s Problem 475, are the only remaining complement cases
+\[
+p=29,\quad 3\le |B|\le7,
+\qquad
+p=31,\quad 3\le |B|\le6,
+\]
+up to nonzero multiplicative scaling?
+\end{quote}
+
+Under this reduction, the present certificate completes the remaining finite verification.
+
+\section{Problem Setup}
+
+Let \(p\) be prime and let
+\[
+A\subseteq \Fpx.
+\]
+An ordering of \(A\) is a sequence
+\[
+R=(r_1,\ldots,r_t)
+\]
+whose entries are exactly the elements of \(A\).
+
+\begin{definition}[Partial sums]
+For an ordering \(R=(r_1,\ldots,r_t)\), define
+\[
+S_i(R)=\sum_{j=1}^{i}r_j \pmod p,
+\qquad
+1\le i\le t.
+\]
+\end{definition}
+
+\begin{definition}[Valid ordering]
+An ordering \(R\) is valid if
+\[
+S_1(R),S_2(R),\ldots,S_t(R)
+\]
+are pairwise distinct in \(\Fp\).
+\end{definition}
+
+The computational traces are written in terms of a complement set
+\[
+B=\Fpx\setminus A.
+\]
+The trace field \(Q_p\) is a permutation of \(\Fpx\), and the trace field \texttt{initial\_order} satisfies
+\[
+\texttt{initial\_order}=Q_p\setminus B.
+\]
+Therefore, the ordering being repaired is an ordering of the original Erd\H{o}s set \(A\), not of the small complement \(B\).
+
+\section{Trace Semantics}
+
+The trace-semantics verifier checks every row of the trace files and confirms the following facts.
+
+\begin{enumerate}[label=(\roman*)]
+\item \(Q_p\) is a permutation of \(\Fpx=\{1,\ldots,p-1\}\).
+\item \(B\subseteq Q_p\).
+\item \(\texttt{initial\_order}=Q_p\setminus B\).
+\item \(\texttt{final\_order}\) is a permutation of \(\texttt{initial\_order}\).
+\item \(\texttt{final\_partial\_sums}\) are the partial sums of \(\texttt{final\_order}\).
+\item \(\texttt{final\_partial\_sums}\) are pairwise distinct.
+\end{enumerate}
+
+Thus each trace row explicitly represents a successful ordering of
+\[
+A=\Fpx\setminus B.
+\]
+
+The audited complement-to-original-size conversion is
+\[
+\begin{array}{c|c|c}
+p & |B| & |A|=p-1-|B|\\
+\hline
+29 & 3,4,5,6,7 & 25,24,23,22,21\\
+31 & 3,4,5,6 & 27,26,25,24
+\end{array}
+\]
+
+This places the certificate in the near-full-set regime, not in the small-\(|A|\) regime.
+
+\section{Collision Potential}
+
+For \(x\in\Fp\), define
+\[
+m_x(R)=|\{i:S_i(R)=x\}|.
+\]
+
+\begin{definition}[Excess collision count]
+Define
+\[
+E(R)=\sum_{x\in\Fp}\max(m_x(R)-1,0).
+\]
+Then \(E(R)=0\) if and only if \(R\) is valid.
+\end{definition}
+
+\begin{definition}[Collision pair count]
+Define
+\[
+P(R)=\sum_{x\in\Fp}\binom{m_x(R)}{2}.
+\]
+\end{definition}
+
+\begin{definition}[Collision span weight]
+Define
+\[
+L(R)=
+\sum_{\substack{1\le i<j\le t\\S_i(R)=S_j(R)}}(j-i).
+\]
+\end{definition}
+
+\begin{definition}[Lexicographic potential]
+Define
+\[
+\PhiPot(R)=(E(R),P(R),L(R)),
+\]
+ordered lexicographically.
+\end{definition}
+
+The proof strategy is to rule out a minimal invalid ordering by showing that every invalid certified state admits either strict descent in \(\PhiPot\), or a bounded local escape path ending in strict descent.
+
+\section{Scaling Symmetry}
+
+\begin{lemma}[Multiplicative scaling invariance]
+Let \(a\in\Fpx\). For an ordering
+\[
+R=(r_1,\ldots,r_t),
+\]
+define
+\[
+aR=(ar_1,\ldots,ar_t).
+\]
+Then
+\[
+E(aR)=E(R),\qquad P(aR)=P(R),\qquad L(aR)=L(R).
+\]
+Therefore
+\[
+\PhiPot(aR)=\PhiPot(R).
+\]
+\end{lemma}
+
+\begin{proof}
+The partial sums of \(aR\) are
+\[
+S_i(aR)=\sum_{j=1}^{i}ar_j=aS_i(R).
+\]
+Since \(a\ne0\), multiplication by \(a\) is a bijection of \(\Fp\). Hence
+\[
+S_i(R)=S_j(R)
+\quad\Longleftrightarrow\quad
+S_i(aR)=S_j(aR).
+\]
+Thus the equality pattern among partial sums is unchanged. The quantities \(E\), \(P\), and \(L\) depend only on this equality pattern and the index gaps \(j-i\). Hence they are preserved.
+\end{proof}
+
+Consequently, it is sufficient to check one canonical representative of each orbit
+\[
+B\sim aB,\qquad a\in\Fpx.
+\]
+
+\section{Local Block Moves}
+
+A local move is a contiguous block move. If
+\[
+R=X\,U\,Y\,Z,
+\]
+where \(U\) is a contiguous block, then the move sends
+\[
+X\,U\,Y\,Z\longmapsto X\,Y\,U\,Z.
+\]
+
+The scripts encode such a move by
+\[
+(s,\ell,t),
+\]
+where \(s\) is the starting index of \(U\), \(\ell=|U|\), and \(t\) is the insertion index after removing \(U\).
+
+The certificate uses two locality radii:
+\[
+h=4
+\]
+for the \(E\ge2\) descent branches, and
+\[
+h=6
+\]
+for the one-collision escape branch.
+
+\section{Branch Decomposition}
+
+Every invalid state has
+\[
+E(R)>0.
+\]
+The certificate decomposes invalid states into three branches.
+
+\subsection{Non-atomic \(E\ge2\)}
+
+The non-atomic branch consists of states satisfying
+\[
+E(R)\ge2
+\]
+and not satisfying
+\[
+P(R)=2,\qquad \max_xm_x(R)=2.
+\]
+
+In the verified certificate, these states admit halo-4 local descent moves anchored at maximum-multiplicity collision structure. In the full \(p=29\) file, every non-atomic state is resolved by a max-multiplicity halo-4 singleton move. In the full \(p=31\) file, every non-atomic state is resolved, with only one requiring a block of length two.
+
+\subsection{Atomic \(E\ge2\)}
+
+The atomic branch is
+\[
+P(R)=2,\qquad \max_xm_x(R)=2.
+\]
+It has exactly two collision pairs and no residue appearing more than twice.
+
+This branch is certified by a finite table of relative halo-4 moves with
+\[
+|U|\le2.
+\]
+The compressed atomic macro-certificate contains \(54\) relative move rules covering all verified atomic instances.
+
+\subsection{One-collision branch}
+
+The one-collision branch is
+\[
+E(R)=P(R)=1.
+\]
+
+Direct monotone descent is not always available here. The certificate allows a bounded path
+\[
+R=R_0\to R_1\to\cdots\to R_t
+\]
+with
+\[
+t\le3.
+\]
+The intermediate states satisfy
+\[
+E(R_i)=P(R_i)=1,\qquad i<t,
+\]
+and the final state satisfies
+\[
+\PhiPot(R_t)<\PhiPot(R_0).
+\]
+All moves in this path are halo-6 moves with
+\[
+|U|\le5.
+\]
+
+\section{Certified Branch Theorem}
+
+\begin{theorem}[Certified descent and escape theorem]
+For every invalid certified state \(R\) in the audited complement domain, one of the following holds.
+
+\begin{enumerate}[label=(\roman*)]
+\item If
+\[
+E(R)\ge2,\qquad (P(R),\max_xm_x(R))\ne(2,2),
+\]
+then there exists a certified halo-4 local move \(R\to R'\) such that
+\[
+\PhiPot(R')<\PhiPot(R).
+\]
+
+\item If
+\[
+P(R)=2,\qquad \max_xm_x(R)=2,
+\]
+then one of the certified atomic halo-4 moves with \(|U|\le2\) gives
+\[
+\PhiPot(R')<\PhiPot(R).
+\]
+
+\item If
+\[
+E(R)=P(R)=1,
+\]
+then there exists a certified path
+\[
+R=R_0\to R_1\to\cdots\to R_t,\qquad t\le3,
+\]
+such that
+\[
+E(R_i)=P(R_i)=1,\qquad i<t,
+\]
+and
+\[
+\PhiPot(R_t)<\PhiPot(R_0).
+\]
+Each move in this path is halo-6 local and moves a block of length at most five.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+This theorem is certified by the supplied CSV files and independently checked by the verifier.
+
+For each certified row, the verifier:
+\begin{enumerate}
+\item reconstructs the referenced ordering \(R\) from the original JSONL trace;
+\item recomputes \(E(R)\), \(P(R)\), \(L(R)\), and \(\PhiPot(R)\);
+\item checks the branch classification;
+\item applies the claimed move or path;
+\item recomputes the final potential;
+\item checks the strict inequality
+\[
+\PhiPot(R_{\mathrm{final}})<\PhiPot(R).
+\]
+\end{enumerate}
+
+For the one-collision branch, it additionally verifies that intermediate states remain one-collision:
+\[
+E=P=1.
+\]
+The independent verifier reported
+\[
+198{,}631
+\]
+successful checks and
+\[
+0
+\]
+failures.
+\end{proof}
+
+\section{Certificate Statistics}
+
+\[
+\begin{array}{lrr}
+\toprule
+\text{Certificate family} & \text{Verified rows} & \text{Failures}\\
+\midrule
+\text{Non-atomic }E\ge2\text{ descent} & 101{,}385 & 0\\
+\text{One-collision escape} & 39{,}812 & 0\\
+\text{Atomic instance candidates} & 28{,}717 & 0\\
+\text{Atomic signature certificates} & 28{,}717 & 0\\
+\midrule
+\text{Total} & 198{,}631 & 0\\
+\bottomrule
+\end{array}
+\]
+
+The non-atomic family decomposes as:
+\[
+65{,}272
+\]
+states for \(p=29\), and
+\[
+36{,}113
+\]
+states for \(p=31\).
+
+The one-collision family decomposes as:
+\[
+29{,}854
+\]
+states for \(p=29\), and
+\[
+9{,}958
+\]
+states for \(p=31\).
+
+\section{Coverage of Canonical Representatives}
+
+\begin{theorem}[Coverage theorem]
+The trace files contain every canonical multiplicative-scaling representative in the audited complement domain:
+\[
+p=29,\quad 3\le |B|\le7,
+\]
+and
+\[
+p=31,\quad 3\le |B|\le6.
+\]
+\end{theorem}
+
+\begin{proof}
+The coverage audit enumerates all canonical representatives of the action
+\[
+B\mapsto aB,\qquad a\in\Fpx,
+\]
+and compares them with the representatives present in the trace files.
+
+For every audited pair \((p,|B|)\), the canonical-scaling audit reports:
+\[
+\text{coverage}=100\%,\qquad \text{missing}=0,\qquad \text{extra}=0.
+\]
+By multiplicative scaling invariance, this proves coverage of the audited complement domain modulo the valid symmetry \(B\sim aB\).
+\end{proof}
+
+\section{Minimal-Obstruction Proof}
+
+\begin{theorem}[Certified finite complement theorem]
+Let
+\[
+A\subseteq \Fpx
+\]
+be in one of the following cases:
+\[
+p=29,\quad |A|\in\{21,22,23,24,25\},
+\]
+or
+\[
+p=31,\quad |A|\in\{24,25,26,27\}.
+\]
+Equivalently, let
+\[
+B=\Fpx\setminus A
+\]
+satisfy
+\[
+p=29,\quad 3\le |B|\le7,
+\]
+or
+\[
+p=31,\quad 3\le |B|\le6.
+\]
+Then, for every canonical multiplicative-scaling representative \(B\), there exists an ordering \(R\) of \(A\) such that
+\[
+S_1(R),\ldots,S_{|A|}(R)
+\]
+are pairwise distinct.
+\end{theorem}
+
+\begin{proof}
+Suppose, for contradiction, that some audited complement case has no valid ordering. Among all certified invalid states for this case, choose \(R\) with minimal \(\PhiPot(R)\) in lexicographic order.
+
+Since \(R\) is invalid,
+\[
+E(R)>0.
+\]
+
+If
+\[
+E(R)\ge2,
+\]
+then \(R\) lies either in the non-atomic branch or in the atomic branch. In both cases, the certified branch theorem gives a state \(R'\) satisfying
+\[
+\PhiPot(R')<\PhiPot(R),
+\]
+contradicting the minimality of \(R\).
+
+It remains to consider
+\[
+E(R)=1.
+\]
+Then exactly one residue occurs twice and all others occur at most once. Therefore
+\[
+P(R)=1.
+\]
+Thus \(R\) lies in the one-collision branch. The certified branch theorem gives a path
+\[
+R=R_0\to R_1\to\cdots\to R_t
+\]
+with
+\[
+t\le3
+\]
+and
+\[
+\PhiPot(R_t)<\PhiPot(R_0).
+\]
+This again contradicts the minimality of \(R\).
+
+Therefore no invalid minimal obstruction exists in the audited complement domain. Hence every audited \(A\) has a valid ordering.
+\end{proof}
+
+\section{Reduction Status Relative to the Published Problem}
+
+The public Erd\H{o}s Problems database states Problem \#475 in the following form: for a prime \(p\), every finite set
+\[
+A\subseteq \mathbb F_p\setminus\{0\}
+\]
+should admit a rearrangement
+\[
+A=\{a_1,\ldots,a_t\}
+\]
+such that the partial sums
+\[
+a_1,\quad a_1+a_2,\quad \ldots,\quad a_1+\cdots+a_t
+\]
+are pairwise distinct modulo \(p\).
+
+The same source currently records the problem as ``resolved up to a finite check.'' It lists the following known ranges:
+\[
+t\le 12,
+\]
+\[
+p-3\le t\le p-1,
+\]
+and all sufficiently large primes, obtained by combining known small, medium, large, and very-large set-size regimes.
+
+The present certificate verifies the finite complement cases
+\[
+p=29,\quad |A|=21,22,23,24,25,
+\]
+and
+\[
+p=31,\quad |A|=24,25,26,27.
+\]
+Equivalently, with
+\[
+B=\mathbb F_p^\times\setminus A,
+\]
+the certified complement sizes are
+\[
+p=29,\quad |B|=3,4,5,6,7,
+\]
+and
+\[
+p=31,\quad |B|=3,4,5,6.
+\]
+
+These cases lie immediately below the already-known very-large range
+\[
+p-3\le |A|\le p-1.
+\]
+For \(p=29\), that known range begins at \(|A|=26\). For \(p=31\), it begins at \(|A|=28\).
+
+Thus the certificate is not merely a recheck of the known small-set range \(t\le12\). It verifies large original sets \(A\) with small complements.
+
+The remaining reduction question is the following.
+
+\begin{quote}
+Do the published analytic reductions leave exactly the complement cases
+\[
+p=29,\quad |B|=3,\ldots,7,
+\qquad
+p=31,\quad |B|=3,\ldots,6
+\]
+as the finite check?
+\end{quote}
+
+The certificate package proves these finite cases. It does not independently prove that no other finite cases remain after the analytic reductions.
+
+\section{Connection to Erd\H{o}s Problem 475}
+
+The certified theorem above proves the finite complement cases explicitly represented by the traces. To upgrade this to a full proof of Erd\H{o}s Problem 475, one must combine it with the external analytic reduction showing that all other cases are already covered by known results.
+
+The current package therefore establishes the computational finite-check component:
+\[
+p=29,\quad |A|=21,\ldots,25,
+\]
+and
+\[
+p=31,\quad |A|=24,\ldots,27.
+\]
+
+If these are exactly the finite residue cases left by the known analytic reductions, then this certificate completes the remaining finite check.
+
+\section{Reproducibility Commands}
+
+The trace-semantics verification command is:
+\begin{verbatim}
+python scripts/verify_erdos475_trace_semantics.py \
+  traces/p29_r3_to_r7_repair_traces_strict.jsonl \
+  traces/p31_r3_to_r6_repair_traces_strict.jsonl
+\end{verbatim}
+
+The expected result is:
+\begin{verbatim}
+VERDICT: PASS
+\end{verbatim}
+
+The certificate-verification command is:
+\begin{verbatim}
+python scripts/verify_erdos475_certificates.py \
+  --trace-files \
+    traces/p29_r3_to_r7_repair_traces_strict.jsonl \
+    traces/p31_r3_to_r6_repair_traces_strict.jsonl \
+  --nonatomic-csv \
+    certificates/p29_nonatomic_descent_full.csv \
+    certificates/p31_nonatomic_descent_full.csv \
+  --onecollision-csv \
+    certificates/p29_one_collision_deep_full.csv \
+    certificates/p31_one_collision_deep_full.csv \
+  --atomic-instances certificates/atomic_local_cert_instances.csv \
+  --atomic-certs certificates/atomic_local_certs.csv \
+  --require-onecollision-intermediates \
+  --strict-csv
+\end{verbatim}
+
+The expected result is:
+\begin{verbatim}
+TOTAL ok=198631 fail=0
+VERDICT: PASS
+\end{verbatim}
+
+The coverage-audit command is:
+\begin{verbatim}
+python scripts/audit_erdos475_trace_coverage.py \
+  traces/p29_r3_to_r7_repair_traces_strict.jsonl \
+  traces/p31_r3_to_r6_repair_traces_strict.jsonl \
+  --summary-csv certificates/trace_coverage_summary.csv
+\end{verbatim}
+
+The expected canonical-scaling result is:
+\begin{verbatim}
+coverage=100.00%
+missing=0
+extra=0
+\end{verbatim}
+
+\end{document}
