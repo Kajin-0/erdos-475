@@ -1,0 +1,31 @@
+=== Small-prime residue witness supplement ===
+
+Witness file stored locally in research sandbox:
+
+C:\Users\User1\Downloads\erdos\small_prime_residue_witness_traces_full.jsonl
+
+Verifier:
+
+python scripts\verify_erdos475_trace_semantics.py C:\Users\User1\Downloads\erdos\small_prime_residue_witness_traces_full.jsonl
+
+Verified coverage:
+
+p=17 |B|=3 |A|=13: 35
+p=19 |B|=3 |A|=15: 46
+p=19 |B|=4 |A|=14: 172
+p=19 |B|=5 |A|=13: 476
+p=23 |B|=3 |A|=19: 70
+p=23 |B|=4 |A|=18: 201
+p=23 |B|=5 |A|=17: 1197
+p=23 |B|=6 |A|=16: 3399
+p=23 |B|=7 |A|=15: 7752
+p=23 |B|=8 |A|=14: 14550
+p=23 |B|=9 |A|=13: 22610
+
+total_records=50508
+failures=0
+VERDICT: PASS
+
+Note:
+The full JSONL witness file is not committed yet.
+This log records the verified result while storage policy is undecided.
