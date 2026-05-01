@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 Reduction residue audit utility for Erdos 475.
 
 This script does not prove any analytic theorem. It is a bookkeeping tool.
@@ -38,8 +38,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
-import re
-from typing import Iterable, List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple
 
 
 @dataclasses.dataclass(frozen=True)
