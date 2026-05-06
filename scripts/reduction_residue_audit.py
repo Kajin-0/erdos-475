@@ -4,7 +4,7 @@ Reduction residue audit utility for Erdos 475.
 
 This script does not prove any analytic theorem. It is a bookkeeping tool.
 Given explicit coverage rules, it computes which (p,t) cases remain and
-compares them with the certified complement domain in this repository.
+compares them with the verified finite complement domain in this repository.
 
 Notation:
   p = prime
@@ -16,6 +16,13 @@ Default built-in known ranges:
   small_set: t <= 12
   very_large: p - 3 <= t <= p - 1, equivalently |B| <= 2
 
+Verified finite domain currently recorded in docs/finite_verification_ledger.md:
+  p = 17, |B| = 3
+  p = 19, |B| = 3..5
+  p = 23, |B| = 3..9
+  p = 29, |B| = 3..15
+  p = 31, |B| = 3..17
+
 The missing analytic input is the published medium/large/sufficiently-large
 prime reduction. Add those rules through --range once they are known.
 
@@ -23,8 +30,10 @@ Examples:
   python scripts/reduction_residue_audit.py --max-prime 31
 
   python scripts/reduction_residue_audit.py --max-prime 31 \
-    --range p=29,t=13..20,name=example_p29_mid \
-    --range p=31,t=13..23,name=example_p31_mid
+    --cover-verified-domain
+
+  python scripts/reduction_residue_audit.py --max-prime 31 \
+    --range p>=37,t=all,name=sufficiently_large_prime_theorem
 
 Range syntax:
   p=29,t=13..20,name=label
@@ -135,12 +144,23 @@ def parse_rule(spec: str) -> Rule:
     return rule
 
 
-def certified_cases() -> Set[Case]:
+def verified_domain_rules() -> List[Rule]:
+    return [
+        Rule(name="verified_p17_b3", p_min=17, p_max=17, b_min=3, b_max=3),
+        Rule(name="verified_p19_b3_to_b5", p_min=19, p_max=19, b_min=3, b_max=5),
+        Rule(name="verified_p23_b3_to_b9", p_min=23, p_max=23, b_min=3, b_max=9),
+        Rule(name="verified_p29_b3_to_b15", p_min=29, p_max=29, b_min=3, b_max=15),
+        Rule(name="verified_p31_b3_to_b17", p_min=31, p_max=31, b_min=3, b_max=17),
+    ]
+
+
+def verified_cases(max_prime: int) -> Set[Case]:
     out = set()
-    for p, b_min, b_max in [(29, 3, 7), (31, 3, 6)]:
-        for b in range(b_min, b_max + 1):
-            t = p - 1 - b
-            out.add(Case(p, t))
+    for p in primes_upto(max_prime):
+        for t in range(1, p):
+            c = Case(p, t)
+            if any(rule.covers(c) for rule in verified_domain_rules()):
+                out.add(c)
     return out
 
 
@@ -155,16 +175,37 @@ def format_case(c: Case) -> str:
     return f"p={c.p}, t={c.t}, |B|={c.b}"
 
 
+def summarize_by_prime(cases: List[Case]) -> None:
+    by_p = {}
+    for c in cases:
+        by_p.setdefault(c.p, []).append(c)
+    if not by_p:
+        print("  none")
+        return
+    for p in sorted(by_p):
+        cs = by_p[p]
+        ts = [c.t for c in cs]
+        bs = [c.b for c in cs]
+        print(f"p={p}: t={min(ts)}..{max(ts)} count={len(ts)} |B| values={sorted(set(bs))}")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--max-prime", type=int, default=31)
-    ap.add_argument("--range", action="append", default=[], help="Additional coverage rule")
+    ap.add_argument("--range", action="append", default=[], help="Additional analytic coverage rule")
     ap.add_argument("--no-default-rules", action="store_true")
+    ap.add_argument(
+        "--cover-verified-domain",
+        action="store_true",
+        help="Treat the verified finite domain as covered by finite verification rules",
+    )
     args = ap.parse_args()
 
     cases = [Case(p, t) for p in primes_upto(args.max_prime) for t in range(1, p)]
 
     rules = [] if args.no_default_rules else default_rules()
+    if args.cover_verified_domain:
+        rules.extend(verified_domain_rules())
     rules.extend(parse_rule(x) for x in args.range)
 
     covered = set()
@@ -177,12 +218,12 @@ def main() -> int:
                 break
 
     residue = sorted(set(cases) - covered, key=lambda c: (c.p, c.t))
-    cert = certified_cases()
     residue_set = set(residue)
+    verified = verified_cases(args.max_prime)
 
-    certified_in_residue = sorted(residue_set & cert, key=lambda c: (c.p, c.t))
-    residue_not_certified = sorted(residue_set - cert, key=lambda c: (c.p, c.t))
-    certified_not_residue = sorted(cert - residue_set, key=lambda c: (c.p, c.t))
+    verified_in_residue = sorted(residue_set & verified, key=lambda c: (c.p, c.t))
+    residue_not_verified = sorted(residue_set - verified, key=lambda c: (c.p, c.t))
+    verified_not_residue = sorted(verified - residue_set, key=lambda c: (c.p, c.t))
 
     print("=== Erdos 475 reduction residue audit ===")
     print(f"max_prime={args.max_prime}")
@@ -194,45 +235,43 @@ def main() -> int:
     print(f"residue_cases={len(residue)}")
     print()
 
-    by_p = {}
-    for c in residue:
-        by_p.setdefault(c.p, []).append(c)
-
     print("Residue by prime")
     print("----------------")
-    for p in sorted(by_p):
-        ts = [c.t for c in by_p[p]]
-        bs = [c.b for c in by_p[p]]
-        print(f"p={p}: t={min(ts)}..{max(ts)} count={len(ts)} |B| values={sorted(set(bs))}")
+    summarize_by_prime(residue)
 
     print()
-    print("Comparison to certified domain")
-    print("------------------------------")
-    print(f"certified_cases={len(cert)}")
-    print(f"certified_in_residue={len(certified_in_residue)}")
-    print(f"residue_not_certified={len(residue_not_certified)}")
-    print(f"certified_not_residue={len(certified_not_residue)}")
+    print("Comparison to verified finite domain")
+    print("------------------------------------")
+    print(f"verified_cases_through_max_prime={len(verified)}")
+    print(f"verified_in_residue={len(verified_in_residue)}")
+    print(f"residue_not_verified={len(residue_not_verified)}")
+    print(f"verified_not_residue={len(verified_not_residue)}")
 
-    if residue_not_certified:
+    if residue_not_verified:
         print()
-        print("First residue cases not certified")
-        print("----------------------------------")
-        for c in residue_not_certified[:80]:
+        print("First residue cases not verified")
+        print("---------------------------------")
+        for c in residue_not_verified[:120]:
             print(format_case(c))
 
-    if certified_not_residue:
+    if verified_not_residue:
         print()
-        print("Certified cases already covered by supplied rules")
-        print("--------------------------------------------------")
-        for c in certified_not_residue:
+        print("Verified cases already covered by supplied rules")
+        print("-------------------------------------------------")
+        for c in verified_not_residue[:120]:
             print(format_case(c))
+        if len(verified_not_residue) > 120:
+            print(f"... {len(verified_not_residue) - 120} more")
 
     print()
-    if residue_set == cert:
-        print("VERDICT: residue equals certified domain")
+    if not residue_not_verified:
+        if residue_set <= verified:
+            print("VERDICT: residue is contained in verified finite domain")
+        else:
+            print("VERDICT: no unverified residue detected")
     else:
-        print("VERDICT: residue does not yet equal certified domain")
-        print("This is expected until all published analytic ranges are encoded.")
+        print("VERDICT: residue contains cases outside verified finite domain")
+        print("Additional analytic coverage or finite verification is needed.")
 
     return 0
 
