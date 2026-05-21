@@ -1,0 +1,98 @@
+A24 sweep residual histograms
+================================
+
+Tool represented by:
+  scripts/sweep_a23_residual_histograms.py
+
+Independent local reproduction of the same symbolic classifier logic was run for max_t=20.
+
+Interpretation guardrail:
+  These are purely positional symbolic rows.  A row appearing in a residual class does not prove algebraic realizability over a finite field.  It only means the currently encoded positional constraints do not eliminate that geometry.
+
+------------------------------------------------------------
+max_t=20, use_secondary_constraints=false
+------------------------------------------------------------
+
+branch=first
+config_count=1140
+total_rows=844341
+by_class:
+  collapse_interior_zero: 27132
+  collapse_old_collision: 154242
+  collapse_prefix_zero: 9690
+  identical: 10830
+  reduction_equal_outer_pieces: 218994
+  residual_separated_signed: 11628
+  residual_shared_left_signed: 31008
+  residual_signed_nested_weighted: 104652
+  residual_signed_overlap_weighted: 77520
+  residual_two_piece_zero: 198645
+
+branch=second
+config_count=969
+total_rows=740316
+by_class:
+  collapse_interior_zero: 57324
+  collapse_old_collision: 111282
+  identical: 8721
+  reduction_equal_outer_pieces: 139689
+  residual_midpoint: 11628
+  residual_separated_equal: 27132
+  residual_separated_signed: 81396
+  residual_shared_left_signed: 18564
+  residual_signed_nested_weighted: 47328
+  residual_signed_overlap_weighted: 117096
+  residual_two_piece_zero: 120156
+
+------------------------------------------------------------
+max_t=20, use_secondary_constraints=true
+------------------------------------------------------------
+
+branch=first
+config_count=696
+total_rows=421725
+by_class:
+  collapse_interior_zero: 10068
+  collapse_old_collision: 111726
+  collapse_prefix_zero: 6774
+  identical: 7914
+  reduction_equal_outer_pieces: 124530
+  residual_separated_signed: 2856
+  residual_shared_left_signed: 11028
+  residual_signed_nested_weighted: 23592
+  residual_signed_overlap_weighted: 13524
+  residual_two_piece_zero: 109713
+
+branch=second
+config_count=597
+total_rows=394884
+by_class:
+  collapse_interior_zero: 39036
+  collapse_old_collision: 74190
+  identical: 6417
+  reduction_equal_outer_pieces: 74817
+  residual_midpoint: 3816
+  residual_separated_equal: 3906
+  residual_separated_signed: 45834
+  residual_shared_left_signed: 9048
+  residual_signed_nested_weighted: 12852
+  residual_signed_overlap_weighted: 51966
+  residual_two_piece_zero: 73002
+
+Main observation:
+  Secondary constraints reduce symbolic row volume substantially, but do not eliminate the major residual geometry classes.
+
+Priority residual classes after secondary constraints:
+  1. reduction_equal_outer_pieces
+  2. residual_two_piece_zero
+  3. residual_separated_signed
+  4. residual_signed_overlap_weighted
+  5. residual_signed_nested_weighted
+  6. residual_midpoint / residual_separated_equal in SECOND only
+
+Proof implication:
+  The next analytic work should not focus on endpoint-sharing or adjacent signed collapses; those are already handled.  The hard remaining work is composite interval surgery:
+    - equal outer-piece descent,
+    - two-piece zero relocation,
+    - separated signed composite relocation,
+    - weighted signed overlap/nesting elimination.
