@@ -1,0 +1,15 @@
+=== Endpoint-avoidance backtest ===
+max_p=13
+Statement: for every A subset F_p^* and f != sigma(A),
+there is a Graham-valid ordering avoiding f.
+
+p=2: instances=1 failures=0 status=PASS
+p=3: instances=6 failures=0 status=PASS
+p=5: instances=60 failures=0 status=PASS
+p=7: instances=378 failures=0 status=PASS
+p=11: instances=10230 failures=0 status=PASS
+p=13: instances=49140 failures=0 status=PASS
+
+total_instances=59815
+failures=0
+VERDICT: PASS
