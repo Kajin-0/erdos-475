@@ -1,0 +1,72 @@
+A42 balanced-transfer local search summary
+==========================================
+
+Tool represented by:
+  scripts/search_balanced_transfer_walks.py
+
+Independent local reproduction of the same search logic was run for:
+  primes p <= 17
+  k <= 4
+  up to 3 examples per (p,k)
+
+Interpretation guardrail:
+  These examples satisfy only the local A41 difference-walk residual conditions.
+  They do not enforce the full global Graham-valid ordering constraints.
+  A found example is not a counterexample to Erdős 475 or to endpoint avoidance.
+
+Local residual condition checked:
+  D_0 = 0
+  D_k = target != 0
+  D_1,...,D_{k-1} avoid 0 and target
+  D_0,...,D_k pairwise distinct
+  increments c_r-y_r nonzero
+  C and Y atoms nonzero and pairwise distinct
+
+Results:
+  Local residual walks exist freely for small fields once 2k <= p-1.
+  Therefore the A41 difference-walk endpoint conditions alone cannot eliminate the balanced-transfer branch.
+
+Representative examples:
+
+p=5, k=2, target=1
+  C = [1, 2]
+  Y = [4, 3]
+  increments = [2, 4]
+  D = [0, 2, 1]
+
+p=7, k=3, target=1
+  C = [3, 6, 2]
+  Y = [1, 5, 4]
+  increments = [2, 1, 5]
+  D = [0, 2, 3, 1]
+
+p=11, k=4, target=1
+  C = [3, 5, 7, 10]
+  Y = [1, 4, 6, 2]
+  increments = [2, 1, 1, 8]
+  D = [0, 2, 3, 4, 1]
+
+p=13, k=4, target=1
+  C = [3, 5, 7, 12]
+  Y = [1, 4, 6, 2]
+  increments = [2, 1, 1, 10]
+  D = [0, 2, 3, 4, 1]
+
+p=17, k=4, target=1
+  C = [3, 5, 7, 16]
+  Y = [1, 4, 6, 2]
+  increments = [2, 1, 1, 14]
+  D = [0, 2, 3, 4, 1]
+
+Pattern observation:
+  There are simple constructed walks of the form
+    D = [0, 2, 3, 4, ..., 1]
+  in several fields, with the last increment wrapping back to target 1.
+
+Consequence:
+  A42 shows that the balanced-transfer residual cannot be eliminated by local path injectivity/endpoint avoidance alone.  Any proof must use additional global constraints, such as:
+    - K and M are not arbitrary blocks but prefixes of C and Y inside X A G C Y;
+    - the D2 relation arises from separated equal-interval exchange;
+    - all other A36 direct-exchange obstruction equations must be absent simultaneously;
+    - the original ordering is Graham-valid globally;
+    - forbidden-hit recurrences must satisfy the A34 global measure.
