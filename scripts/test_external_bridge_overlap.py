@@ -32,8 +32,13 @@ Obstruction classes:
     EXTERNAL_BRIDGE            one nonterminal external bridge index
     MIXED                      multiple branches appear simultaneously
 
-The goal is to estimate which bridge patterns dominate and provide compact
-examples for the analytic proof work.
+Important filter:
+
+    --min-active-length 3
+
+skips examples whose shortest zero interval has length 2. Length-2 intervals are
+inverse pairs and form a special terminal-bridge branch, not the true distributed
+overlap hard case.
 """
 
 from __future__ import annotations
@@ -43,7 +48,7 @@ import itertools
 import json
 import random
 from collections import Counter, defaultdict
-from typing import Iterator, List, Optional, Sequence, Tuple
+from typing import Iterator, List, Sequence, Tuple
 
 INF = 10**9
 
@@ -146,7 +151,6 @@ def sample_defective_orders(p: int, S: Sequence[int], samples: int, rng: random.
         if not zis:
             continue
         E, L, N, _M = defect_short(p, cand)
-        # Prefer proof-relevant low D_short examples, but keep enough defects to classify.
         score = (E, L, N)
         scored.append((score, cand))
     scored.sort()
@@ -154,23 +158,12 @@ def sample_defective_orders(p: int, S: Sequence[int], samples: int, rng: random.
 
 
 def external_indices_for_window(n_atoms: int, z_i: int, z_j: int, q_index: int) -> set[int]:
-    """External partial-sum indices outside the Z/q local window.
-
-    z_i,z_j are partial-sum endpoints of Z, with atoms z_i..z_j-1.
-    q_index is the atom index of q in the original order.
-    """
-    # Local partial indices include the active Z endpoint range and the q endpoint.
     local = set(range(z_i, z_j + 1))
     local.add(q_index + 1)
     return set(range(n_atoms + 1)) - local
 
 
 def classify_right_insertion(p: int, order: Sequence[int], z_i: int, z_j: int, k: int) -> dict:
-    """Classify insertion of right-adjacent q after z_k.
-
-    z_i,z_j are partial endpoints of active Z; q is atom z_j.
-    k is internal insertion depth, 1<=k<m.
-    """
     n = len(order)
     m = z_j - z_i
     q_index = z_j
@@ -180,7 +173,6 @@ def classify_right_insertion(p: int, order: Sequence[int], z_i: int, z_j: int, k
     P = partial_sums_extended(p, order)
     base = P[z_i]
 
-    # Useful insertion: after z_k means before global atom z_i+k.
     new_order = insert_atom(order, q_index, z_i + k)
     oldD = defect_short(p, order)
     newD = defect_short(p, new_order)
@@ -192,14 +184,12 @@ def classify_right_insertion(p: int, order: Sequence[int], z_i: int, z_j: int, k
     for idx in ext_indices:
         ext_value_to_indices[P[idx]].append(idx)
 
-    # Local cross-side collisions: T_a = q+T_b, a<=k<=b.
     for a in range(0, k + 1):
-        for b in range(k, m):  # exclude b=m boundary q+T_m=q
+        for b in range(k, m):
             if T[a] % p == (q + T[b]) % p:
                 signed.append({"a": a, "b": b, "value": (base + T[a]) % p})
 
-    # External bridge collisions: q+T_b hits an external endpoint.
-    for b in range(k, m):  # exclude b=m boundary endpoint
+    for b in range(k, m):
         val = (base + q + T[b]) % p
         if val in ext_value_to_indices:
             side_counts = Counter("left" if idx < z_i else "right" for idx in ext_value_to_indices[val])
@@ -219,7 +209,6 @@ def classify_right_insertion(p: int, order: Sequence[int], z_i: int, z_j: int, k
     elif nonterminal:
         branch_flags.append("EXTERNAL_BRIDGE")
     elif terminal:
-        # Side split for terminal bridge.
         side_counts = Counter()
         for e in terminal:
             side_counts.update(e["side_counts"])
@@ -259,29 +248,24 @@ def classify_right_insertion(p: int, order: Sequence[int], z_i: int, z_j: int, k
 
 
 def classify_left_by_reversal(p: int, order: Sequence[int], z_i: int, z_j: int, k: int) -> dict:
-    """Classify left-adjacent q by reversing the order and using right classifier.
-
-    This is a mining convenience. It does not assert the final proof should be
-    written in reversed coordinates.
-    """
     n = len(order)
     rev = tuple(reversed(order))
-    # Original q is atom z_i-1. Original Z atoms z_i..z_j-1 become reversed Z at
-    # atom indices n-z_j .. n-z_i-1, followed by q at n-z_i.
     rz_i = n - z_j
     rz_j = n - z_i
-    # k is measured from left in reversed Z. Caller supplies 1<=k<m in reversed coordinates.
     rec = classify_right_insertion(p, rev, rz_i, rz_j, k)
     rec["side"] = "left_via_reversal"
     rec["new_order_reversed_back"] = list(reversed(rec["new_order"]))
     return rec
 
 
-def analyze_order(p: int, S: Sequence[int], order: Sequence[int], max_intervals: int) -> Optional[dict]:
+def analyze_order(p: int, S: Sequence[int], order: Sequence[int], max_intervals: int, min_active_length: int) -> dict | None:
     zis = zero_intervals(p, order)
     if not zis:
         return None
     L_min = min(length for _, _, length in zis)
+    if L_min < min_active_length:
+        return None
+
     active_intervals = [(i, j, length) for i, j, length in zis if length == L_min]
     records = []
 
@@ -312,9 +296,6 @@ def analyze_order(p: int, S: Sequence[int], order: Sequence[int], max_intervals:
                 "flag_counts": dict(Counter(flag for a in attempts for flag in a["branch_flags"])),
             }
         records.append(interval_rec)
-
-    if not records:
-        return None
 
     all_attempts = []
     for r in records:
@@ -347,6 +328,7 @@ def main() -> int:
     ap.add_argument("--order-samples", type=int, default=1000)
     ap.add_argument("--orders-per-set", type=int, default=10)
     ap.add_argument("--max-intervals", type=int, default=5)
+    ap.add_argument("--min-active-length", type=int, default=2)
     ap.add_argument("--random-sets", action="store_true")
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--out", default="-")
@@ -361,6 +343,7 @@ def main() -> int:
     records = []
     sets_seen = 0
     orders_tested = 0
+    skipped_short_active = 0
     aggregate_labels = Counter()
     aggregate_flags = Counter()
 
@@ -370,8 +353,11 @@ def main() -> int:
             continue
         for order in sample_defective_orders(args.p, S, args.order_samples, rng, args.orders_per_set):
             orders_tested += 1
-            rec = analyze_order(args.p, S, order, args.max_intervals)
+            rec = analyze_order(args.p, S, order, args.max_intervals, args.min_active_length)
             if rec is None:
+                zis = zero_intervals(args.p, order)
+                if zis and min(length for _, _, length in zis) < args.min_active_length:
+                    skipped_short_active += 1
                 continue
             records.append(rec)
             aggregate_labels.update(rec["attempt_label_counts"])
@@ -387,6 +373,7 @@ def main() -> int:
 
     print(f"sets_seen={sets_seen}", flush=True)
     print(f"orders_tested={orders_tested}", flush=True)
+    print(f"skipped_short_active={skipped_short_active}", flush=True)
     print(f"external_bridge_records={len(records)}", flush=True)
     print("aggregate_labels=" + json.dumps(dict(aggregate_labels), sort_keys=True), flush=True)
     print("aggregate_flags=" + json.dumps(dict(aggregate_flags), sort_keys=True), flush=True)
