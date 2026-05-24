@@ -193,7 +193,9 @@ def has_external_collision_change(p: int, old: Sequence[int], new: Sequence[int]
 
 
 def result_kind(result: dict) -> str:
-    if result.get("move") is None:
+    # Unsupported traps are explicitly emitted with move=None.  Supported moved
+    # results do not carry a move field because the new_order is the move witness.
+    if "move" in result and result["move"] is None:
         return "unsupported"
     if result.get("improved") is True:
         return "improved"
