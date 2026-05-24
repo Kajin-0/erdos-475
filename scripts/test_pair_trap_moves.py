@@ -28,6 +28,7 @@ from collections import Counter
 from typing import Iterator, List, Optional, Sequence, Tuple
 
 INF = 10**9
+SUPPORTED_TYPES = {"disjoint", "crossing", "nested"}
 
 
 def is_prime(n: int) -> bool:
@@ -191,6 +192,30 @@ def has_external_collision_change(p: int, old: Sequence[int], new: Sequence[int]
     return False
 
 
+def result_kind(result: dict) -> str:
+    if result.get("move") is None:
+        return "unsupported"
+    if result.get("improved") is True:
+        return "improved"
+    if result.get("external_collision_change") is True:
+        return "external_only"
+    return "danger"
+
+
+def summarize_results(results: Sequence[dict]) -> dict:
+    counts = Counter(result_kind(r) for r in results)
+    supported = sum(1 for r in results if r.get("trap", {}).get("type") in SUPPORTED_TYPES)
+    trap_types = Counter(r.get("trap", {}).get("type", "unknown") for r in results)
+    return {
+        "supported_results": supported,
+        "improved": counts.get("improved", 0),
+        "external_only": counts.get("external_only", 0),
+        "danger": counts.get("danger", 0),
+        "unsupported": counts.get("unsupported", 0),
+        "trap_result_type_counts": dict(trap_types),
+    }
+
+
 def find_best_sample_order(p: int, S: Sequence[int], samples: int, rng: random.Random) -> Tuple[int, ...]:
     arr = list(S)
     best = tuple(arr)
@@ -208,7 +233,6 @@ def find_best_sample_order(p: int, S: Sequence[int], samples: int, rng: random.R
 
 
 def sample_defective_orders(p: int, S: Sequence[int], samples: int, rng: random.Random, limit: int) -> List[Tuple[int, ...]]:
-    """Return sampled orders with at least one zero interval, prioritizing rich trap candidates."""
     arr = list(S)
     scored: list[tuple[tuple[int, int, int], Tuple[int, ...]]] = []
     seen = set()
@@ -221,7 +245,6 @@ def sample_defective_orders(p: int, S: Sequence[int], samples: int, rng: random.
         zis = zero_intervals(p, cand)
         if not zis:
             continue
-        # Prefer more defective orders with longer shortest Z, because tiny Z often has no pair traps.
         D = defect_short(p, cand)
         E, L, N, _M = D
         score = (-E, -L, -N)
@@ -297,6 +320,8 @@ def analyze_order(p: int, S: Sequence[int], order: Sequence[int], max_traps: int
             }
         )
 
+    summary = summarize_results(results)
+
     return {
         "p": p,
         "S": list(S),
@@ -308,6 +333,7 @@ def analyze_order(p: int, S: Sequence[int], order: Sequence[int], max_traps: int
         "active_zero_interval": {"i": i, "j": j, "length": m, "Z": list(Z)},
         "trap_count": len(traps),
         "trap_type_counts": dict(Counter(t["type"] for t in traps)),
+        "summary": summary,
         "results": results,
     }
 
@@ -336,6 +362,7 @@ def main() -> int:
     records = []
     sets_seen = 0
     orders_tested = 0
+    aggregate = Counter()
     for S in iter_sets(args.p, args.size, args.max_sets, rng, args.random_sets):
         sets_seen += 1
         if sum(S) % args.p == 0:
@@ -351,6 +378,7 @@ def main() -> int:
             rec = analyze_order(args.p, S, order, args.max_traps, active_mode=args.active_mode)
             if rec is not None:
                 records.append(rec)
+                aggregate.update({k: v for k, v in rec["summary"].items() if isinstance(v, int)})
 
     if args.out == "-":
         for rec in records:
@@ -363,6 +391,7 @@ def main() -> int:
     print(f"sets_seen={sets_seen}", flush=True)
     print(f"orders_tested={orders_tested}", flush=True)
     print(f"pair_trap_records={len(records)}", flush=True)
+    print("aggregate=" + json.dumps(dict(aggregate), sort_keys=True), flush=True)
     return 0
 
 
