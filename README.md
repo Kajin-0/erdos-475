@@ -2,7 +2,39 @@
 
 This repository contains a computer-assisted certificate package for finite complement cases in Erdos Problem 475, also known as Graham's rearrangement problem.
 
-## Certified result
+## Claim boundary
+
+This repository should be read as a finite-certificate project unless and until the external reduction ledger is completed.
+
+Safe claim:
+
+```text
+The declared finite complement domains are checkable by direct witness verification.
+```
+
+Not claimed here yet:
+
+```text
+A complete standalone proof of Erdos 475 for all primes and all subsets.
+```
+
+The full theorem requires:
+
+```text
+external analytic reductions
++ verified finite certificate domain
++ proof that the analytic residue is contained in the verified finite domain
+```
+
+See:
+
+```text
+docs/REDUCTION_LEDGER.md
+```
+
+---
+
+## Finite certificate target
 
 The package works with complements
 
@@ -10,7 +42,7 @@ The package works with complements
 B = F_p^* \ A
 ```
 
-and verifies the following complement domain, modulo nonzero multiplicative scaling:
+and targets the following complement domain, modulo nonzero multiplicative scaling:
 
 ```text
 p = 29, |B| = 3..7
@@ -24,33 +56,90 @@ p = 29, |A| = 21..25
 p = 31, |A| = 24..27
 ```
 
-## Status
+The finite theorem is certified only when `certificates/minimal_witnesses.jsonl` exists and passes the Python and Rust witness verifiers.
 
-This repository verifies the finite complement cases above. It does not independently prove the external analytic reduction from the full Erdos 475 problem to these finite cases.
+---
 
-If the known analytic reductions leave exactly these complement cases, then this repository completes that finite check.
+## Minimal witness certificate
 
-## Main proof
-
-See:
+The preferred trusted artifact is:
 
 ```text
-docs/proof.tex
+certificates/minimal_witnesses.jsonl
 ```
 
-A compiled PDF may also be included as:
+with one JSON object per canonical complement representative:
+
+```json
+{"p":29,"B":[1,2,5],"final_order":[...]}
+```
+
+The verifier recomputes from scratch:
 
 ```text
-docs/proof.pdf
+p is prime;
+B subset F_p^*;
+B is canonical under multiplicative scaling;
+final_order is a permutation of F_p^* \ B;
+nonempty partial sums of final_order are pairwise distinct mod p;
+declared canonical coverage is complete.
 ```
 
-## Independent validation
+Trace files and descent certificates are provenance.  Final witnesses are the smaller finite-existence kernel.
 
-Run all commands from the repository root.
+---
 
-### 1. Trace semantics
+## Quick verification
 
-This confirms that `B` is the complement set and that the ordered set is `A = F_p^* \ B`.
+Run all configured checks from the repository root:
+
+```bash
+bash scripts/run_all_verification.sh
+```
+
+This checks the minimal witness file if present.  If it is missing but the known trace files are present, the script attempts to generate it first.
+
+---
+
+## Generate minimal witnesses from traces
+
+```bash
+python scripts/extract_minimal_witnesses.py \
+  --trace traces/p29_r3_to_r7_repair_traces_strict.jsonl \
+  --trace traces/p31_r3_to_r6_repair_traces_strict.jsonl \
+  --out certificates/minimal_witnesses.jsonl \
+  --strict
+```
+
+Then verify:
+
+```bash
+python scripts/verify_minimal_witnesses.py \
+  certificates/minimal_witnesses.jsonl \
+  --domain 29:3-7 \
+  --domain 31:3-6 \
+  --require-canonical \
+  --require-coverage
+```
+
+Independent Rust verification:
+
+```bash
+cd rust-verifier
+cargo run --release -- ../certificates/minimal_witnesses.jsonl \
+  --domain 29:3-7 \
+  --domain 31:3-6 \
+  --require-canonical \
+  --require-coverage
+```
+
+---
+
+## Existing trace/certificate validation
+
+The repository may also contain richer trace and CSV certificate checks.
+
+### Trace semantics
 
 ```bash
 python scripts/verify_erdos475_trace_semantics.py \
@@ -58,13 +147,7 @@ python scripts/verify_erdos475_trace_semantics.py \
   traces/p31_r3_to_r6_repair_traces_strict.jsonl
 ```
 
-Expected:
-
-```text
-VERDICT: PASS
-```
-
-### 2. Certificate verification
+### Certificate verification
 
 ```bash
 python scripts/verify_erdos475_certificates.py \
@@ -83,14 +166,7 @@ python scripts/verify_erdos475_certificates.py \
   --strict-csv
 ```
 
-Expected:
-
-```text
-TOTAL ok=198631 fail=0
-VERDICT: PASS
-```
-
-### 3. Coverage audit
+### Coverage audit
 
 ```bash
 python scripts/audit_erdos475_trace_coverage.py \
@@ -99,35 +175,40 @@ python scripts/audit_erdos475_trace_coverage.py \
   --summary-csv certificates/trace_coverage_summary.csv
 ```
 
-Expected in canonical-scaling mode:
+---
 
-```text
-coverage=100.00%
-missing=0
-extra=0
+## Hash manifest
+
+After certificates are finalized:
+
+```bash
+bash scripts/make_manifest.sh
+sha256sum -c MANIFEST.sha256
 ```
+
+---
 
 ## Repository layout
 
 ```text
-docs/          proof draft, manifest, validation protocol
-scripts/       independent verification scripts
-traces/        JSONL trace universes
-certificates/  CSV certificate tables
-logs/          saved validation logs
+docs/            proof drafts, finite theorem docs, trust model, reduction ledger
+scripts/         Python verification and extraction scripts
+rust-verifier/   independent Rust witness verifier
+traces/          JSONL trace universes, if committed
+certificates/    witness JSONL and CSV certificate tables
+logs/            saved validation logs, if committed
+.github/         CI workflow
 ```
 
-## Remaining mathematical task
+---
 
-The remaining proof obligation is to verify the external reduction boundary:
+## Main documents
 
 ```text
-Do known analytic reductions leave exactly
-p = 29, |B| = 3..7 and p = 31, |B| = 3..6?
+docs/FINITE_THEOREM.md
+docs/TRUST_MODEL.md
+docs/REDUCTION_LEDGER.md
+docs/FINITE_CERTIFICATE_RUNBOOK.md
 ```
 
-See:
-
-```text
-docs/reduction_audit.md
-```
+Older analytic and SNS proof drafts remain research notes unless explicitly promoted into a verified theorem chain.
