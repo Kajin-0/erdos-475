@@ -36,7 +36,7 @@ Important filter:
 
     --min-active-length 3
 
-skips examples whose shortest zero interval has length 2. Length-2 intervals are
+filters examples whose shortest zero interval has length 2. Length-2 intervals are
 inverse pairs and form a special terminal-bridge branch, not the true distributed
 overlap hard case.
 """
@@ -137,10 +137,22 @@ def iter_sets(p: int, size: int, max_sets: int, rng: random.Random, random_sets:
             yield comb
 
 
-def sample_defective_orders(p: int, S: Sequence[int], samples: int, rng: random.Random, limit: int) -> List[Tuple[int, ...]]:
+def sample_defective_orders(
+    p: int,
+    S: Sequence[int],
+    samples: int,
+    rng: random.Random,
+    limit: int,
+    min_active_length: int,
+) -> tuple[List[Tuple[int, ...]], int]:
+    """Sample defective orders whose shortest zero interval has length >= min_active_length.
+
+    Returns (selected_orders, skipped_short_active_count).
+    """
     arr = list(S)
     scored: list[tuple[tuple[int, int, int], Tuple[int, ...]]] = []
     seen = set()
+    skipped_short_active = 0
     for _ in range(samples):
         rng.shuffle(arr)
         cand = tuple(arr)
@@ -151,10 +163,13 @@ def sample_defective_orders(p: int, S: Sequence[int], samples: int, rng: random.
         if not zis:
             continue
         E, L, N, _M = defect_short(p, cand)
+        if L < min_active_length:
+            skipped_short_active += 1
+            continue
         score = (E, L, N)
         scored.append((score, cand))
     scored.sort()
-    return [cand for _score, cand in scored[:limit]]
+    return [cand for _score, cand in scored[:limit]], skipped_short_active
 
 
 def external_indices_for_window(n_atoms: int, z_i: int, z_j: int, q_index: int) -> set[int]:
@@ -351,13 +366,19 @@ def main() -> int:
         sets_seen += 1
         if sum(S) % args.p == 0:
             continue
-        for order in sample_defective_orders(args.p, S, args.order_samples, rng, args.orders_per_set):
+        candidate_orders, skipped = sample_defective_orders(
+            args.p,
+            S,
+            args.order_samples,
+            rng,
+            args.orders_per_set,
+            args.min_active_length,
+        )
+        skipped_short_active += skipped
+        for order in candidate_orders:
             orders_tested += 1
             rec = analyze_order(args.p, S, order, args.max_intervals, args.min_active_length)
             if rec is None:
-                zis = zero_intervals(args.p, order)
-                if zis and min(length for _, _, length in zis) < args.min_active_length:
-                    skipped_short_active += 1
                 continue
             records.append(rec)
             aggregate_labels.update(rec["attempt_label_counts"])
