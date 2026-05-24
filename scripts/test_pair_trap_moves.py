@@ -3,30 +3,19 @@
 Low-compute tester for pair-trap block moves in the Erdős 475 analytic sprint.
 
 This script does not attempt to prove Erdős 475.  It searches small prime examples
-for shortest zero intervals Z containing equal-interval-sum pair traps, classifies
-the trap geometry, applies the natural block move, and reports whether the working
-short-defect D_short improves or whether failures are accompanied by external
-collisions.
+for zero intervals Z containing equal-interval-sum pair traps, classifies the trap
+geometry, applies the natural block move, and reports whether the working short-
+defect D_short improves or whether failures are accompanied by external collisions.
 
-Definitions:
+Important mode distinction:
 
-  Extended partial sums: P_0=0, P_i=r_1+...+r_i mod p.
-  Zero interval: P_i=P_j, i<j.
-  D_short(R)=(E,L_min,N_min,M), where:
-    E     = collision excess of extended partial sums;
-    L_min = shortest zero-interval length, inf if E=0;
-    N_min = number of shortest zero intervals;
-    M     = descending multiplicity profile >1.
+  --order-mode best
+      tries to find a low-defect / possibly collision-free ordering.  This is good
+      for theorem search but often produces no obstruction records.
 
-Pair trap inside Z:
-
-  U(i,j)=U(k,l), where U(a,b)=T_b-T_a and T are Z-internal prefixes.
-
-Trap types:
-
-  disjoint: i<j<k<l
-  crossing: i<k<j<l, equivalent to equal flank sums U(i,k)=U(j,l)
-  nested:   i<k<l<j, equivalent to zero flank sum U(i,k)+U(l,j)=0
+  --order-mode defective
+      deliberately keeps sampled defective orderings.  This is better for mining
+      obstruction patterns and is the recommended mode for this script.
 """
 
 from __future__ import annotations
@@ -34,10 +23,9 @@ from __future__ import annotations
 import argparse
 import itertools
 import json
-import math
 import random
 from collections import Counter
-from typing import Iterable, Iterator, List, Optional, Sequence, Tuple
+from typing import Iterator, List, Optional, Sequence, Tuple
 
 INF = 10**9
 
@@ -107,7 +95,6 @@ def classify_pair(i: int, j: int, k: int, l: int) -> Optional[str]:
         return None
     if i == k or j == l:
         return "shared_endpoint"
-    # Normalize by leftmost interval start for named types.
     if k < i:
         return classify_pair(k, l, i, j)
     if i < j < k < l:
@@ -125,7 +112,6 @@ def pair_traps_inside_Z(p: int, Z: Sequence[int]) -> List[dict]:
     intervals = []
     for i in range(m + 1):
         for j in range(i + 1, m + 1):
-            # Exclude the whole Z interval when possible; it is the active zero block.
             intervals.append((i, j, interval_sum(T, i, j, p)))
 
     traps = []
@@ -147,49 +133,36 @@ def replace_block(order: Sequence[int], start: int, end: int, new_block: Sequenc
 
 
 def move_for_trap(order: Sequence[int], z_start: int, trap: dict) -> Optional[Tuple[int, ...]]:
-    """Apply the natural pair-trap block move in global coordinates.
-
-    z_start is the atom index where active Z begins in order.
-    Trap indices are prefix indices relative to Z.
-    """
     i, j, k, l = trap["i"], trap["j"], trap["k"], trap["l"]
     typ = trap["type"]
 
-    # Ensure i<... by swapping interval labels when needed.
     if k < i:
         i, j, k, l = k, l, i, j
 
-    Z_window_start = z_start
+    z0 = z_start
 
     if typ == "disjoint":
-        # A M B -> B M A
-        A = order[Z_window_start + i : Z_window_start + j]
-        M = order[Z_window_start + j : Z_window_start + k]
-        B = order[Z_window_start + k : Z_window_start + l]
-        new_block = tuple(B) + tuple(M) + tuple(A)
-        return replace_block(order, Z_window_start + i, Z_window_start + l, new_block)
+        A = order[z0 + i : z0 + j]
+        M = order[z0 + j : z0 + k]
+        B = order[z0 + k : z0 + l]
+        return replace_block(order, z0 + i, z0 + l, tuple(B) + tuple(M) + tuple(A))
 
     if typ == "crossing":
-        # i<k<j<l gives equal flank sums U(i,k)=U(j,l). Swap flank blocks A and C in A B C -> C B A.
-        A = order[Z_window_start + i : Z_window_start + k]
-        Bmid = order[Z_window_start + k : Z_window_start + j]
-        C = order[Z_window_start + j : Z_window_start + l]
-        new_block = tuple(C) + tuple(Bmid) + tuple(A)
-        return replace_block(order, Z_window_start + i, Z_window_start + l, new_block)
+        A = order[z0 + i : z0 + k]
+        Bmid = order[z0 + k : z0 + j]
+        C = order[z0 + j : z0 + l]
+        return replace_block(order, z0 + i, z0 + l, tuple(C) + tuple(Bmid) + tuple(A))
 
     if typ == "nested":
-        # i<k<l<j gives zero flanks U(i,k)+U(l,j)=0. Bring flanks together: A B C -> A C B.
-        A = order[Z_window_start + i : Z_window_start + k]
-        Bmid = order[Z_window_start + k : Z_window_start + l]
-        C = order[Z_window_start + l : Z_window_start + j]
-        new_block = tuple(A) + tuple(C) + tuple(Bmid)
-        return replace_block(order, Z_window_start + i, Z_window_start + j, new_block)
+        A = order[z0 + i : z0 + k]
+        Bmid = order[z0 + k : z0 + l]
+        C = order[z0 + l : z0 + j]
+        return replace_block(order, z0 + i, z0 + j, tuple(A) + tuple(C) + tuple(Bmid))
 
     return None
 
 
 def changed_indices(old: Sequence[int], new: Sequence[int]) -> Tuple[int, int]:
-    """Return a coarse changed atom index window [lo,hi)."""
     n = len(old)
     lo = 0
     while lo < n and old[lo] == new[lo]:
@@ -201,13 +174,7 @@ def changed_indices(old: Sequence[int], new: Sequence[int]) -> Tuple[int, int]:
 
 
 def has_external_collision_change(p: int, old: Sequence[int], new: Sequence[int]) -> bool:
-    """Heuristic external-collision detector for a block move.
-
-    A changed collision is considered external if a repeated partial-sum value in the
-    new ordering involves one partial-sum index outside the changed atom window.
-    """
     lo_atom, hi_atom = changed_indices(old, new)
-    # Partial-sum indices affected by atom window [lo,hi) are roughly lo+1 through hi.
     aff_lo = lo_atom + 1
     aff_hi = hi_atom
     P_new = partial_sums_extended(p, new)
@@ -240,6 +207,29 @@ def find_best_sample_order(p: int, S: Sequence[int], samples: int, rng: random.R
     return best
 
 
+def sample_defective_orders(p: int, S: Sequence[int], samples: int, rng: random.Random, limit: int) -> List[Tuple[int, ...]]:
+    """Return sampled orders with at least one zero interval, prioritizing rich trap candidates."""
+    arr = list(S)
+    scored: list[tuple[tuple[int, int, int], Tuple[int, ...]]] = []
+    seen = set()
+    for _ in range(samples):
+        rng.shuffle(arr)
+        cand = tuple(arr)
+        if cand in seen:
+            continue
+        seen.add(cand)
+        zis = zero_intervals(p, cand)
+        if not zis:
+            continue
+        # Prefer more defective orders with longer shortest Z, because tiny Z often has no pair traps.
+        D = defect_short(p, cand)
+        E, L, N, _M = D
+        score = (-E, -L, -N)
+        scored.append((score, cand))
+    scored.sort()
+    return [cand for _score, cand in scored[:limit]]
+
+
 def iter_sets(p: int, size: int, max_sets: int, rng: random.Random, random_sets: bool) -> Iterator[Tuple[int, ...]]:
     universe = list(range(1, p))
     if random_sets:
@@ -259,18 +249,34 @@ def iter_sets(p: int, size: int, max_sets: int, rng: random.Random, random_sets:
             yield comb
 
 
-def analyze_order(p: int, S: Sequence[int], order: Sequence[int], max_traps: int) -> Optional[dict]:
+def analyze_order(p: int, S: Sequence[int], order: Sequence[int], max_traps: int, *, active_mode: str) -> Optional[dict]:
     zis = zero_intervals(p, order)
     if not zis:
         return None
-    min_len = min(length for _, _, length in zis)
-    active = next(z for z in zis if z[2] == min_len)
-    i, j, m = active
-    Z = tuple(order[i:j])
-    traps = pair_traps_inside_Z(p, Z)
-    if not traps:
+
+    if active_mode == "shortest":
+        target_len = min(length for _, _, length in zis)
+    elif active_mode == "longest":
+        target_len = max(length for _, _, length in zis)
+    else:
+        raise ValueError(f"unknown active_mode: {active_mode}")
+
+    active_candidates = [z for z in zis if z[2] == target_len]
+
+    best_record = None
+    best_trap_count = 0
+    for active in active_candidates:
+        i, j, m = active
+        Z = tuple(order[i:j])
+        traps = pair_traps_inside_Z(p, Z)
+        if len(traps) > best_trap_count:
+            best_trap_count = len(traps)
+            best_record = (i, j, m, Z, traps)
+
+    if best_record is None or best_trap_count == 0:
         return None
 
+    i, j, m, Z, traps = best_record
     oldD = defect_short(p, order)
     results = []
     for trap in traps[:max_traps]:
@@ -287,7 +293,7 @@ def analyze_order(p: int, S: Sequence[int], order: Sequence[int], max_traps: int
                 "improved": newD < oldD,
                 "external_collision_change": has_external_collision_change(p, order, moved),
                 "new_order": list(moved),
-                "new_zero_intervals_min": [list(z) for z in zero_intervals(p, moved)[:10]],
+                "new_zero_intervals_first10": [list(z) for z in zero_intervals(p, moved)[:10]],
             }
         )
 
@@ -298,8 +304,10 @@ def analyze_order(p: int, S: Sequence[int], order: Sequence[int], max_traps: int
         "order": list(order),
         "partial_sums": partial_sums_extended(p, order),
         "defect": oldD,
+        "active_mode": active_mode,
         "active_zero_interval": {"i": i, "j": j, "length": m, "Z": list(Z)},
         "trap_count": len(traps),
+        "trap_type_counts": dict(Counter(t["type"] for t in traps)),
         "results": results,
     }
 
@@ -310,10 +318,13 @@ def main() -> int:
     ap.add_argument("--size", type=int, default=7)
     ap.add_argument("--max-sets", type=int, default=100)
     ap.add_argument("--order-samples", type=int, default=300)
+    ap.add_argument("--orders-per-set", type=int, default=5)
     ap.add_argument("--max-traps", type=int, default=20)
     ap.add_argument("--random-sets", action="store_true")
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--out", default="-")
+    ap.add_argument("--order-mode", choices=["best", "defective"], default="defective")
+    ap.add_argument("--active-mode", choices=["shortest", "longest"], default="longest")
     args = ap.parse_args()
 
     if not is_prime(args.p):
@@ -323,13 +334,23 @@ def main() -> int:
 
     rng = random.Random(args.seed)
     records = []
+    sets_seen = 0
+    orders_tested = 0
     for S in iter_sets(args.p, args.size, args.max_sets, rng, args.random_sets):
+        sets_seen += 1
         if sum(S) % args.p == 0:
             continue
-        order = find_best_sample_order(args.p, S, args.order_samples, rng)
-        rec = analyze_order(args.p, S, order, args.max_traps)
-        if rec is not None:
-            records.append(rec)
+
+        if args.order_mode == "best":
+            candidate_orders = [find_best_sample_order(args.p, S, args.order_samples, rng)]
+        else:
+            candidate_orders = sample_defective_orders(args.p, S, args.order_samples, rng, args.orders_per_set)
+
+        for order in candidate_orders:
+            orders_tested += 1
+            rec = analyze_order(args.p, S, order, args.max_traps, active_mode=args.active_mode)
+            if rec is not None:
+                records.append(rec)
 
     if args.out == "-":
         for rec in records:
@@ -339,6 +360,8 @@ def main() -> int:
             for rec in records:
                 f.write(json.dumps(rec, separators=(",", ":")) + "\n")
 
+    print(f"sets_seen={sets_seen}", flush=True)
+    print(f"orders_tested={orders_tested}", flush=True)
     print(f"pair_trap_records={len(records)}", flush=True)
     return 0
 
