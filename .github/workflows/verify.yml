@@ -1,8 +1,15 @@
 name: verify
 
 on:
-  push:
   pull_request:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   finite-certificate:
