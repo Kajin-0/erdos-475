@@ -16,6 +16,15 @@ Important mode distinction:
   --order-mode defective
       deliberately keeps sampled defective orderings.  This is better for mining
       obstruction patterns and is the recommended mode for this script.
+
+Important active-mode distinction:
+
+  --active-mode shortest
+      tests the proof-relevant D_short branch.
+
+  --active-mode longest
+      mines richer pair-trap geometry, but non-improving moves may be artifacts
+      because D_short is controlled by shorter zero intervals outside the active Z.
 """
 
 from __future__ import annotations
@@ -193,14 +202,14 @@ def has_external_collision_change(p: int, old: Sequence[int], new: Sequence[int]
 
 
 def result_kind(result: dict) -> str:
-    # Unsupported traps are explicitly emitted with move=None.  Supported moved
-    # results do not carry a move field because the new_order is the move witness.
     if "move" in result and result["move"] is None:
         return "unsupported"
     if result.get("improved") is True:
         return "improved"
     if result.get("external_collision_change") is True:
         return "external_only"
+    if result.get("non_shortest_active_artifact") is True:
+        return "non_shortest_active_artifact"
     return "danger"
 
 
@@ -212,6 +221,7 @@ def summarize_results(results: Sequence[dict]) -> dict:
         "supported_results": supported,
         "improved": counts.get("improved", 0),
         "external_only": counts.get("external_only", 0),
+        "non_shortest_active_artifact": counts.get("non_shortest_active_artifact", 0),
         "danger": counts.get("danger", 0),
         "unsupported": counts.get("unsupported", 0),
         "trap_result_type_counts": dict(trap_types),
@@ -303,6 +313,8 @@ def analyze_order(p: int, S: Sequence[int], order: Sequence[int], max_traps: int
 
     i, j, m, Z, traps = best_record
     oldD = defect_short(p, order)
+    old_shortest_len = oldD[1]
+    active_is_shortest = (m == old_shortest_len)
     results = []
     for trap in traps[:max_traps]:
         moved = move_for_trap(order, i, trap)
@@ -310,13 +322,16 @@ def analyze_order(p: int, S: Sequence[int], order: Sequence[int], max_traps: int
             results.append({"trap": trap, "move": None})
             continue
         newD = defect_short(p, moved)
+        improved = newD < oldD
+        external = has_external_collision_change(p, order, moved)
         results.append(
             {
                 "trap": trap,
                 "old_defect": oldD,
                 "new_defect": newD,
-                "improved": newD < oldD,
-                "external_collision_change": has_external_collision_change(p, order, moved),
+                "improved": improved,
+                "external_collision_change": external,
+                "non_shortest_active_artifact": (not improved and not external and not active_is_shortest),
                 "new_order": list(moved),
                 "new_zero_intervals_first10": [list(z) for z in zero_intervals(p, moved)[:10]],
             }
@@ -333,6 +348,7 @@ def analyze_order(p: int, S: Sequence[int], order: Sequence[int], max_traps: int
         "defect": oldD,
         "active_mode": active_mode,
         "active_zero_interval": {"i": i, "j": j, "length": m, "Z": list(Z)},
+        "active_is_shortest": active_is_shortest,
         "trap_count": len(traps),
         "trap_type_counts": dict(Counter(t["type"] for t in traps)),
         "summary": summary,
