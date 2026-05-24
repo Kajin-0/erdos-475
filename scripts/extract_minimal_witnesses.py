@@ -7,6 +7,10 @@ The output is intentionally small:
 
 The extractor is schema-tolerant because historical trace files may use different
 field names.  The verifier, not this extractor, is the trusted kernel.
+
+Important: when canonicalizing a complement B under nonzero multiplicative scaling,
+the final_order must be scaled by the same multiplier.  Scaling only B changes the
+instance and invalidates the witness.
 """
 
 from __future__ import annotations
@@ -42,7 +46,32 @@ def deep_get(obj: dict[str, Any], paths: Iterable[tuple[str, ...]]) -> Any:
     return None
 
 
-def extract_record(raw: dict[str, Any], source: str, line_no: int) -> dict[str, Any] | None:
+def canonical_multiplier(B: list[int], p: int) -> tuple[int, list[int]]:
+    """Return lambda and canonical sorted lambda*B modulo p.
+
+    The canonical representative is the lexicographically smallest sorted set
+    among all nonzero multiplicative scalings of B in F_p^*.
+    """
+    if not B:
+        return 1, []
+
+    best_lam = 1
+    best_B: list[int] | None = None
+    for lam in range(1, p):
+        scaled = sorted((lam * int(x)) % p for x in B)
+        if best_B is None or tuple(scaled) < tuple(best_B):
+            best_lam = lam
+            best_B = scaled
+
+    assert best_B is not None
+    return best_lam, best_B
+
+
+def scale_order(order: list[int], p: int, lam: int) -> list[int]:
+    return [(lam * int(x)) % p for x in order]
+
+
+def extract_record(raw: dict[str, Any], source: str, line_no: int, *, canonicalize: bool) -> dict[str, Any] | None:
     p = deep_get(raw, [
         ("p",),
         ("prime",),
@@ -74,10 +103,19 @@ def extract_record(raw: dict[str, Any], source: str, line_no: int) -> dict[str, 
     if B_list is None or order_list is None:
         return None
 
+    B_sorted = sorted(x % p_int for x in B_list)
+    order_mod = [x % p_int for x in order_list]
+    scale_lambda = 1
+
+    if canonicalize:
+        scale_lambda, B_sorted = canonical_multiplier(B_sorted, p_int)
+        order_mod = scale_order(order_mod, p_int, scale_lambda)
+
     return {
         "p": p_int,
-        "B": sorted(B_list),
-        "final_order": order_list,
+        "B": B_sorted,
+        "final_order": order_mod,
+        "canonical_scale_lambda": scale_lambda,
         "source": source,
         "source_line": line_no,
     }
@@ -92,8 +130,14 @@ def main() -> int:
     parser.add_argument("--trace", action="append", required=True, help="Trace JSONL file. May be passed multiple times.")
     parser.add_argument("--out", required=True, help="Output minimal witness JSONL file.")
     parser.add_argument("--strict", action="store_true", help="Fail if no witness records are extracted.")
+    parser.add_argument(
+        "--no-canonicalize",
+        action="store_true",
+        help="Preserve B/order exactly as extracted. Default canonicalizes B and scales final_order by the same multiplier.",
+    )
     args = parser.parse_args()
 
+    canonicalize = not args.no_canonicalize
     records: dict[tuple[int, tuple[int, ...]], dict[str, Any]] = {}
     scanned = 0
     extracted = 0
@@ -112,7 +156,7 @@ def main() -> int:
                     raw = json.loads(line)
                 except json.JSONDecodeError as exc:
                     raise ValueError(f"invalid JSON in {path}:{line_no}: {exc}") from exc
-                rec = extract_record(raw, str(path), line_no)
+                rec = extract_record(raw, str(path), line_no, canonicalize=canonicalize)
                 if rec is None:
                     continue
                 extracted += 1
@@ -127,6 +171,7 @@ def main() -> int:
     print(f"scanned_records={scanned}")
     print(f"extracted_records={extracted}")
     print(f"unique_witnesses={len(records)}")
+    print(f"canonicalized={canonicalize}")
     print(f"output={out_path}")
 
     if args.strict and not records:
