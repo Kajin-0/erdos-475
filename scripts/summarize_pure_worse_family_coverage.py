@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Record-level family coverage for pure_worse_only m=3 terminal residuals.
+Record-level family and meta-family coverage for pure_worse_only m=3 terminal residuals.
 
 Input is produced by:
 
@@ -12,13 +12,13 @@ Typical inputs:
     logs/analyze_pure_m3_terminal_structure_p23_v2.jsonl
 
 This script classifies each non-tautological symbolic zero block into coarse
-families and reports record-level coverage by permutation:
+families and broader meta-families, then reports record-level coverage by
+permutation:
 
-    permutation -> family -> records hit / records total
+    permutation -> family/meta-family -> records hit / records total
 
-The goal is to identify proof-ready universal statements such as:
-
-    B z q A -> B_tail+zq+A in every pure_worse_only record.
+The meta-family layer is needed because p=23 splits one algebraic mechanism
+across multiple lower-level symbolic families.
 """
 
 from __future__ import annotations
@@ -135,6 +135,25 @@ def classify_symbolic_block(sym: str) -> str:
     return "other"
 
 
+def meta_families(family: str) -> set[str]:
+    metas = {"ANY_NONTAUT"}
+    if family in {"A_all+B_prefix", "A_suffix+B_prefix", "q+A_all+B_prefix", "q+A_suffix+B_prefix", "q+A/B_mixed"}:
+        metas.add("PREFIX_WITH_A")
+    if family in {"A_all+B_prefix", "A_suffix+B_prefix"}:
+        metas.add("A_PLUS_B_PREFIX")
+    if family in {"B_tail+zq+A", "B_A_z_q_Y_mixed", "B_tail+A+Y", "B_tail+A+q", "B_tail+A_prefix"}:
+        metas.add("B_TAIL_WITH_A_CORE")
+    if family in {"B_tail+zq+A", "B_A_z_q_Y_mixed"}:
+        metas.add("B_TAIL_ZQ_A_CORE")
+    if family in {"B_tail+q", "B_tail+q+Y", "qz+Y_prefix", "z+Y_prefix", "A+z+Y"}:
+        metas.add("RIGHT_EXTERIOR_OR_Q_TAIL")
+    if family in {"B_tail+q", "B_tail+q+Y"}:
+        metas.add("B_TAIL_WITH_Q")
+    if family == "mixed_X_prefix":
+        metas.add("LEFT_EXTERIOR_X")
+    return metas
+
+
 def first_candidate(record: dict[str, Any]) -> dict[str, Any]:
     cas = record.get("candidate_analyses", [])
     if not cas:
@@ -177,8 +196,9 @@ def is_tautological(sym: str) -> bool:
     return False
 
 
-def record_perm_families(record: dict[str, Any]) -> dict[str, set[str]]:
-    out: dict[str, set[str]] = defaultdict(set)
+def record_perm_families(record: dict[str, Any]) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
+    families: dict[str, set[str]] = defaultdict(set)
+    metas: dict[str, set[str]] = defaultdict(set)
     for ca in record.get("candidate_analyses", []):
         cand = ca.get("candidate", {})
         labels = symbolic_labels(record, cand)
@@ -190,11 +210,13 @@ def record_perm_families(record: dict[str, Any]) -> dict[str, set[str]]:
                 sym = symbolic_block(zint.get("block", []), labels)
                 if is_tautological(sym):
                     continue
-                out[pk].add(classify_symbolic_block(sym))
-    return dict(out)
+                fam = classify_symbolic_block(sym)
+                families[pk].add(fam)
+                metas[pk].update(meta_families(fam))
+    return dict(families), dict(metas)
 
 
-def compact_example(record: dict[str, Any], perm: str, family: str) -> dict[str, Any] | None:
+def compact_example(record: dict[str, Any], perm: str, label: str, *, meta: bool = False) -> dict[str, Any] | None:
     for ca in record.get("candidate_analyses", []):
         cand = ca.get("candidate", {})
         labels = symbolic_labels(record, cand)
@@ -205,12 +227,14 @@ def compact_example(record: dict[str, Any], perm: str, family: str) -> dict[str,
                 sym = symbolic_block(zint.get("block", []), labels)
                 if is_tautological(sym):
                     continue
-                if classify_symbolic_block(sym) == family:
+                fam = classify_symbolic_block(sym)
+                if (not meta and fam == label) or (meta and label in meta_families(fam)):
                     return {
                         "record_index": record.get("record_index"),
                         "p": record.get("p"),
                         "perm": perm,
-                        "family": family,
+                        "family": fam,
+                        "meta_family": label if meta else None,
                         "symbolic_block": sym,
                         "numeric_block": zint.get("block"),
                         "candidate": {
@@ -227,53 +251,74 @@ def compact_example(record: dict[str, Any], perm: str, family: str) -> dict[str,
 def summarize(records: list[dict[str, Any]], example_limit: int) -> dict[str, Any]:
     worse = [r for r in records if r.get("pure_label") == "pure_worse_only"]
     total = len(worse)
-    family_record_counts: dict[str, Counter[str]] = {perm: Counter() for perm in STABLE_PERMS}
-    support_by_universal_candidate: dict[str, Counter[str]] = defaultdict(Counter)
+    family_counts: dict[str, Counter[str]] = {perm: Counter() for perm in STABLE_PERMS}
+    meta_counts: dict[str, Counter[str]] = {perm: Counter() for perm in STABLE_PERMS}
+    support_by_meta: dict[str, Counter[str]] = defaultdict(Counter)
+    support_by_family: dict[str, Counter[str]] = defaultdict(Counter)
     examples: dict[str, list[dict[str, Any]]] = defaultdict(list)
 
     for record in worse:
         support = str(first_candidate(record).get("support_length"))
-        pf = record_perm_families(record)
+        pf, pm = record_perm_families(record)
         for perm in STABLE_PERMS:
-            fams = pf.get(perm, set())
-            for fam in fams:
-                family_record_counts[perm][fam] += 1
-                support_by_universal_candidate[f"{perm}::{fam}"][support] += 1
-                key = f"{perm}::{fam}"
+            for fam in pf.get(perm, set()):
+                family_counts[perm][fam] += 1
+                support_by_family[f"{perm}::{fam}"][support] += 1
+                key = f"family::{perm}::{fam}"
                 if len(examples[key]) < example_limit:
-                    ex = compact_example(record, perm, fam)
+                    ex = compact_example(record, perm, fam, meta=False)
+                    if ex is not None:
+                        examples[key].append(ex)
+            for meta in pm.get(perm, set()):
+                meta_counts[perm][meta] += 1
+                support_by_meta[f"{perm}::{meta}"][support] += 1
+                key = f"meta::{perm}::{meta}"
+                if len(examples[key]) < example_limit:
+                    ex = compact_example(record, perm, meta, meta=True)
                     if ex is not None:
                         examples[key].append(ex)
 
-    coverage = {}
-    universal = {}
-    for perm, counter in family_record_counts.items():
-        coverage[perm] = {
-            fam: {
-                "records_with_family": count,
+    def coverage_obj(counter: Counter[str]) -> dict[str, Any]:
+        return {
+            label: {
+                "records_with_label": count,
                 "records_total": total,
                 "coverage": count / total if total else 0.0,
                 "universal": count == total,
             }
-            for fam, count in counter.most_common()
+            for label, count in counter.most_common()
         }
-        universal[perm] = sorted([fam for fam, count in counter.items() if count == total])
+
+    family_coverage = {perm: coverage_obj(counter) for perm, counter in family_counts.items()}
+    meta_coverage = {perm: coverage_obj(counter) for perm, counter in meta_counts.items()}
+    universal_families = {perm: sorted([fam for fam, count in c.items() if count == total]) for perm, c in family_counts.items()}
+    universal_metas = {perm: sorted([m for m, count in c.items() if count == total]) for perm, c in meta_counts.items()}
 
     proof_candidates = []
-    for perm, fams in universal.items():
+    for perm, metas in universal_metas.items():
+        for meta in metas:
+            proof_candidates.append({
+                "perm": perm,
+                "meta_family": meta,
+                "support_histogram": dict(support_by_meta[f"{perm}::{meta}"].most_common()),
+                "examples": examples.get(f"meta::{perm}::{meta}", []),
+            })
+    for perm, fams in universal_families.items():
         for fam in fams:
             proof_candidates.append({
                 "perm": perm,
                 "family": fam,
-                "support_histogram": dict(support_by_universal_candidate[f"{perm}::{fam}"].most_common()),
-                "examples": examples.get(f"{perm}::{fam}", []),
+                "support_histogram": dict(support_by_family[f"{perm}::{fam}"].most_common()),
+                "examples": examples.get(f"family::{perm}::{fam}", []),
             })
 
     return {
         "pure_worse_records": total,
         "stable_perms": list(STABLE_PERMS),
-        "coverage_by_perm_family": coverage,
-        "universal_families_by_perm": universal,
+        "coverage_by_perm_family": family_coverage,
+        "coverage_by_perm_meta_family": meta_coverage,
+        "universal_families_by_perm": universal_families,
+        "universal_meta_families_by_perm": universal_metas,
         "proof_candidates": proof_candidates,
     }
 
