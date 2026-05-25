@@ -22,6 +22,8 @@ The tested equation families are:
 
     B_tail+q
     B_tail+q+Y_prefix
+    B_tail+q=A_complement
+    B_tail+q+Y_prefix=A_complement
     B_prefix=q
 
 This script is exploratory.  It does not assume the moves prove anything by
@@ -228,15 +230,19 @@ def token_value(tok: str, eq: dict[str, Any], parts: dict[str, list[int]]) -> in
     return None
 
 
-def values_from_symbolic(eq: dict[str, Any], parts: dict[str, list[int]], symbolic: str) -> list[int]:
+def values_from_tokens(eq: dict[str, Any], parts: dict[str, list[int]], tokens: Sequence[str]) -> list[int]:
     vals = []
-    for tok in symbolic.split():
+    for tok in tokens:
         if tok == "=":
             continue
         v = token_value(tok, eq, parts)
         if v is not None:
             vals.append(v)
     return vals
+
+
+def values_from_symbolic(eq: dict[str, Any], parts: dict[str, list[int]], symbolic: str) -> list[int]:
+    return values_from_tokens(eq, parts, symbolic.split())
 
 
 def make_moves(parts: dict[str, list[int]], eq: dict[str, Any]) -> dict[str, list[int]]:
@@ -283,37 +289,57 @@ def block_sum(p: int, xs: Sequence[int]) -> int:
     return sum(int(x) for x in xs) % p
 
 
+def equation_side_sums(eq: dict[str, Any], parts: dict[str, list[int]], symbolic: str) -> dict[str, Any]:
+    tokens = symbolic.split()
+    if "=" not in tokens:
+        vals = values_from_tokens(eq, parts, tokens)
+        s = block_sum(int(eq["p"]), vals)
+        return {
+            "mode": "zero_sum",
+            "zero_block": vals,
+            "zero_block_sum": s,
+            "holds": s == 0,
+        }
+    k = tokens.index("=")
+    lhs_tokens = tokens[:k]
+    rhs_tokens = tokens[k + 1:]
+    lhs_vals = values_from_tokens(eq, parts, lhs_tokens)
+    rhs_vals = values_from_tokens(eq, parts, rhs_tokens)
+    p = int(eq["p"])
+    lhs_sum = block_sum(p, lhs_vals)
+    rhs_sum = block_sum(p, rhs_vals)
+    return {
+        "mode": "equality",
+        "lhs_tokens": lhs_tokens,
+        "rhs_tokens": rhs_tokens,
+        "lhs_values": lhs_vals,
+        "rhs_values": rhs_vals,
+        "lhs_sum": lhs_sum,
+        "rhs_sum": rhs_sum,
+        "holds": lhs_sum == rhs_sum,
+    }
+
+
 def hidden_equation_check(eq: dict[str, Any], parts: dict[str, list[int]]) -> dict[str, Any]:
     """Verify the extracted equation from its symbolic reduced form.
 
-    The first version reconstructed Y_prefix from length alone, which can be too
-    coarse when the symbolic equation contains a specific exterior-labelled
-    block.  This version evaluates the actual `reduced_equation` tokens.
+    Zero-sum forms such as `B4 B5 q` are checked as sum == 0.
+    Equality forms such as `B4 B5 q = A2` are checked as lhs == rhs mod p.
     """
-    p = int(eq["p"])
     bsplit = split_B(eq)
     Bp = list(bsplit["B_prefix"])
     Bt = list(bsplit["B_tail"])
-    if eq.get("reduced_family") == "B_prefix=q":
-        return {
-            "family": "B_prefix=q",
-            "lhs_sum": block_sum(p, Bp),
-            "q": int(eq["q"]),
-            "holds": block_sum(p, Bp) == int(eq["q"]) % p,
+    symbolic = str(eq.get("reduced_equation", ""))
+    chk = equation_side_sums(eq, parts, symbolic)
+    chk.update(
+        {
+            "family": eq.get("reduced_family"),
             "B_prefix": Bp,
             "B_tail": Bt,
-            "reduced_equation": eq.get("reduced_equation"),
+            "reduced_equation": symbolic,
         }
-    block = values_from_symbolic(eq, parts, str(eq.get("reduced_equation", "")))
-    return {
-        "family": eq.get("reduced_family"),
-        "zero_block": block,
-        "zero_block_sum": block_sum(p, block),
-        "holds": block_sum(p, block) == 0,
-        "B_prefix": Bp,
-        "B_tail": Bt,
-        "reduced_equation": eq.get("reduced_equation"),
-    }
+    )
+    return chk
 
 
 def analyze_equation(eq: dict[str, Any], record: dict[str, Any]) -> dict[str, Any]:
@@ -366,6 +392,7 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
     family_result: dict[str, Counter[str]] = defaultdict(Counter)
     progress: Counter[str] = Counter()
     hold = Counter(str(row.get("hidden_equation", {}).get("holds")) for row in rows if "hidden_equation" in row)
+    mode = Counter(str(row.get("hidden_equation", {}).get("mode")) for row in rows if "hidden_equation" in row)
     for row in rows:
         fam = row.get("reduced_family", "unknown")
         family_best[fam][row.get("best_class", "error")] += 1
@@ -374,6 +401,7 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "records": len(rows),
         "hidden_equation_holds": dict(hold.most_common()),
+        "hidden_equation_modes": dict(mode.most_common()),
         "best_class_counts": dict(best.most_common()),
         "best_class_by_family": {k: dict(v.most_common()) for k, v in family_best.items()},
         "move_class_by_family": {k: dict(v.most_common()) for k, v in family_result.items()},
