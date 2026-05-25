@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Extract the universal B z q A tail-core equation from pure_worse_only m=3 residuals.
+Extract the universal B z q A hidden-support equation from pure_worse_only m=3 residuals.
 
 Input is produced by:
 
@@ -11,17 +11,33 @@ Typical inputs:
     logs/analyze_pure_m3_terminal_structure_p17_v2.jsonl
     logs/analyze_pure_m3_terminal_structure_p23_v2.jsonl
 
-For each pure_worse_only record, this script finds a non-tautological zero block
-under the permutation:
+For each pure_worse_only record, this script searches the permutation:
 
     B z q A
 
-whose symbolic form contains B-tail, z, q, and A.  Since z + A = 0 in the
-m=3 residual, it also emits the reduced equation:
+for one of two proof-relevant hidden support equations.
 
-    B_tail + q + optional Y_prefix = 0
+Tail-core case:
 
-This is intended to turn the empirical family result into proof-ready algebraic data.
+    B_tail + z + q + A + optional Y_prefix = 0
+
+Since A+z=0 in the m=3 residual, this reduces to:
+
+    B_tail + q + optional Y_prefix = 0.
+
+Prefix-core case:
+
+    B_tail + z + q = 0.
+
+Since the terminal relation gives B_prefix+B_tail+z=0, subtracting gives:
+
+    B_prefix = q.
+
+The unified output is therefore one of:
+
+    B_tail+q
+    B_tail+q+Y_prefix
+    B_prefix=q
 """
 
 from __future__ import annotations
@@ -95,17 +111,19 @@ def is_tautological(tokens: list[str]) -> bool:
     return False
 
 
-def is_tail_core(tokens: list[str]) -> bool:
+def has_tail_core(tokens: list[str]) -> bool:
     bases = set(token_bases(tokens))
     return {"B", "z", "q", "A"}.issubset(bases) and not is_tautological(tokens)
 
 
-def reduced_tokens(tokens: list[str]) -> list[str]:
-    """Remove one z and all A tokens, leaving the reduced tail equation.
+def has_prefix_core(tokens: list[str]) -> bool:
+    """Detect B_tail+z+q=0, which implies B_prefix=q by terminal subtraction."""
+    bases = set(token_bases(tokens))
+    return bases.issubset({"B", "z", "q"}) and {"B", "z", "q"}.issubset(bases) and not is_tautological(tokens)
 
-    In this residual, A1+A2+z=0, so a zero block containing z+A1+A2 reduces by
-    deleting z,A1,A2.  Preserve the original order of all other tokens.
-    """
+
+def reduced_tail_tokens(tokens: list[str]) -> list[str]:
+    """Remove one z and all A tokens, leaving B_tail+q(+Y_prefix)."""
     removed_z = False
     out = []
     for t in tokens:
@@ -118,8 +136,17 @@ def reduced_tokens(tokens: list[str]) -> list[str]:
     return out
 
 
-def reduced_family(tokens: list[str]) -> str:
-    rt = reduced_tokens(tokens)
+def b_indices(tokens: list[str]) -> list[int]:
+    return [idx for base, idx in (parse_token(t) for t in tokens) if base == "B" and idx is not None]
+
+
+def y_prefix_len(tokens: list[str]) -> int:
+    yidx = [idx for base, idx in (parse_token(t) for t in tokens) if base == "Y" and idx is not None]
+    return max(yidx) if yidx else 0
+
+
+def reduced_family_from_tail(tokens: list[str]) -> str:
+    rt = reduced_tail_tokens(tokens)
     bases = set(token_bases(rt))
     if bases.issubset({"B", "q"}) and "B" in bases and "q" in bases:
         return "B_tail+q"
@@ -130,16 +157,64 @@ def reduced_family(tokens: list[str]) -> str:
     return "other_reduced"
 
 
-def b_tail_indices(tokens: list[str]) -> list[int]:
-    return [idx for base, idx in (parse_token(t) for t in tokens) if base == "B" and idx is not None]
+def prefix_equation_tokens(tokens: list[str], support_length: int) -> list[str]:
+    tail = b_indices(tokens)
+    if not tail:
+        return ["q"]
+    start = min(tail)
+    # B_tail begins at start, so B_prefix is B1...(B_{start-1}).
+    return [f"B{i}" for i in range(1, start)] + ["=", "q"]
 
 
-def y_prefix_len(tokens: list[str]) -> int:
-    yidx = [idx for base, idx in (parse_token(t) for t in tokens) if base == "Y" and idx is not None]
-    return max(yidx) if yidx else 0
+def make_row(record: dict[str, Any], cand: dict[str, Any], ma: dict[str, Any], zint: dict[str, Any], sym: str, tokens: list[str], kind: str) -> dict[str, Any]:
+    support_length = int(cand.get("support_length"))
+    if kind == "tail_core":
+        red = reduced_tail_tokens(tokens)
+        bidx = b_indices(red)
+        reduced_equation = " ".join(red)
+        reduced_family = reduced_family_from_tail(tokens)
+        b_tail_start = min(bidx) if bidx else None
+        b_tail_end = max(bidx) if bidx else None
+        b_tail_len = len(bidx)
+        b_prefix_len = (b_tail_start - 1) if b_tail_start is not None else None
+        y_len = y_prefix_len(red)
+    elif kind == "prefix_core":
+        bidx0 = b_indices(tokens)
+        b_tail_start = min(bidx0) if bidx0 else None
+        b_tail_end = max(bidx0) if bidx0 else None
+        b_tail_len = len(bidx0)
+        b_prefix_len = (b_tail_start - 1) if b_tail_start is not None else None
+        reduced_equation = " ".join(prefix_equation_tokens(tokens, support_length))
+        reduced_family = "B_prefix=q"
+        y_len = 0
+    else:
+        raise ValueError(kind)
+
+    return {
+        "record_index": record.get("record_index"),
+        "p": record.get("p"),
+        "perm": TARGET_PERM,
+        "support_length": support_length,
+        "A": cand.get("A"),
+        "z": cand.get("z"),
+        "q": cand.get("q"),
+        "B": cand.get("B"),
+        "extraction_kind": kind,
+        "symbolic_equation": sym,
+        "reduced_equation": reduced_equation,
+        "reduced_family": reduced_family,
+        "B_tail_start_index": b_tail_start,
+        "B_tail_end_index": b_tail_end,
+        "B_tail_length": b_tail_len,
+        "B_prefix_length": b_prefix_len,
+        "Y_prefix_length": y_len,
+        "numeric_block": zint.get("block"),
+        "signature": f"{zint.get('left_label') or 'ext'}={zint.get('right_label') or 'ext'}:L{zint.get('length')}:{zint.get('span_type')}",
+        "new_defect": ma.get("new_defect"),
+    }
 
 
-def find_tail_core(record: dict[str, Any]) -> dict[str, Any] | None:
+def find_hidden_support_equation(record: dict[str, Any]) -> dict[str, Any] | None:
     if record.get("pure_label") != "pure_worse_only":
         return None
     for ca in record.get("candidate_analyses", []):
@@ -148,58 +223,47 @@ def find_tail_core(record: dict[str, Any]) -> dict[str, Any] | None:
         for ma in ca.get("moves_analyzed", []):
             if ma.get("perm_key") != TARGET_PERM:
                 continue
-            candidates = []
+            tail_candidates = []
+            prefix_candidates = []
             for zint in ma.get("new_zero_intervals", []) or []:
                 sym = symbolic_block(zint.get("block", []), labels)
-                toks = sym.split()
-                if not is_tail_core(toks):
-                    continue
-                red = reduced_tokens(toks)
-                bidx = b_tail_indices(red)
-                candidates.append((len(toks), y_prefix_len(red), len(bidx), sym, red, zint, cand, ma))
-            if not candidates:
-                continue
-            # Prefer shortest symbolic equation, then no exterior, then shortest B tail.
-            candidates.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
-            _length, _ylen, _blen, sym, red, zint, cand, ma = candidates[0]
-            bidx = b_tail_indices(red)
-            return {
-                "record_index": record.get("record_index"),
-                "p": record.get("p"),
-                "perm": TARGET_PERM,
-                "support_length": cand.get("support_length"),
-                "A": cand.get("A"),
-                "z": cand.get("z"),
-                "q": cand.get("q"),
-                "B": cand.get("B"),
-                "symbolic_equation": sym,
-                "reduced_equation": " ".join(red),
-                "reduced_family": reduced_family(toks),
-                "B_tail_start_index": min(bidx) if bidx else None,
-                "B_tail_end_index": max(bidx) if bidx else None,
-                "B_tail_length": len(bidx),
-                "Y_prefix_length": y_prefix_len(red),
-                "numeric_block": zint.get("block"),
-                "signature": f"{zint.get('left_label') or 'ext'}={zint.get('right_label') or 'ext'}:L{zint.get('length')}:{zint.get('span_type')}",
-                "new_defect": ma.get("new_defect"),
-            }
+                tokens = sym.split()
+                if has_tail_core(tokens):
+                    red = reduced_tail_tokens(tokens)
+                    bidx = b_indices(red)
+                    tail_candidates.append((len(tokens), y_prefix_len(red), len(bidx), sym, tokens, zint, cand, ma))
+                elif has_prefix_core(tokens):
+                    bidx0 = b_indices(tokens)
+                    prefix_candidates.append((len(tokens), len(bidx0), sym, tokens, zint, cand, ma))
+            if tail_candidates:
+                tail_candidates.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
+                _length, _ylen, _blen, sym, tokens, zint, cand, ma = tail_candidates[0]
+                return make_row(record, cand, ma, zint, sym, tokens, "tail_core")
+            if prefix_candidates:
+                prefix_candidates.sort(key=lambda x: (x[0], x[1], x[2]))
+                _length, _blen, sym, tokens, zint, cand, ma = prefix_candidates[0]
+                return make_row(record, cand, ma, zint, sym, tokens, "prefix_core")
     return None
 
 
 def summarize(rows: list[dict[str, Any]], input_records: int) -> dict[str, Any]:
     fam = Counter(row["reduced_family"] for row in rows)
+    kind = Counter(row["extraction_kind"] for row in rows)
     support = Counter(str(row["support_length"]) for row in rows)
     tail_start = Counter(str(row["B_tail_start_index"]) for row in rows)
     tail_len = Counter(str(row["B_tail_length"]) for row in rows)
+    prefix_len = Counter(str(row["B_prefix_length"]) for row in rows)
     y_len = Counter(str(row["Y_prefix_length"]) for row in rows)
     sig = Counter(row["signature"] for row in rows)
     return {
         "input_records": input_records,
         "extracted_records": len(rows),
+        "extraction_kind_histogram": dict(kind.most_common()),
         "reduced_family_histogram": dict(fam.most_common()),
         "support_length_histogram": dict(support.most_common()),
         "B_tail_start_histogram": dict(tail_start.most_common()),
         "B_tail_length_histogram": dict(tail_len.most_common()),
+        "B_prefix_length_histogram": dict(prefix_len.most_common()),
         "Y_prefix_length_histogram": dict(y_len.most_common()),
         "signature_histogram": dict(sig.most_common(25)),
         "missing_records": input_records - len(rows),
@@ -224,7 +288,7 @@ def main() -> int:
             if rec.get("pure_label") != "pure_worse_only":
                 continue
             input_pure_worse += 1
-            row = find_tail_core(rec)
+            row = find_hidden_support_equation(rec)
             if row is not None:
                 rows.append(row)
 
