@@ -34,11 +34,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any, Iterable, Sequence, Tuple
 
 INF = 10**9
+TOKEN_RE = re.compile(r"^([A-Z]+|z|q)(\d+)?$")
 
 
 def iter_jsonl(path: Path) -> Iterable[dict[str, Any]]:
@@ -193,6 +195,50 @@ def split_B(eq: dict[str, Any]) -> dict[str, list[int] | int | None]:
     }
 
 
+def parse_token(tok: str) -> tuple[str, int | None]:
+    m = TOKEN_RE.match(tok)
+    if not m:
+        return (tok, None)
+    base, idx = m.group(1), m.group(2)
+    return (base, int(idx) if idx is not None else None)
+
+
+def token_value(tok: str, eq: dict[str, Any], parts: dict[str, list[int]]) -> int | None:
+    base, idx = parse_token(tok)
+    if base == "q":
+        return int(eq["q"])
+    if base == "z":
+        return int(eq["z"])
+    if base == "A" and idx is not None:
+        A = [int(x) for x in eq.get("A", [])]
+        if 1 <= idx <= len(A):
+            return A[idx - 1]
+    if base == "B" and idx is not None:
+        B = [int(x) for x in eq.get("B", [])]
+        if 1 <= idx <= len(B):
+            return B[idx - 1]
+    if base == "Y" and idx is not None:
+        Y = parts.get("Y", [])
+        if 1 <= idx <= len(Y):
+            return int(Y[idx - 1])
+    if base == "X" and idx is not None:
+        X = parts.get("X", [])
+        if 1 <= idx <= len(X):
+            return int(X[idx - 1])
+    return None
+
+
+def values_from_symbolic(eq: dict[str, Any], parts: dict[str, list[int]], symbolic: str) -> list[int]:
+    vals = []
+    for tok in symbolic.split():
+        if tok == "=":
+            continue
+        v = token_value(tok, eq, parts)
+        if v is not None:
+            vals.append(v)
+    return vals
+
+
 def make_moves(parts: dict[str, list[int]], eq: dict[str, Any]) -> dict[str, list[int]]:
     X = parts["X"]
     A = parts["A"]
@@ -238,13 +284,16 @@ def block_sum(p: int, xs: Sequence[int]) -> int:
 
 
 def hidden_equation_check(eq: dict[str, Any], parts: dict[str, list[int]]) -> dict[str, Any]:
+    """Verify the extracted equation from its symbolic reduced form.
+
+    The first version reconstructed Y_prefix from length alone, which can be too
+    coarse when the symbolic equation contains a specific exterior-labelled
+    block.  This version evaluates the actual `reduced_equation` tokens.
+    """
     p = int(eq["p"])
     bsplit = split_B(eq)
     Bp = list(bsplit["B_prefix"])
     Bt = list(bsplit["B_tail"])
-    ylen = int(eq.get("Y_prefix_length") or 0)
-    Yp = parts["Y"][:ylen]
-    q = [int(eq["q"])]
     if eq.get("reduced_family") == "B_prefix=q":
         return {
             "family": "B_prefix=q",
@@ -253,8 +302,9 @@ def hidden_equation_check(eq: dict[str, Any], parts: dict[str, list[int]]) -> di
             "holds": block_sum(p, Bp) == int(eq["q"]) % p,
             "B_prefix": Bp,
             "B_tail": Bt,
+            "reduced_equation": eq.get("reduced_equation"),
         }
-    block = Bt + q + Yp
+    block = values_from_symbolic(eq, parts, str(eq.get("reduced_equation", "")))
     return {
         "family": eq.get("reduced_family"),
         "zero_block": block,
@@ -262,7 +312,7 @@ def hidden_equation_check(eq: dict[str, Any], parts: dict[str, list[int]]) -> di
         "holds": block_sum(p, block) == 0,
         "B_prefix": Bp,
         "B_tail": Bt,
-        "Y_prefix": Yp,
+        "reduced_equation": eq.get("reduced_equation"),
     }
 
 
