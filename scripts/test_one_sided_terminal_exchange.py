@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test the equal-sum exchange exposed by one-sided long terminal bridges.
+Test local block moves exposed by one-sided long terminal bridges.
 
 Input is a JSONL log produced by scripts/test_external_bridge_overlap.py, usually
 filtered to hard records with no CLEAN_DESCENT, for example:
@@ -9,29 +9,39 @@ filtered to hard records with no CLEAN_DESCENT, for example:
 
 This script focuses first on the right-sided orientation:
 
-    R = X A z_m q B Y_r
-    Z = A z_m
-    z_m + sum(B) = 0
+    R = X A z q B Y_r
+    Z = A z
+    z + sum(B) = 0
     sum(A) = sum(B)
 
-where B is the terminal right external support.  It tests the equal-sum exchange
+where z is the last atom of the active shortest zero interval and B is the
+terminal right external support.
 
-    A z_m q B  ->  B z_m q A
+The first tested move was only:
 
-and compares D_short before/after.
+    A z q B -> B z q A
 
-This is diagnostic infrastructure for the S18 one-sided long terminal attack.
+Empirically that was mostly worse.  This version tests the full block-permutation
+family over the four blocks:
+
+    A, z, q, B
+
+preserving the internal order of A and B.  This is still low-compute, but it is a
+much better diagnostic for the one-sided long terminal branch.
 """
 
 from __future__ import annotations
 
 import argparse
+import itertools
 import json
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any, Iterable, Sequence, Tuple
 
 INF = 10**9
+BLOCK_NAMES = ("A", "z", "q", "B")
+ORIGINAL_PERM = ("A", "z", "q", "B")
 
 
 def iter_jsonl(path: Path) -> Iterable[dict[str, Any]]:
@@ -92,18 +102,19 @@ def is_right_one_sided_long(record: dict[str, Any]) -> bool:
 
 
 def right_long_terminal_candidates(record: dict[str, Any]) -> list[dict[str, Any]]:
-    """Return candidate exchange moves from right terminal metadata.
+    """Return candidate terminal windows.
 
-    Candidate contains enough indices to perform:
+    Candidate contains enough indices to test block permutations over:
 
-        A z_m q B -> B z_m q A
+        A, z, q, B
 
-    with A = order[z_i:z_j-1], z_m = order[z_j-1], q=order[z_j],
+    with A = order[z_i:z_j-1], z = order[z_j-1], q=order[z_j],
     B = order[z_j+1:external_index].
     """
     out: list[dict[str, Any]] = []
     order = record["order"]
     p = int(record["p"])
+    seen = set()
     for interval in record.get("interval_records", []):
         z_i = int(interval["i"])
         z_j = int(interval["j"])
@@ -124,24 +135,24 @@ def right_long_terminal_candidates(record: dict[str, Any]) -> list[dict[str, Any
                         continue
                     ext_index = int(meta["external_index"])
                     support_length = int(meta["support_length"])
+                    key = (z_i, z_j, ext_index)
+                    if key in seen:
+                        continue
+                    seen.add(key)
                     if support_length <= 0:
                         continue
-                    # Need A nonempty and B nonempty; m>=3 from previous logs, but validate anyway.
                     if z_j - z_i < 3:
                         continue
                     if ext_index <= z_j + 1 or ext_index > len(order):
                         continue
-                    A = order[z_i : z_j - 1]
-                    z_m = order[z_j - 1]
-                    q = order[z_j]
-                    B = order[z_j + 1 : ext_index]
+                    A = [int(x) for x in order[z_i : z_j - 1]]
+                    z = int(order[z_j - 1])
+                    q = int(order[z_j])
+                    B = [int(x) for x in order[z_j + 1 : ext_index]]
                     if not A or not B:
                         continue
-                    if sum(A) % p != sum(B) % p:
-                        # If this fails, metadata or indexing is wrong; keep a diagnostic candidate.
-                        valid_equal_sum = False
-                    else:
-                        valid_equal_sum = True
+                    valid_equal_sum = (sum(A) % p == sum(B) % p)
+                    valid_terminal = ((z + sum(B)) % p == 0)
                     out.append(
                         {
                             "z_i": z_i,
@@ -152,34 +163,55 @@ def right_long_terminal_candidates(record: dict[str, Any]) -> list[dict[str, Any
                             "support_length": support_length,
                             "terminal_total_length": meta.get("terminal_total_length"),
                             "A": A,
-                            "z_m": z_m,
+                            "z": z,
                             "q": q,
                             "B": B,
                             "valid_equal_sum": valid_equal_sum,
+                            "valid_terminal": valid_terminal,
                         }
                     )
     return out
 
 
-def apply_right_exchange(order: Sequence[int], cand: dict[str, Any]) -> tuple[int, ...]:
-    z_i = cand["z_i"]
-    z_j = cand["z_j"]
-    ext = cand["external_index"]
-    A = tuple(cand["A"])
-    z_m = (cand["z_m"],)
-    q = (cand["q"],)
-    B = tuple(cand["B"])
-    return tuple(order[:z_i]) + B + z_m + q + A + tuple(order[ext:])
+def block_map(cand: dict[str, Any]) -> dict[str, tuple[int, ...]]:
+    return {
+        "A": tuple(int(x) for x in cand["A"]),
+        "z": (int(cand["z"]),),
+        "q": (int(cand["q"]),),
+        "B": tuple(int(x) for x in cand["B"]),
+    }
 
 
-def classify_exchange(oldD: tuple, newD: tuple, cand: dict[str, Any]) -> str:
-    if not cand.get("valid_equal_sum"):
+def apply_perm(order: Sequence[int], cand: dict[str, Any], perm: tuple[str, ...]) -> tuple[int, ...]:
+    z_i = int(cand["z_i"])
+    ext = int(cand["external_index"])
+    blocks = block_map(cand)
+    new_window: tuple[int, ...] = tuple()
+    for name in perm:
+        new_window += blocks[name]
+    return tuple(order[:z_i]) + new_window + tuple(order[ext:])
+
+
+def classify_move(oldD: tuple, newD: tuple, cand: dict[str, Any]) -> str:
+    if not cand.get("valid_equal_sum") or not cand.get("valid_terminal"):
         return "bad_indexing"
     if newD < oldD:
         return "improved"
     if newD == oldD:
         return "neutral"
     return "worse"
+
+
+def zero_block_flags(p: int, cand: dict[str, Any], perm: tuple[str, ...]) -> list[str]:
+    """Record whether the perm makes known zero blocks contiguous."""
+    flags: list[str] = []
+    # z+B or B+z is zero by terminal relation.
+    for a, b in zip(perm, perm[1:]):
+        if {a, b} == {"z", "B"}:
+            flags.append("terminal_zero_contiguous")
+        if a == "A" and b == "z":
+            flags.append("old_Z_contiguous")
+    return flags
 
 
 def analyze_record(record: dict[str, Any], *, max_candidates: int) -> dict[str, Any] | None:
@@ -189,22 +221,42 @@ def analyze_record(record: dict[str, Any], *, max_candidates: int) -> dict[str, 
     order = tuple(int(x) for x in record["order"])
     oldD = defect_short(p, order)
     cands = right_long_terminal_candidates(record)
-    results = []
+    candidate_results = []
+    record_best_class = "none"
+    class_rank = {"improved": 0, "neutral": 1, "worse": 2, "bad_indexing": 3, "none": 4}
+
+    perms = [perm for perm in itertools.permutations(BLOCK_NAMES) if perm != ORIGINAL_PERM]
+
     for cand in cands[:max_candidates]:
-        new_order = apply_right_exchange(order, cand)
-        newD = defect_short(p, new_order)
-        results.append(
+        moves = []
+        for perm in perms:
+            new_order = apply_perm(order, cand, perm)
+            newD = defect_short(p, new_order)
+            cls = classify_move(oldD, newD, cand)
+            if class_rank[cls] < class_rank[record_best_class]:
+                record_best_class = cls
+            moves.append(
+                {
+                    "perm": list(perm),
+                    "old_defect": oldD,
+                    "new_defect": newD,
+                    "class": cls,
+                    "zero_block_flags": zero_block_flags(p, cand, perm),
+                    "new_order": list(new_order),
+                    "new_zero_intervals_first10": [list(z) for z in zero_intervals(p, new_order)[:10]],
+                }
+            )
+        candidate_results.append(
             {
                 "candidate": cand,
-                "old_defect": oldD,
-                "new_defect": newD,
-                "class": classify_exchange(oldD, newD, cand),
-                "new_order": list(new_order),
-                "new_zero_intervals_first10": [list(z) for z in zero_intervals(p, new_order)[:10]],
+                "move_counts": dict(Counter(m["class"] for m in moves)),
+                "best_class": min((m["class"] for m in moves), key=lambda c: class_rank[c]),
+                "moves": moves,
             }
         )
-    if not results:
+    if not candidate_results:
         return None
+
     return {
         "p": p,
         "S": record.get("S"),
@@ -212,8 +264,21 @@ def analyze_record(record: dict[str, Any], *, max_candidates: int) -> dict[str, 
         "order": list(order),
         "defect": oldD,
         "attempt_flag_counts": record.get("attempt_flag_counts", {}),
-        "results": results,
-        "result_counts": dict(Counter(r["class"] for r in results)),
+        "record_best_class": record_best_class,
+        "candidate_results": candidate_results,
+        "candidate_best_counts": dict(Counter(c["best_class"] for c in candidate_results)),
+        "move_class_counts": dict(Counter(m["class"] for c in candidate_results for m in c["moves"])),
+        "perm_class_counts": {
+            " ".join(perm): dict(
+                Counter(
+                    m["class"]
+                    for c in candidate_results
+                    for m in c["moves"]
+                    if tuple(m["perm"]) == perm
+                )
+            )
+            for perm in perms
+        },
     }
 
 
@@ -227,7 +292,9 @@ def main() -> int:
     records_out = []
     input_records = 0
     eligible_records = 0
-    aggregate = Counter()
+    aggregate_best = Counter()
+    aggregate_candidate_best = Counter()
+    aggregate_move = Counter()
 
     for name in args.jsonl:
         for rec in iter_jsonl(Path(name)):
@@ -236,7 +303,9 @@ def main() -> int:
             if analyzed is None:
                 continue
             eligible_records += 1
-            aggregate.update(analyzed["result_counts"])
+            aggregate_best.update([analyzed["record_best_class"]])
+            aggregate_candidate_best.update(analyzed["candidate_best_counts"])
+            aggregate_move.update(analyzed["move_class_counts"])
             records_out.append(analyzed)
 
     if args.out == "-":
@@ -249,7 +318,9 @@ def main() -> int:
 
     print(f"input_records={input_records}")
     print(f"eligible_right_one_sided_long_records={eligible_records}")
-    print("aggregate=" + json.dumps(dict(aggregate), sort_keys=True))
+    print("aggregate_record_best=" + json.dumps(dict(aggregate_best), sort_keys=True))
+    print("aggregate_candidate_best=" + json.dumps(dict(aggregate_candidate_best), sort_keys=True))
+    print("aggregate_move=" + json.dumps(dict(aggregate_move), sort_keys=True))
     return 0
 
 
