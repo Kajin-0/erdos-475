@@ -15,21 +15,31 @@ For each pure_worse_only record, this script searches the permutation:
 
     B z q A
 
-for one of two proof-relevant hidden support equations.
+for one of three proof-relevant hidden support equations.
 
-Tail-core case:
+Full-A tail-core case:
 
-    B_tail + z + q + A + optional Y_prefix = 0
+    B_tail + z + q + A1 + A2 + optional Y_prefix = 0
 
-Since A+z=0 in the m=3 residual, this reduces to:
+Since A1+A2+z=0, this reduces to:
 
     B_tail + q + optional Y_prefix = 0.
+
+Partial-A tail-core case:
+
+    B_tail + z + q + A_i + optional Y_prefix = 0.
+
+Since A1+A2+z=0, this reduces to:
+
+    B_tail + q + optional Y_prefix = A_j,
+
+where {i,j}={1,2}.
 
 Prefix-core case:
 
     B_tail + z + q = 0.
 
-Since the terminal relation gives B_prefix+B_tail+z=0, subtracting gives:
+Since B_prefix+B_tail+z=0, subtracting gives:
 
     B_prefix = q.
 
@@ -37,6 +47,7 @@ The unified output is therefore one of:
 
     B_tail+q
     B_tail+q+Y_prefix
+    B_tail+q(+Y_prefix)=A_complement
     B_prefix=q
 """
 
@@ -103,6 +114,10 @@ def token_bases(tokens: list[str]) -> list[str]:
     return [parse_token(t)[0] for t in tokens]
 
 
+def a_indices(tokens: list[str]) -> set[int]:
+    return {idx for base, idx in (parse_token(t) for t in tokens) if base == "A" and idx is not None}
+
+
 def is_tautological(tokens: list[str]) -> bool:
     if set(tokens) == {"A1", "A2", "z"} and len(tokens) == 3:
         return True
@@ -111,9 +126,14 @@ def is_tautological(tokens: list[str]) -> bool:
     return False
 
 
-def has_tail_core(tokens: list[str]) -> bool:
+def has_full_A_tail_core(tokens: list[str]) -> bool:
     bases = set(token_bases(tokens))
-    return {"B", "z", "q", "A"}.issubset(bases) and not is_tautological(tokens)
+    return {"B", "z", "q", "A"}.issubset(bases) and a_indices(tokens) == {1, 2} and not is_tautological(tokens)
+
+
+def has_partial_A_tail_core(tokens: list[str]) -> bool:
+    bases = set(token_bases(tokens))
+    return {"B", "z", "q", "A"}.issubset(bases) and a_indices(tokens) in ({1}, {2}) and not is_tautological(tokens)
 
 
 def has_prefix_core(tokens: list[str]) -> bool:
@@ -122,8 +142,8 @@ def has_prefix_core(tokens: list[str]) -> bool:
     return bases.issubset({"B", "z", "q"}) and {"B", "z", "q"}.issubset(bases) and not is_tautological(tokens)
 
 
-def reduced_tail_tokens(tokens: list[str]) -> list[str]:
-    """Remove one z and all A tokens, leaving B_tail+q(+Y_prefix)."""
+def reduced_full_A_tail_tokens(tokens: list[str]) -> list[str]:
+    """Remove one z and A1,A2, leaving B_tail+q(+Y_prefix)."""
     removed_z = False
     out = []
     for t in tokens:
@@ -136,6 +156,28 @@ def reduced_tail_tokens(tokens: list[str]) -> list[str]:
     return out
 
 
+def reduced_partial_A_equation_tokens(tokens: list[str]) -> list[str]:
+    """Convert B_tail+z+q+A_i(+Y)=0 into B_tail+q(+Y)=A_j."""
+    present = a_indices(tokens)
+    if present == {1}:
+        complement = "A2"
+    elif present == {2}:
+        complement = "A1"
+    else:
+        complement = "A?"
+    out = []
+    removed_z = False
+    for t in tokens:
+        if t in {"A1", "A2"}:
+            continue
+        if t == "z" and not removed_z:
+            removed_z = True
+            continue
+        out.append(t)
+    out += ["=", complement]
+    return out
+
+
 def b_indices(tokens: list[str]) -> list[int]:
     return [idx for base, idx in (parse_token(t) for t in tokens) if base == "B" and idx is not None]
 
@@ -145,9 +187,9 @@ def y_prefix_len(tokens: list[str]) -> int:
     return max(yidx) if yidx else 0
 
 
-def reduced_family_from_tail(tokens: list[str]) -> str:
-    rt = reduced_tail_tokens(tokens)
-    bases = set(token_bases(rt))
+def reduced_family_from_full_A_tail(tokens: list[str]) -> str:
+    rt = reduced_full_A_tail_tokens(tokens)
+    bases = set(token_bases([t for t in rt if t != "="]))
     if bases.issubset({"B", "q"}) and "B" in bases and "q" in bases:
         return "B_tail+q"
     if bases.issubset({"B", "q", "Y"}) and "B" in bases and "q" in bases and "Y" in bases:
@@ -155,6 +197,14 @@ def reduced_family_from_tail(tokens: list[str]) -> str:
     if "X" in bases:
         return "mixed_X_or_left_exterior"
     return "other_reduced"
+
+
+def reduced_family_from_partial_A_tail(tokens: list[str]) -> str:
+    rt = reduced_partial_A_equation_tokens(tokens)
+    bases = set(token_bases([t for t in rt if t != "="]))
+    if "Y" in bases:
+        return "B_tail+q+Y_prefix=A_complement"
+    return "B_tail+q=A_complement"
 
 
 def prefix_equation_tokens(tokens: list[str], support_length: int) -> list[str]:
@@ -169,10 +219,20 @@ def prefix_equation_tokens(tokens: list[str], support_length: int) -> list[str]:
 def make_row(record: dict[str, Any], cand: dict[str, Any], ma: dict[str, Any], zint: dict[str, Any], sym: str, tokens: list[str], kind: str) -> dict[str, Any]:
     support_length = int(cand.get("support_length"))
     if kind == "tail_core":
-        red = reduced_tail_tokens(tokens)
+        red = reduced_full_A_tail_tokens(tokens)
         bidx = b_indices(red)
         reduced_equation = " ".join(red)
-        reduced_family = reduced_family_from_tail(tokens)
+        reduced_family = reduced_family_from_full_A_tail(tokens)
+        b_tail_start = min(bidx) if bidx else None
+        b_tail_end = max(bidx) if bidx else None
+        b_tail_len = len(bidx)
+        b_prefix_len = (b_tail_start - 1) if b_tail_start is not None else None
+        y_len = y_prefix_len(red)
+    elif kind == "partial_A_tail_core":
+        red = reduced_partial_A_equation_tokens(tokens)
+        bidx = b_indices(red)
+        reduced_equation = " ".join(red)
+        reduced_family = reduced_family_from_partial_A_tail(tokens)
         b_tail_start = min(bidx) if bidx else None
         b_tail_end = max(bidx) if bidx else None
         b_tail_len = len(bidx)
@@ -223,22 +283,31 @@ def find_hidden_support_equation(record: dict[str, Any]) -> dict[str, Any] | Non
         for ma in ca.get("moves_analyzed", []):
             if ma.get("perm_key") != TARGET_PERM:
                 continue
-            tail_candidates = []
+            full_tail_candidates = []
+            partial_tail_candidates = []
             prefix_candidates = []
             for zint in ma.get("new_zero_intervals", []) or []:
                 sym = symbolic_block(zint.get("block", []), labels)
                 tokens = sym.split()
-                if has_tail_core(tokens):
-                    red = reduced_tail_tokens(tokens)
+                if has_full_A_tail_core(tokens):
+                    red = reduced_full_A_tail_tokens(tokens)
                     bidx = b_indices(red)
-                    tail_candidates.append((len(tokens), y_prefix_len(red), len(bidx), sym, tokens, zint, cand, ma))
+                    full_tail_candidates.append((len(tokens), y_prefix_len(red), len(bidx), sym, tokens, zint, cand, ma))
+                elif has_partial_A_tail_core(tokens):
+                    red = reduced_partial_A_equation_tokens(tokens)
+                    bidx = b_indices(red)
+                    partial_tail_candidates.append((len(tokens), y_prefix_len(red), len(bidx), sym, tokens, zint, cand, ma))
                 elif has_prefix_core(tokens):
                     bidx0 = b_indices(tokens)
                     prefix_candidates.append((len(tokens), len(bidx0), sym, tokens, zint, cand, ma))
-            if tail_candidates:
-                tail_candidates.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
-                _length, _ylen, _blen, sym, tokens, zint, cand, ma = tail_candidates[0]
+            if full_tail_candidates:
+                full_tail_candidates.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
+                _length, _ylen, _blen, sym, tokens, zint, cand, ma = full_tail_candidates[0]
                 return make_row(record, cand, ma, zint, sym, tokens, "tail_core")
+            if partial_tail_candidates:
+                partial_tail_candidates.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
+                _length, _ylen, _blen, sym, tokens, zint, cand, ma = partial_tail_candidates[0]
+                return make_row(record, cand, ma, zint, sym, tokens, "partial_A_tail_core")
             if prefix_candidates:
                 prefix_candidates.sort(key=lambda x: (x[0], x[1], x[2]))
                 _length, _blen, sym, tokens, zint, cand, ma = prefix_candidates[0]
