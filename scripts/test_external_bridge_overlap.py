@@ -12,33 +12,13 @@ For an ordering R and a shortest zero interval
 with adjacent outside atom q on the right or left, the script tries useful
 insertions of q into Z and classifies the obstruction pattern.
 
-Right-adjacent model:
+Terminal bridge support-length fields split endpoint-cancellation into:
 
-    R = X Z q Y
+    SHORT_TERMINAL_BRIDGE      terminal support length + endpoint length < |Z|
+    LONG_TERMINAL_BRIDGE       terminal support length + endpoint length >= |Z|
 
-with internal prefixes T_0=0, T_b=z_1+...+z_b, T_m=0. Inserting q after z_k
-has local endpoints
-
-    {T_0,...,T_k} union {q+T_k,...,q+T_m}.
-
-Obstruction classes:
-
-    CLEAN_DESCENT              new D_short is smaller
-    CLEAN_NO_DESCENT           no detected local/external blocker but no descent
-    SIGNED_INTERVAL            local cross-side collision T_a = q+T_b
-    RIGHT_TERMINAL_BRIDGE      only/primary bridge at b=m-1 to the side of q
-    LEFT_TERMINAL_BRIDGE       terminal-like bridge to the opposite side
-    DISTRIBUTED_BRIDGE         two or more non-boundary bridge indices
-    EXTERNAL_BRIDGE            one nonterminal external bridge index
-    MIXED                      multiple branches appear simultaneously
-
-Important filter:
-
-    --min-active-length 3
-
-filters examples whose shortest zero interval has length 2. Length-2 intervals are
-inverse pairs and form a special terminal-bridge branch, not the true distributed
-overlap hard case.
+For a right terminal bridge in R = X Z q Y, the support length is the number of
+atoms in the external right prefix Y_s satisfying z_m + sum(Y_s)=0.
 """
 
 from __future__ import annotations
@@ -145,10 +125,6 @@ def sample_defective_orders(
     limit: int,
     min_active_length: int,
 ) -> tuple[List[Tuple[int, ...]], int]:
-    """Sample defective orders whose shortest zero interval has length >= min_active_length.
-
-    Returns (selected_orders, skipped_short_active_count).
-    """
     arr = list(S)
     scored: list[tuple[tuple[int, int, int], Tuple[int, ...]]] = []
     seen = set()
@@ -176,6 +152,52 @@ def external_indices_for_window(n_atoms: int, z_i: int, z_j: int, q_index: int) 
     local = set(range(z_i, z_j + 1))
     local.add(q_index + 1)
     return set(range(n_atoms + 1)) - local
+
+
+def terminal_support_metadata(
+    *,
+    m: int,
+    q_index: int,
+    z_i: int,
+    ext_index: int,
+    side: str,
+) -> dict:
+    """Return support-length metadata for a terminal bridge endpoint.
+
+    For right-side terminal bridge in original/right coordinates, q endpoint is
+    partial index q_index+1. A right external endpoint at partial index idx > q_index+1
+    corresponds to support length idx-(q_index+1).  A left endpoint is recorded but
+    marked opposite_side because it is terminal in the transformed/reversed geometry
+    rather than a direct right prefix.
+    """
+    if side == "right":
+        support_len = ext_index - (q_index + 1)
+    elif side == "left":
+        support_len = z_i - ext_index
+    else:
+        support_len = None
+
+    if support_len is None or support_len <= 0:
+        return {
+            "external_index": ext_index,
+            "side": side,
+            "support_length": support_len,
+            "terminal_total_length": None,
+            "short_terminal": False,
+            "long_terminal": False,
+            "valid_support_length": False,
+        }
+
+    terminal_total = 1 + support_len
+    return {
+        "external_index": ext_index,
+        "side": side,
+        "support_length": support_len,
+        "terminal_total_length": terminal_total,
+        "short_terminal": terminal_total < m,
+        "long_terminal": terminal_total >= m,
+        "valid_support_length": True,
+    }
 
 
 def classify_right_insertion(p: int, order: Sequence[int], z_i: int, z_j: int, k: int) -> dict:
@@ -208,7 +230,16 @@ def classify_right_insertion(p: int, order: Sequence[int], z_i: int, z_j: int, k
         val = (base + q + T[b]) % p
         if val in ext_value_to_indices:
             side_counts = Counter("left" if idx < z_i else "right" for idx in ext_value_to_indices[val])
-            external.append({"b": b, "value": val, "indices": ext_value_to_indices[val], "side_counts": dict(side_counts)})
+            bridge = {"b": b, "value": val, "indices": ext_value_to_indices[val], "side_counts": dict(side_counts)}
+            if b == m - 1:
+                terminal_meta = []
+                for idx in ext_value_to_indices[val]:
+                    side = "left" if idx < z_i else "right"
+                    terminal_meta.append(terminal_support_metadata(m=m, q_index=q_index, z_i=z_i, ext_index=idx, side=side))
+                bridge["terminal_support"] = terminal_meta
+                bridge["short_terminal"] = any(x["short_terminal"] for x in terminal_meta)
+                bridge["long_terminal"] = any(x["long_terminal"] for x in terminal_meta)
+            external.append(bridge)
 
     bset = sorted({e["b"] for e in external})
     terminal = [e for e in external if e["b"] == m - 1]
@@ -225,14 +256,22 @@ def classify_right_insertion(p: int, order: Sequence[int], z_i: int, z_j: int, k
         branch_flags.append("EXTERNAL_BRIDGE")
     elif terminal:
         side_counts = Counter()
+        short_terminal = False
+        long_terminal = False
         for e in terminal:
             side_counts.update(e["side_counts"])
+            short_terminal = short_terminal or bool(e.get("short_terminal"))
+            long_terminal = long_terminal or bool(e.get("long_terminal"))
         if side_counts.get("right", 0) and not side_counts.get("left", 0):
             branch_flags.append("RIGHT_TERMINAL_BRIDGE")
         elif side_counts.get("left", 0) and not side_counts.get("right", 0):
             branch_flags.append("LEFT_TERMINAL_BRIDGE")
         else:
             branch_flags.append("MIXED_TERMINAL_BRIDGE")
+        if short_terminal:
+            branch_flags.append("SHORT_TERMINAL_BRIDGE")
+        if long_terminal:
+            branch_flags.append("LONG_TERMINAL_BRIDGE")
 
     if not branch_flags:
         if newD == oldD:
