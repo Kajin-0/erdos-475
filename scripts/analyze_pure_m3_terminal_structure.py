@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Analyze the pure m=3 right-terminal residual using the full block-permutation logs.
+Analyze the unresolved pure m=3 right-terminal residual using the full block-permutation logs.
 
 Input is produced by:
 
@@ -11,13 +11,18 @@ Typical inputs:
     logs/one_sided_terminal_block_perms_p17.jsonl
     logs/one_sided_terminal_block_perms_p23.jsonl
 
-This script filters the true pure local bottleneck:
+Default filter: the true unresolved pure local bottleneck:
 
     defect = (1,3,1,[2])
-    record_best_class in {neutral,worse}
     no SIGNED_INTERVAL flag
     no DISTRIBUTED_BRIDGE flag
     every candidate has m=3
+    record_best_class == worse
+        OR
+    record_best_class == neutral with no best neutral move shifting the unique zero triple rightward
+
+Use --include-rightward-neutral to restore the broader diagnostic mode that also includes
+handled neutral-rightward records.
 
 For each pure record it extracts:
 
@@ -29,7 +34,7 @@ For each pure record it extracts:
     - which new collisions touch moved block-boundary endpoints
     - permutation-level collision signatures
 
-The goal is to expose the hidden equations behind the pure worse-only branch.
+The goal is to expose the hidden equations behind the pure worse-only and no-rightward branches.
 """
 
 from __future__ import annotations
@@ -98,52 +103,6 @@ def perm_key(perm: Sequence[str]) -> str:
     return " ".join(str(x) for x in perm)
 
 
-def is_pure_record(record: dict[str, Any]) -> bool:
-    if record.get("defect") != SPECIAL_DEFECT:
-        return False
-    if record.get("record_best_class") not in {"neutral", "worse"}:
-        return False
-    flags = record.get("attempt_flag_counts", {}) or {}
-    if flags.get("SIGNED_INTERVAL", 0) > 0 or flags.get("DISTRIBUTED_BRIDGE", 0) > 0:
-        return False
-    cands = record.get("candidate_results", [])
-    if not cands:
-        return False
-    if not all(c.get("candidate", {}).get("m") == 3 for c in cands):
-        return False
-    return True
-
-
-def pure_label(record: dict[str, Any]) -> str:
-    if record.get("record_best_class") == "worse":
-        return "pure_worse_only"
-    # Neutral pure records in current data are mostly same-position, with one left-regress case at p=23.
-    has_left = False
-    has_same = False
-    p = int(record["p"])
-    old_order = [int(x) for x in record["order"]]
-    old_z = unique_zero_interval_of_length(p, old_order, 3)
-    old_payload = interval_payload(old_order, old_z)
-    for cand_res in record.get("candidate_results", []):
-        for move in best_moves_for_candidate(cand_res):
-            if move.get("class") != "neutral":
-                continue
-            new_order = [int(x) for x in move.get("new_order", [])]
-            new_z = unique_zero_interval_of_length(p, new_order, 3)
-            new_payload = interval_payload(new_order, new_z)
-            if old_payload and new_payload:
-                dc = int(new_payload["center2"]) - int(old_payload["center2"])
-                if dc < 0:
-                    has_left = True
-                if dc == 0:
-                    has_same = True
-    if has_left:
-        return "pure_neutral_leftward_regress"
-    if has_same:
-        return "pure_neutral_same_position"
-    return "pure_neutral_other"
-
-
 def best_moves_for_candidate(candidate_result: dict[str, Any]) -> list[dict[str, Any]]:
     moves = candidate_result.get("moves", [])
     if not moves:
@@ -177,6 +136,81 @@ def interval_payload(order: Sequence[int], interval: tuple[int, int, int] | None
     }
 
 
+def neutral_progress_classes(record: dict[str, Any]) -> Counter[str]:
+    """Classify best neutral moves by terminal-direction movement of unique zero triple."""
+    if record.get("record_best_class") != "neutral":
+        return Counter()
+    p = int(record["p"])
+    old_order = [int(x) for x in record["order"]]
+    old_payload = interval_payload(old_order, unique_zero_interval_of_length(p, old_order, 3))
+    if old_payload is None:
+        return Counter({"unknown": 1})
+
+    counts: Counter[str] = Counter()
+    for cand_res in record.get("candidate_results", []):
+        for move in best_moves_for_candidate(cand_res):
+            if move.get("class") != "neutral":
+                continue
+            new_order = [int(x) for x in move.get("new_order", [])]
+            if not new_order:
+                continue
+            new_payload = interval_payload(new_order, unique_zero_interval_of_length(p, new_order, 3))
+            if new_payload is None:
+                counts["unknown"] += 1
+                continue
+            dc = int(new_payload["center2"]) - int(old_payload["center2"])
+            if dc > 0:
+                counts["rightward_progress"] += 1
+            elif dc < 0:
+                counts["leftward_regress"] += 1
+            else:
+                counts["same_position"] += 1
+    return counts
+
+
+def has_rightward_neutral_progress(record: dict[str, Any]) -> bool:
+    return neutral_progress_classes(record).get("rightward_progress", 0) > 0
+
+
+def is_basic_pure_record(record: dict[str, Any]) -> bool:
+    if record.get("defect") != SPECIAL_DEFECT:
+        return False
+    if record.get("record_best_class") not in {"neutral", "worse"}:
+        return False
+    flags = record.get("attempt_flag_counts", {}) or {}
+    if flags.get("SIGNED_INTERVAL", 0) > 0 or flags.get("DISTRIBUTED_BRIDGE", 0) > 0:
+        return False
+    cands = record.get("candidate_results", [])
+    if not cands:
+        return False
+    if not all(c.get("candidate", {}).get("m") == 3 for c in cands):
+        return False
+    return True
+
+
+def is_pure_record(record: dict[str, Any], include_rightward_neutral: bool) -> bool:
+    if not is_basic_pure_record(record):
+        return False
+    if record.get("record_best_class") == "worse":
+        return True
+    if include_rightward_neutral:
+        return True
+    return not has_rightward_neutral_progress(record)
+
+
+def pure_label(record: dict[str, Any]) -> str:
+    if record.get("record_best_class") == "worse":
+        return "pure_worse_only"
+    progress = neutral_progress_classes(record)
+    if progress.get("rightward_progress", 0) > 0:
+        return "pure_neutral_rightward_progress"
+    if progress.get("leftward_regress", 0) > 0:
+        return "pure_neutral_leftward_regress"
+    if progress.get("same_position", 0) > 0:
+        return "pure_neutral_same_position"
+    return "pure_neutral_other"
+
+
 def block_lengths(cand: dict[str, Any]) -> dict[str, int]:
     return {
         "A": len(cand.get("A", [])),
@@ -187,7 +221,6 @@ def block_lengths(cand: dict[str, Any]) -> dict[str, int]:
 
 
 def boundary_label_map(cand: dict[str, Any], perm: Sequence[str]) -> dict[int, str]:
-    """Map partial-sum indices in the moved window to local block-boundary labels."""
     z_i = int(cand["z_i"])
     lens = block_lengths(cand)
     out = {z_i: "window_start"}
@@ -294,8 +327,8 @@ def analyze_candidate(p: int, order: Sequence[int], cand_res: dict[str, Any], in
     }
 
 
-def analyze_record(record: dict[str, Any], record_index: int, include_all_moves: bool) -> dict[str, Any] | None:
-    if not is_pure_record(record):
+def analyze_record(record: dict[str, Any], record_index: int, include_all_moves: bool, include_rightward_neutral: bool) -> dict[str, Any] | None:
+    if not is_pure_record(record, include_rightward_neutral):
         return None
     p = int(record["p"])
     order = [int(x) for x in record["order"]]
@@ -305,6 +338,7 @@ def analyze_record(record: dict[str, Any], record_index: int, include_all_moves:
         "record_index": record_index,
         "p": p,
         "pure_label": pure_label(record),
+        "neutral_progress_classes": dict(neutral_progress_classes(record)),
         "S": record.get("S"),
         "sigma": record.get("sigma"),
         "order": order,
@@ -319,6 +353,7 @@ def analyze_record(record: dict[str, Any], record_index: int, include_all_moves:
 
 def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
     label_counts = Counter(r["pure_label"] for r in records)
+    neutral_progress_counts: Counter[str] = Counter()
     support_hist = Counter()
     x_len_hist = Counter()
     y_len_hist = Counter()
@@ -330,6 +365,7 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
 
     for r in records:
         label = r["pure_label"]
+        neutral_progress_counts.update(r.get("neutral_progress_classes", {}))
         for ca in r.get("candidate_analyses", []):
             c = ca["candidate"]
             support_hist[str(c.get("support_length"))] += 1
@@ -358,6 +394,7 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "records": len(records),
         "pure_label_counts": dict(label_counts),
+        "neutral_progress_counts": dict(neutral_progress_counts.most_common()),
         "support_length_histogram": sort_numeric(support_hist),
         "X_length_histogram": sort_numeric(x_len_hist),
         "Y_length_histogram": sort_numeric(y_len_hist),
@@ -375,6 +412,7 @@ def main() -> int:
     ap.add_argument("--out", default="-", help="Output analyzed pure residual JSONL path, or '-' for stdout.")
     ap.add_argument("--summary-out", default=None, help="Optional summary JSON path.")
     ap.add_argument("--include-all-moves", action="store_true", help="Analyze all moves, not only best moves.")
+    ap.add_argument("--include-rightward-neutral", action="store_true", help="Include handled neutral records that already have rightward terminal progress.")
     args = ap.parse_args()
 
     analyzed: list[dict[str, Any]] = []
@@ -382,7 +420,7 @@ def main() -> int:
     for name in args.jsonl:
         for idx, rec in enumerate(iter_jsonl(Path(name))):
             input_records += 1
-            ar = analyze_record(rec, idx, args.include_all_moves)
+            ar = analyze_record(rec, idx, args.include_all_moves, args.include_rightward_neutral)
             if ar is not None:
                 analyzed.append(ar)
 
@@ -396,6 +434,7 @@ def main() -> int:
 
     summary = summarize(analyzed)
     summary["input_records"] = input_records
+    summary["include_rightward_neutral"] = bool(args.include_rightward_neutral)
     print("summary=" + json.dumps(summary, sort_keys=True))
     if args.summary_out:
         Path(args.summary_out).write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
