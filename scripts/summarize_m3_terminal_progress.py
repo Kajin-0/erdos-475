@@ -25,6 +25,7 @@ For every best neutral move it computes:
     - shift direction of the zero interval
     - whether the zero triple atom multiset is preserved
     - whether the zero interval moves toward a boundary
+    - whether it makes right-terminal-direction progress
     - permutation histograms by progress class
 
 This is diagnostic infrastructure for defining the refined terminal-progress
@@ -92,12 +93,6 @@ def perm_key(perm: list[str] | tuple[str, ...]) -> str:
     return " ".join(str(x) for x in perm)
 
 
-def tuple_key(x: Any) -> str:
-    if isinstance(x, (list, tuple)):
-        return "(" + ",".join(tuple_key(v) if isinstance(v, (list, tuple)) else str(v) for v in x) + ")"
-    return str(x)
-
-
 def best_moves_for_candidate(candidate_result: dict[str, Any]) -> list[dict[str, Any]]:
     moves = candidate_result.get("moves", [])
     if not moves:
@@ -156,12 +151,26 @@ def progress_relation(old_payload: dict[str, Any], new_payload: dict[str, Any]) 
     else:
         left_progress = "same_left_index"
 
+    if new_right < old_right:
+        right_distance_progress = "toward_right_terminal"
+    elif new_right > old_right:
+        right_distance_progress = "away_from_right_terminal"
+    else:
+        right_distance_progress = "same_right_distance"
+
     if new_center2 < old_center2:
         center_shift = "left"
     elif new_center2 > old_center2:
         center_shift = "right"
     else:
         center_shift = "same_center"
+
+    if new_center2 > old_center2:
+        terminal_direction_progress = "rightward_progress"
+    elif new_center2 < old_center2:
+        terminal_direction_progress = "leftward_regress"
+    else:
+        terminal_direction_progress = "same_position"
 
     same_atoms_ordered = old_payload["block"] == new_payload["block"]
     same_atoms_multiset = old_payload["block_sorted"] == new_payload["block_sorted"]
@@ -172,6 +181,8 @@ def progress_relation(old_payload: dict[str, Any], new_payload: dict[str, Any]) 
         "delta_nearest_boundary_distance": new_near - old_near,
         "delta_center2": new_center2 - old_center2,
         "boundary_progress": boundary_progress,
+        "right_distance_progress": right_distance_progress,
+        "terminal_direction_progress": terminal_direction_progress,
         "left_index_shift": left_progress,
         "center_shift": center_shift,
         "same_atoms_ordered": same_atoms_ordered,
@@ -209,7 +220,6 @@ def analyze_record(record: dict[str, Any], record_index: int) -> list[dict[str, 
                 continue
             newD = defect_short(p, new_order)
             if list(newD[:3]) != [1, 3, 1] or tuple(newD[3]) != (2,):
-                # Keep only exact D_short-neutral moves.
                 continue
             new_interval = unique_zero_interval_of_length(p, new_order, 3)
             new_payload = interval_payload(new_order, new_interval)
@@ -249,46 +259,68 @@ def analyze_record(record: dict[str, Any], record_index: int) -> list[dict[str, 
 def summarize(analyses: list[dict[str, Any]], example_limit: int) -> dict[str, Any]:
     perm_hist: Counter[str] = Counter()
     boundary_progress_hist: Counter[str] = Counter()
+    right_distance_progress_hist: Counter[str] = Counter()
+    terminal_direction_hist: Counter[str] = Counter()
     center_shift_hist: Counter[str] = Counter()
     left_index_shift_hist: Counter[str] = Counter()
     same_atoms_hist: Counter[str] = Counter()
     delta_near_hist: Counter[str] = Counter()
     delta_left_hist: Counter[str] = Counter()
+    delta_right_hist: Counter[str] = Counter()
     delta_center_hist: Counter[str] = Counter()
     support_hist: Counter[str] = Counter()
     perm_by_boundary: dict[str, Counter[str]] = defaultdict(Counter)
+    perm_by_terminal_direction: dict[str, Counter[str]] = defaultdict(Counter)
+    perm_by_right_distance: dict[str, Counter[str]] = defaultdict(Counter)
     perm_by_same_atoms: dict[str, Counter[str]] = defaultdict(Counter)
-    best_record_progress: dict[int, str] = {}
-    best_record_perm: dict[int, str] = {}
 
-    # Ranking for candidate refined progress.  First prefer boundary progress,
-    # then same boundary, then away.  This is diagnostic, not a proof claim.
-    progress_rank = {"toward_boundary": 0, "same_boundary_distance": 1, "away_from_boundary": 2}
+    best_record_boundary: dict[int, str] = {}
+    best_record_boundary_perm: dict[int, str] = {}
+    best_record_terminal: dict[int, str] = {}
+    best_record_terminal_perm: dict[int, str] = {}
+    best_record_right_distance: dict[int, str] = {}
+    best_record_right_distance_perm: dict[int, str] = {}
+
+    boundary_rank = {"toward_boundary": 0, "same_boundary_distance": 1, "away_from_boundary": 2}
+    terminal_rank = {"rightward_progress": 0, "same_position": 1, "leftward_regress": 2}
+    right_distance_rank = {"toward_right_terminal": 0, "same_right_distance": 1, "away_from_right_terminal": 2}
 
     for a in analyses:
         pk = a["perm_key"]
         rel = a["progress"]
         perm_hist[pk] += 1
         boundary_progress_hist[rel["boundary_progress"]] += 1
+        right_distance_progress_hist[rel["right_distance_progress"]] += 1
+        terminal_direction_hist[rel["terminal_direction_progress"]] += 1
         center_shift_hist[rel["center_shift"]] += 1
         left_index_shift_hist[rel["left_index_shift"]] += 1
         same_atoms_hist["same_multiset" if rel["same_atoms_multiset"] else "changed_multiset"] += 1
         same_atoms_hist["same_ordered" if rel["same_atoms_ordered"] else "changed_ordered"] += 1
         delta_near_hist[str(rel["delta_nearest_boundary_distance"])] += 1
         delta_left_hist[str(rel["delta_left_distance"])] += 1
+        delta_right_hist[str(rel["delta_right_distance"])] += 1
         delta_center_hist[str(rel["delta_center2"])] += 1
         support_hist[str(a["candidate"].get("support_length"))] += 1
         perm_by_boundary[pk][rel["boundary_progress"]] += 1
+        perm_by_terminal_direction[pk][rel["terminal_direction_progress"]] += 1
+        perm_by_right_distance[pk][rel["right_distance_progress"]] += 1
         perm_by_same_atoms[pk]["same_multiset" if rel["same_atoms_multiset"] else "changed_multiset"] += 1
 
         rid = int(a["record_index"])
-        current = best_record_progress.get(rid)
-        if current is None or progress_rank[rel["boundary_progress"]] < progress_rank[current]:
-            best_record_progress[rid] = rel["boundary_progress"]
-            best_record_perm[rid] = pk
+        bcur = best_record_boundary.get(rid)
+        if bcur is None or boundary_rank[rel["boundary_progress"]] < boundary_rank[bcur]:
+            best_record_boundary[rid] = rel["boundary_progress"]
+            best_record_boundary_perm[rid] = pk
 
-    record_progress_hist = Counter(best_record_progress.values())
-    record_best_perm_hist = Counter(best_record_perm.values())
+        tcur = best_record_terminal.get(rid)
+        if tcur is None or terminal_rank[rel["terminal_direction_progress"]] < terminal_rank[tcur]:
+            best_record_terminal[rid] = rel["terminal_direction_progress"]
+            best_record_terminal_perm[rid] = pk
+
+        rcur = best_record_right_distance.get(rid)
+        if rcur is None or right_distance_rank[rel["right_distance_progress"]] < right_distance_rank[rcur]:
+            best_record_right_distance[rid] = rel["right_distance_progress"]
+            best_record_right_distance_perm[rid] = pk
 
     def sort_numeric_counter(c: Counter[str]) -> dict[str, int]:
         def keyfn(item: tuple[str, int]) -> tuple[int, str]:
@@ -299,29 +331,34 @@ def summarize(analyses: list[dict[str, Any]], example_limit: int) -> dict[str, A
                 return (10**9, k)
         return dict(sorted(c.items(), key=keyfn))
 
-    toward_examples = [a for a in analyses if a["progress"]["boundary_progress"] == "toward_boundary"][:example_limit]
-    same_examples = [a for a in analyses if a["progress"]["boundary_progress"] == "same_boundary_distance"][:example_limit]
-    away_examples = [a for a in analyses if a["progress"]["boundary_progress"] == "away_from_boundary"][:example_limit]
-
     return {
         "neutral_move_analyses": len(analyses),
         "records_with_neutral_analyses": len({a["record_index"] for a in analyses}),
         "perm_histogram": dict(perm_hist.most_common()),
         "boundary_progress_histogram": dict(boundary_progress_hist),
-        "record_best_boundary_progress_histogram": dict(record_progress_hist),
-        "record_best_progress_perm_histogram": dict(record_best_perm_hist.most_common()),
+        "right_distance_progress_histogram": dict(right_distance_progress_hist),
+        "terminal_direction_progress_histogram": dict(terminal_direction_hist),
+        "record_best_boundary_progress_histogram": dict(Counter(best_record_boundary.values())),
+        "record_best_boundary_perm_histogram": dict(Counter(best_record_boundary_perm.values()).most_common()),
+        "record_best_terminal_direction_histogram": dict(Counter(best_record_terminal.values())),
+        "record_best_terminal_direction_perm_histogram": dict(Counter(best_record_terminal_perm.values()).most_common()),
+        "record_best_right_distance_progress_histogram": dict(Counter(best_record_right_distance.values())),
+        "record_best_right_distance_perm_histogram": dict(Counter(best_record_right_distance_perm.values()).most_common()),
         "center_shift_histogram": dict(center_shift_hist),
         "left_index_shift_histogram": dict(left_index_shift_hist),
         "same_atoms_histogram": dict(same_atoms_hist),
         "delta_nearest_boundary_histogram": sort_numeric_counter(delta_near_hist),
         "delta_left_distance_histogram": sort_numeric_counter(delta_left_hist),
+        "delta_right_distance_histogram": sort_numeric_counter(delta_right_hist),
         "delta_center2_histogram": sort_numeric_counter(delta_center_hist),
         "support_length_histogram": sort_numeric_counter(support_hist),
         "perm_by_boundary_progress": {k: dict(v) for k, v in perm_by_boundary.items()},
+        "perm_by_terminal_direction_progress": {k: dict(v) for k, v in perm_by_terminal_direction.items()},
+        "perm_by_right_distance_progress": {k: dict(v) for k, v in perm_by_right_distance.items()},
         "perm_by_same_atoms": {k: dict(v) for k, v in perm_by_same_atoms.items()},
-        "toward_boundary_examples": toward_examples,
-        "same_boundary_examples": same_examples,
-        "away_boundary_examples": away_examples,
+        "rightward_progress_examples": [a for a in analyses if a["progress"]["terminal_direction_progress"] == "rightward_progress"][:example_limit],
+        "same_position_examples": [a for a in analyses if a["progress"]["terminal_direction_progress"] == "same_position"][:example_limit],
+        "leftward_regress_examples": [a for a in analyses if a["progress"]["terminal_direction_progress"] == "leftward_regress"][:example_limit],
     }
 
 
