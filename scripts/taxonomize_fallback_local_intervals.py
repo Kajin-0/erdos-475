@@ -231,15 +231,17 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
     zone_hist = Counter()
     new_zone_hist = Counter()
     new_short = Counter()
+    fallback_defects = Counter()
     for r in rows:
         zone_hist.update(r.get("fallback_zone_histogram", {}))
         new_zone_hist.update(r.get("fallback_new_zone_histogram", {}))
+        fallback_defects[str(r.get("fallback_defect", []))] += 1
         for b in r.get("fallback_new_short_blocks", []):
             new_short[b["symbolic_block"]] += 1
     return {
         "primary_failure_rows": len(rows),
         "record_indices": [r.get("record_index") for r in rows],
-        "fallback_defect_counts": dict(Counter(tuple(r.get("fallback_defect", [])) for r in rows).most_common()),
+        "fallback_defect_counts": dict(fallback_defects.most_common()),
         "fallback_new_short_total": sum(r.get("fallback_new_short_count", 0) for r in rows),
         "fallback_new_short_symbols": dict(new_short.most_common()),
         "fallback_zone_histogram": dict(zone_hist.most_common()),
