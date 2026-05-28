@@ -2,10 +2,13 @@
 """
 Extract representative examples for zero-sum Bq/BqY route labels.
 
-The route JSONL schema has evolved during the sprint, so this script is tolerant:
-it tries several likely field names for family, route label, record index, and
-witness details.  If route JSONL files are missing, it emits a summary noting
-that only summary-level route coverage is available.
+Detailed route JSONL rows contain:
+
+    best_class = worse
+    route_label_counts = {CLEAN_DESCENT: ..., EXTERNAL_BRIDGE: ..., ...}
+
+Therefore examples are expanded by the keys of route_label_counts.  The old
+best_class field is retained only as bridge_class metadata.
 """
 
 from __future__ import annotations
@@ -21,6 +24,7 @@ TARGET = {
     "B_tail+q": "Bq_zero",
     "B_tail+q+Y_prefix": "BqY_zero",
 }
+ROUTE_LABEL_KEYS = ["route_label_counts", "route_class_counts", "attempt_label_counts", "attempt_flag_counts"]
 
 
 def iter_jsonl(path: Path) -> Iterable[dict[str, Any]]:
@@ -65,14 +69,15 @@ def family_of(row: dict[str, Any], eq: dict[str, Any] | None = None) -> str | No
     return None
 
 
-def route_label_of(row: dict[str, Any]) -> str:
-    direct = first(row, ["route_label", "route_class", "label", "class", "result_class", "best_route_label", "best_class"])
+def route_label_counts(row: dict[str, Any]) -> dict[str, int]:
+    for key in ROUTE_LABEL_KEYS:
+        counts = row.get(key)
+        if isinstance(counts, dict) and counts:
+            return {str(k): int(v) for k, v in counts.items()}
+    direct = first(row, ["route_label", "route_class", "label", "result_class", "best_route_label"])
     if direct:
-        return str(direct)
-    counts = first(row, ["route_label_counts", "route_class_counts", "result_counts", "label_counts"])
-    if isinstance(counts, dict) and counts:
-        return ",".join(f"{k}:{v}" for k, v in counts.items())
-    return "UNKNOWN"
+        return {str(direct): 1}
+    return {}
 
 
 def split_original(record: dict[str, Any], eq: dict[str, Any]) -> dict[str, list[int]] | None:
@@ -120,6 +125,11 @@ def active_symbolic(record: dict[str, Any], eq: dict[str, Any] | None) -> str | 
 
 def extract_witness(row: dict[str, Any]) -> dict[str, Any]:
     keys = [
+        "hidden_equation",
+        "useful_route_flags",
+        "route_flag_counts",
+        "route_label_counts",
+        "move_routes",
         "route_witness",
         "witness",
         "best_witness",
@@ -163,17 +173,28 @@ def row_examples(row: dict[str, Any], analysis: dict[tuple[int, int], dict[str, 
     fam = family_of(row, eq)
     if fam not in ZERO_SUM_FAMILIES:
         return []
-    label = route_label_of(row)
-    return [{
+    counts = route_label_counts(row)
+    if not counts:
+        return []
+
+    bridge_class = str(row.get("best_class", "-"))
+    base = {
         "p": int(p),
         "record_index": int(record_index),
         "family": fam,
         "target": TARGET.get(fam, "-"),
-        "route_label": label,
+        "bridge_class": bridge_class,
         "reduced_equation": eq.get("reduced_equation") or row.get("reduced_equation"),
         "active_symbolic_order": active_symbolic(rec, eq),
         "witness": extract_witness(row),
-    }]
+    }
+    out = []
+    for label, count in counts.items():
+        ex = dict(base)
+        ex["route_label"] = label
+        ex["route_label_count"] = count
+        out.append(ex)
+    return out
 
 
 def summarize(rows: list[dict[str, Any]], missing: list[str], unmatched: int) -> dict[str, Any]:
