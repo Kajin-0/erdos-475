@@ -1,0 +1,21 @@
+{
+  "warning": "Example format only. Do not treat these ranges as source-certified theorem parameters.",
+  "ranges": [
+    {
+      "source_id": "EXAMPLE_small_sets",
+      "kind": "base_graham",
+      "p_min": 37,
+      "t_min_expr": "1",
+      "t_max_expr": "12",
+      "parameters": {}
+    },
+    {
+      "source_id": "EXAMPLE_very_large_complement_le_2",
+      "kind": "base_graham",
+      "p_min": 37,
+      "b_min_expr": "0",
+      "b_max_expr": "2",
+      "parameters": {}
+    }
+  ]
+}
