@@ -6,7 +6,8 @@ Input is produced by scripts/extract_zero_sum_route_examples.py and contains a
 witness.move_routes field copied from detailed route JSONL rows.
 
 The schema is intentionally handled flexibly because attempt payloads evolved
-through the sprint.
+through the sprint.  When route objects contain attempts_by_label or
+attempts_by_flag, those are preferred over truncated attempts_first5/first10.
 """
 
 from __future__ import annotations
@@ -47,7 +48,7 @@ def flatten_attempts(obj: Any) -> list[dict[str, Any]]:
         # The object itself may be an attempt.
         if any(k in obj for k in ["branch_flags", "bridge_interval", "old_defect", "new_defect", "class", "route_label", "label"]):
             out.append(obj)
-        for key in ["attempts", "attempts_first5", "routes", "results", "moves", "move_routes"]:
+        for key in ["attempts_by_label", "attempts_by_flag", "attempts", "attempts_first10", "attempts_first5", "routes", "results", "moves", "move_routes"]:
             val = obj.get(key)
             if isinstance(val, list):
                 for item in val:
@@ -86,6 +87,22 @@ def select_route_object(example: dict[str, Any]) -> tuple[Any, bool]:
 
 
 def select_attempt(route_obj: Any, label: str) -> tuple[dict[str, Any], bool]:
+    if isinstance(route_obj, dict):
+        by_label = route_obj.get("attempts_by_label")
+        if isinstance(by_label, dict):
+            vals = by_label.get(label)
+            if isinstance(vals, list) and vals:
+                return vals[0], True
+            if isinstance(vals, dict):
+                return vals, True
+        by_flag = route_obj.get("attempts_by_flag")
+        if isinstance(by_flag, dict):
+            vals = by_flag.get(label)
+            if isinstance(vals, list) and vals:
+                return vals[0], True
+            if isinstance(vals, dict):
+                return vals, True
+
     attempts = flatten_attempts(route_obj)
     for att in attempts:
         flags = att.get("branch_flags") or att.get("route_flags") or att.get("labels") or att.get("route_labels")
