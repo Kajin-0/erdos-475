@@ -4,6 +4,15 @@ set -euo pipefail
 CERT_FILE="${CERT_FILE:-certificates/minimal_witnesses.jsonl}"
 TRACE_ARGS=()
 
+if [[ -f MANIFEST.required ]]; then
+  echo "[verify] checking required artifact manifest"
+  python scripts/check_required_artifacts.py MANIFEST.required
+else
+  echo "[verify] missing MANIFEST.required" >&2
+  echo "[verify] add MANIFEST.required to declare required docs/scripts/certificate sources" >&2
+  exit 2
+fi
+
 if [[ -f traces/p29_r3_to_r7_repair_traces_strict.jsonl ]]; then
   TRACE_ARGS+=(--trace traces/p29_r3_to_r7_repair_traces_strict.jsonl)
 fi
