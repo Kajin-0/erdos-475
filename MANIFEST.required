@@ -1,0 +1,22 @@
+# Required repository artifacts for finite-certificate verification.
+#
+# Format:
+#   required <path>
+#   certificate_source <certificate_path> <trace_path_1> <trace_path_2> ...
+#
+# `required` paths must exist in the repository checkout.
+# `certificate_source` requires either:
+#   1. the certificate path exists; or
+#   2. all listed trace paths exist so the certificate can be regenerated.
+
+required docs/CLAIM_BOUNDARY.md
+required docs/VERIFIED_DOMAIN.md
+required docs/FINITE_CERTIFICATE_RUNBOOK.md
+required docs/FINITE_THEOREM.md
+required scripts/run_all_verification.sh
+required scripts/verify_minimal_witnesses.py
+required scripts/extract_minimal_witnesses.py
+required scripts/check_base_valid_ordering_finite_residue.py
+required .github/workflows/verify.yml
+
+certificate_source certificates/minimal_witnesses.jsonl traces/p29_r3_to_r7_repair_traces_strict.jsonl traces/p31_r3_to_r6_repair_traces_strict.jsonl
