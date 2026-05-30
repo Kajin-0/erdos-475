@@ -8,15 +8,35 @@
 # `certificate_source` requires either:
 #   1. the certificate path exists; or
 #   2. all listed trace paths exist so the certificate can be regenerated.
+#
+# Strict release-grade verification is controlled by:
+#   STRICT_CERT=1 bash scripts/run_all_verification.sh
+# In strict mode, the certificate file and MANIFEST.sha256 must both exist.
 
+required README.md
 required docs/CLAIM_BOUNDARY.md
 required docs/VERIFIED_DOMAIN.md
+required docs/THEOREM_DOMAIN_LEDGER.md
+required docs/EFFECTIVE_FINITE_COMPLETION_THEOREM.md
+required docs/COVERAGE_SANDWICH_LEMMA.md
+required docs/SOURCE_EXTRACTION_PRIME_FIELD.md
+required docs/INSERTION_CUT_COVER_PROGRAM.md
+required docs/INSERTION_BLOCK_ANALYZER_RUNBOOK.md
+required docs/RELEASE_HARDENING_CHECKLIST.md
+required docs/AI_PROVENANCE.md
 required docs/FINITE_CERTIFICATE_RUNBOOK.md
 required docs/FINITE_THEOREM.md
+required certificates/verified_domains.json
 required scripts/run_all_verification.sh
 required scripts/verify_minimal_witnesses.py
 required scripts/extract_minimal_witnesses.py
+required scripts/check_required_artifacts.py
 required scripts/check_base_valid_ordering_finite_residue.py
+required scripts/reduction_residue_audit.py
+required scripts/sweep_coverage_sandwich.py
+required scripts/analyze_insertion_blocks.py
+required scripts/search_insertion_reorderings.py
+required scripts/search_small_counterexamples.py
 required .github/workflows/verify.yml
 
 certificate_source certificates/minimal_witnesses.jsonl traces/p29_r3_to_r7_repair_traces_strict.jsonl traces/p31_r3_to_r6_repair_traces_strict.jsonl

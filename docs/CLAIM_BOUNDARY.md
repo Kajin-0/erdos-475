@@ -1,140 +1,121 @@
 # Claim boundary
 
-This repository is currently a finite-certificate, analytic-reduction, and proof-engineering workspace for Erdős 475.
+This repository is a finite-certificate verification, analytic-reduction, and proof-engineering workspace for Erdős Problem 475 / Graham's rearrangement problem.
 
 ## Safe current claim
 
-The strongest safe claim currently supported by the sprint artifacts is:
+The safe current claim is:
 
 ```text
-The pure worse-only m=3 hidden-support branch is certified closed in the analyzed finite domain.
+The repository records and develops independently checkable finite-certificate verification infrastructure for declared finite complement domains.
 ```
 
-More specifically, the local hidden-support branch has certificate-backed coverage:
+The machine-readable finite-domain ledger is:
 
 ```text
-zero_sum records: 83/83 routed
-equality records: 11/11 tiebroken
-combined hidden-support records: 94/94 covered
+certificates/verified_domains.json
 ```
 
-The zero-sum branch has:
+The explanatory domain ledger is:
 
 ```text
-record-level route coverage: 83/83
-representative route examples: 24/24
-attempt-level witnesses: 24/24
+docs/VERIFIED_DOMAIN.md
 ```
 
-The equality branch has:
-
-```text
-11/11 equality records tiebroken
-2/2 primary-failure rows with corrected P_suffix+q mechanism
-fallback creates no new shortest block in the certified primary-failure rows
-```
-
-## Unsafe claim
+## Unsafe claims
 
 The repository must not currently claim:
 
 ```text
 The full Erdős 475 theorem is proved.
+A standalone proof has been completed.
+The problem should be marked solved.
+The analytic residue is known to be contained in the verified finite domain.
+Tier 3 log/digest evidence is release-grade independent verification.
 ```
 
-The full theorem remains conditional until the global proof bridge is closed:
+## Required theorem bridge
+
+The full theorem remains conditional until the following bridge is complete:
 
 ```text
-analytic residue subset certified finite domain.
+external analytic coverage
++ verified finite certificate domain
++ proof that the analytic residue is contained in the verified finite domain
 ```
 
-## Required distinction
-
-The following are different statements and should not be conflated.
-
-### Local certified branch closure
+This bridge is tracked by:
 
 ```text
-A specific residual branch is closed in the analyzed finite domain by certificate-backed diagnostics and proof-facing lemmas.
+docs/EFFECTIVE_FINITE_COMPLETION_THEOREM.md
+docs/COVERAGE_SANDWICH_LEMMA.md
+docs/SOURCE_EXTRACTION_PRIME_FIELD.md
+scripts/reduction_residue_audit.py
+scripts/sweep_coverage_sandwich.py
 ```
 
-This is the current status for the pure worse-only `m=3` hidden-support branch.
+## Finite certificate kernel
 
-### Global theorem closure
+For a finite complement case, the intended trusted data are:
 
 ```text
-Every analytic residue required for Erdős 475 is proved to lie inside the verified finite domain, and every finite-domain artifact is reproducible and hash-locked.
+p
+B = F_p^* \ A
+canonical complement representative B under nonzero multiplicative scaling
+final witness ordering of A = F_p^* \ B
 ```
 
-This is not yet complete.
-
-## Documentation rule
-
-The README, proof notes, theorem drafts, and sprint documents should use language such as:
+A verifier recomputes:
 
 ```text
-certified in the analyzed finite domain
-local branch closure
-proof-facing draft
-certificate-backed evidence
-remaining symbolic proof obligation
+1. p is prime;
+2. B subset F_p^*;
+3. B is canonical under multiplicative scaling, when canonical coverage is required;
+4. final_order is a permutation of F_p^* \ B;
+5. nonempty partial sums of final_order are pairwise distinct modulo p;
+6. declared canonical coverage is complete, when coverage is required.
 ```
 
-They should avoid language such as:
+## Strict public-certificate standard
+
+Before the repository is linked externally as a hardened finite-certificate workspace, the following should be true:
+
+```text
+1. certificates/minimal_witnesses.jsonl exists and is nonempty.
+2. Python verifier passes on committed certificate artifacts.
+3. Rust verifier passes on committed certificate artifacts.
+4. MANIFEST.sha256 exists and verifies critical artifacts.
+5. CI fails if strict certificate artifacts are missing.
+6. No empty trace placeholders are presented as evidence.
+7. README.md, docs/VERIFIED_DOMAIN.md, and this file are synchronized.
+8. certificates/verified_domains.json remains the single source of truth for finite-domain audit rules.
+```
+
+## AI disclosure
+
+Some documentation and code development used AI assistance. This does not change the intended proof standard: finite-certificate claims must be direct, machine-checkable witness-verification claims, and theorem-level claims require independently checkable artifacts plus the missing analytic residue inclusion.
+
+## Recommended public wording
+
+Use language such as:
+
+```text
+finite-certificate verification workspace
+proof-engineering project
+reduction-ledger workspace
+direct witness verification
+machine-checkable finite certificate
+conditional finite-completion framework
+```
+
+Avoid language such as:
 
 ```text
 complete proof
 Erdős 475 solved
-the theorem is proved
+breakthrough proof
 final global closure
+standalone theorem proof
 ```
 
-unless the global analytic residue inclusion and verified-domain synchronization are complete.
-
-## Current local theorem package
-
-The local hidden-support branch is summarized by:
-
-```text
-docs/analytic_sprint/S100_hidden_support_local_theorem_formalization.md
-docs/analytic_sprint/S105_zero_sum_routing_lemma_final_draft.md
-docs/analytic_sprint/S106_corrected_equality_tie_break_endpoint_proof.md
-docs/analytic_sprint/S107_equality_tie_break_symbolic_gap_closure.md
-docs/analytic_sprint/S108_final_local_hidden_support_closure_proof.md
-```
-
-These documents are proof-facing local theorem drafts.  They are not a completed full proof of Erdős 475.
-
-## Remaining local proof obligations
-
-The local branch still needs publication-grade symbolic conversion of certificate-backed lemmas:
-
-```text
-1. Lemma A: hidden-support extraction into the four families.
-2. Lemma Z: zero-sum route classification without classifier language.
-3. Lemma C: formal equality tie-break endpoint proof.
-4. Refined-defect well-foundedness and induction compatibility.
-```
-
-## Remaining global proof obligations
-
-Before any full-theorem claim, the repository needs:
-
-```text
-1. VERIFIED_DOMAIN.md as the single source of truth.
-2. MANIFEST.sha256 for critical artifacts.
-3. CI checks for required certificates and stale/missing artifacts.
-4. Analytic residue inclusion: analytic residue subset certified finite domain.
-5. Claim synchronization across README, proof.tex, theorem notes, and sprint docs.
-```
-
-## Merge guidance
-
-A merge to `main` may be appropriate as a checkpoint if this claim boundary is preserved.
-
-The recommended interpretation of such a merge is:
-
-```text
-Merge as proof-infrastructure and certified-local-branch progress.
-Do not merge as a full proof claim.
-```
+unless the global analytic residue inclusion and strict finite-certificate standards are complete.

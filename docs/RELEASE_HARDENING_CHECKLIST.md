@@ -1,0 +1,122 @@
+# Release hardening checklist
+
+This checklist must be satisfied before presenting this repository externally as a hardened finite-certificate workspace for Erdős Problem 475.
+
+The current target is responsible finite-certificate verification, not a full theorem claim.
+
+## 1. Certificate artifacts
+
+```text
+[ ] certificates/minimal_witnesses.jsonl exists.
+[ ] certificates/minimal_witnesses.jsonl is nonempty.
+[ ] Every row is valid JSONL.
+[ ] Every row contains p, B, and final_order.
+[ ] Every final_order is a permutation of F_p^* \ B.
+[ ] Every final_order has pairwise distinct nonempty partial sums modulo p.
+[ ] Canonical complement coverage is complete for declared Tier 1 domains.
+```
+
+## 2. Independent verification
+
+```text
+[ ] Python verifier passes on committed certificate artifacts.
+[ ] Rust verifier passes on committed certificate artifacts.
+[ ] Python and Rust domains agree.
+[ ] Verifiers require canonical representatives when canonical coverage is claimed.
+[ ] Verifiers require coverage when finite-domain coverage is claimed.
+```
+
+Required commands:
+
+```bash
+python scripts/verify_minimal_witnesses.py \
+  certificates/minimal_witnesses.jsonl \
+  --domain 29:3-7 \
+  --domain 31:3-6 \
+  --require-canonical \
+  --require-coverage
+
+cd rust-verifier
+cargo run --release -- ../certificates/minimal_witnesses.jsonl \
+  --domain 29:3-7 \
+  --domain 31:3-6 \
+  --require-canonical \
+  --require-coverage
+```
+
+## 3. Hash locking
+
+```text
+[ ] MANIFEST.sha256 exists.
+[ ] MANIFEST.sha256 includes certificates/minimal_witnesses.jsonl.
+[ ] MANIFEST.sha256 includes certificates/verified_domains.json.
+[ ] MANIFEST.sha256 includes verifier source files.
+[ ] sha256sum -c MANIFEST.sha256 passes.
+```
+
+Required command:
+
+```bash
+sha256sum -c MANIFEST.sha256
+```
+
+## 4. CI behavior
+
+```text
+[ ] Development CI passes.
+[ ] Strict certificate mode fails if certificates/minimal_witnesses.jsonl is missing.
+[ ] Strict certificate mode fails if certificates/minimal_witnesses.jsonl is empty.
+[ ] Strict certificate mode fails if MANIFEST.sha256 is missing.
+[ ] Strict certificate mode passes after release artifacts are committed.
+```
+
+Strict local command:
+
+```bash
+STRICT_CERT=1 bash scripts/run_all_verification.sh
+```
+
+## 5. Documentation synchronization
+
+```text
+[ ] README.md claim boundary matches docs/CLAIM_BOUNDARY.md.
+[ ] docs/VERIFIED_DOMAIN.md matches certificates/verified_domains.json.
+[ ] docs/THEOREM_DOMAIN_LEDGER.md matches certificates/verified_domains.json.
+[ ] docs/EFFECTIVE_FINITE_COMPLETION_THEOREM.md states the theorem-level claim conditionally.
+[ ] No document claims a complete proof of Erdős 475.
+[ ] No document claims the problem is solved.
+[ ] Tier 3 evidence is not described as release-grade verification.
+```
+
+## 6. Trace and log hygiene
+
+```text
+[ ] No empty trace placeholders are presented as evidence.
+[ ] Logs are clearly distinguished from trusted certificate artifacts.
+[ ] Generated logs either have hashes or are marked as working artifacts.
+[ ] Any external artifacts have stable URLs and hashes.
+```
+
+## 7. AI disclosure
+
+```text
+[ ] README.md contains AI assistance disclosure.
+[ ] docs/CLAIM_BOUNDARY.md contains AI assistance disclosure.
+[ ] Any external issue or PR discloses AI assistance.
+[ ] Certificate claims are described as direct machine-checkable witness verification, not AI-derived mathematical authority.
+```
+
+## 8. External database-link readiness
+
+Before opening an issue or PR in `teorth/erdosproblems`, the recommended minimum is:
+
+```text
+[ ] certificates/minimal_witnesses.jsonl exists and is nonempty.
+[ ] Python verifier passes.
+[ ] Rust verifier passes.
+[ ] MANIFEST.sha256 exists and passes.
+[ ] STRICT_CERT=1 bash scripts/run_all_verification.sh passes.
+[ ] README.md and docs/CLAIM_BOUNDARY.md explicitly say this is not a complete proof.
+```
+
+If these are not satisfied, the repository may still be useful research infrastructure, but it should not yet be advertised as a hardened finite-certificate workspace.
