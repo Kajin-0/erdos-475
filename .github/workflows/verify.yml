@@ -74,6 +74,14 @@ jobs:
             | tee insertion_reordering_smoke.log
           grep -q "tasks=1" insertion_reordering_smoke.log
           grep -q "valid_order_found=" insertion_reordering_smoke.log
+      - name: Run small counterexample search smoke check
+        run: |
+          python scripts/search_small_counterexamples.py \
+            --max-prime 7 \
+            --t-range 1..4 \
+            --canonical-only \
+            | tee small_counterexample_smoke.log
+          grep -q "VERDICT: no counterexamples found" small_counterexample_smoke.log
 
   rust-independent-verifier:
     runs-on: ubuntu-latest
