@@ -54,6 +54,9 @@ fi
 
 echo "[verify] checking minimal witnesses"
 "$PYTHON" scripts/verify_minimal_witnesses.py "$CERT_FILE" \
+  --domain 17:3 \
+  --domain 19:3-5 \
+  --domain 23:3-9 \
   --domain 29:3-7 \
   --domain 31:3-6 \
   --require-canonical \
