@@ -63,6 +63,17 @@ jobs:
             | tee insertion_analyzer_smoke.log
           grep -q "blocked_count=" insertion_analyzer_smoke.log
           grep -q "unblocked_count=" insertion_analyzer_smoke.log
+      - name: Run insertion reordering search smoke check
+        run: |
+          python scripts/search_insertion_reorderings.py \
+            --p 5 \
+            --values 1,2 \
+            --x 3 \
+            --random-trials 2 \
+            --local-rounds 1 \
+            | tee insertion_reordering_smoke.log
+          grep -q "tasks=1" insertion_reordering_smoke.log
+          grep -q "valid_order_found=" insertion_reordering_smoke.log
 
   rust-independent-verifier:
     runs-on: ubuntu-latest
