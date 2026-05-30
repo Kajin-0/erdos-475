@@ -89,7 +89,33 @@ p = 29, |B| = 3..15
 p = 31, |B| = 3..17
 ```
 
-These domains have different trust tiers.  In particular, Tier 3 log/digest/external-artifact-pending evidence should not be presented as release-grade independent verification.
+The current strict Tier 1 certificate covers:
+
+```text
+p = 17, |B| = 3
+p = 19, |B| = 3..5
+p = 23, |B| = 3..9
+p = 29, |B| = 3..7
+p = 31, |B| = 3..6
+```
+
+with:
+
+```text
+136375 canonical finite instances
+Python verifier pass
+Rust verifier pass
+MANIFEST.sha256 hash locking
+```
+
+The remaining declared Tier 3 domains are:
+
+```text
+p = 29, |B| = 8..15
+p = 31, |B| = 7..17
+```
+
+Tier 3 log/digest/external-artifact-pending evidence should not be presented as release-grade independent verification.
 
 ---
 
@@ -173,11 +199,14 @@ python scripts/extract_minimal_witnesses.py \
   --strict
 ```
 
-Then verify:
+Then verify the current strict Tier 1 certificate:
 
 ```bash
 python scripts/verify_minimal_witnesses.py \
   certificates/minimal_witnesses.jsonl \
+  --domain 17:3 \
+  --domain 19:3-5 \
+  --domain 23:3-9 \
   --domain 29:3-7 \
   --domain 31:3-6 \
   --require-canonical \
@@ -189,6 +218,9 @@ Independent Rust verification:
 ```bash
 cd rust-verifier
 cargo run --release -- ../certificates/minimal_witnesses.jsonl \
+  --domain 17:3 \
+  --domain 19:3-5 \
+  --domain 23:3-9 \
   --domain 29:3-7 \
   --domain 31:3-6 \
   --require-canonical \
@@ -306,6 +338,7 @@ docs/EFFECTIVE_FINITE_COMPLETION_THEOREM.md
 docs/COVERAGE_SANDWICH_LEMMA.md
 docs/SOURCE_EXTRACTION_PRIME_FIELD.md
 docs/INSERTION_CUT_COVER_PROGRAM.md
+docs/TIER1_EXPANSION_RUNBOOK.md
 ```
 
 Older analytic and proof drafts remain research notes unless explicitly promoted into a verified theorem chain.

@@ -14,8 +14,8 @@
       "b_min": 3,
       "b_max": 3,
       "method": "direct_witness",
-      "trust_tier": 3,
-      "artifact_status": "log_or_external_artifact"
+      "trust_tier": 1,
+      "artifact_status": "committed_direct_witness_jsonl_verified_by_python_and_rust"
     },
     {
       "name": "verified_p19_b3_to_b5",
@@ -23,8 +23,8 @@
       "b_min": 3,
       "b_max": 5,
       "method": "direct_witness",
-      "trust_tier": 3,
-      "artifact_status": "log_or_external_artifact"
+      "trust_tier": 1,
+      "artifact_status": "committed_direct_witness_jsonl_verified_by_python_and_rust"
     },
     {
       "name": "verified_p23_b3_to_b9",
@@ -32,8 +32,8 @@
       "b_min": 3,
       "b_max": 9,
       "method": "direct_witness",
-      "trust_tier": 3,
-      "artifact_status": "log_or_external_artifact"
+      "trust_tier": 1,
+      "artifact_status": "committed_direct_witness_jsonl_verified_by_python_and_rust"
     },
     {
       "name": "verified_p29_b3_to_b7",
