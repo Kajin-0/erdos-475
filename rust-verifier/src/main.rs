@@ -7,8 +7,9 @@ use std::io::{BufRead, BufReader};
 #[derive(Parser, Debug)]
 #[command(author, version, about = "Independent minimal witness verifier for Erdős 475 finite certificates")]
 struct Args {
-    /// Minimal witness JSONL file.
-    certificate: String,
+    /// Minimal witness JSONL file(s).
+    #[arg(required = true)]
+    certificates: Vec<String>,
 
     /// Expected domain such as 29:3-7 or 31:6. May repeat.
     #[arg(long = "domain")]
@@ -116,10 +117,10 @@ fn parse_domain(text: &str) -> Result<(u64, Vec<usize>), String> {
     }
 }
 
-fn verify_witness(w: &Witness, line_no: usize, require_canonical: bool) -> Result<Vec<u64>, String> {
+fn verify_witness(w: &Witness, line_id: &str, require_canonical: bool) -> Result<Vec<u64>, String> {
     let p = w.p;
     if !is_prime(p) {
-        return Err(format!("line {line_no}: p={p} is not prime"));
+        return Err(format!("{line_id}: p={p} is not prime"));
     }
 
     let universe: BTreeSet<u64> = (1..p).collect();
@@ -128,22 +129,22 @@ fn verify_witness(w: &Witness, line_no: usize, require_canonical: bool) -> Resul
 
     let b_set: BTreeSet<u64> = b.iter().copied().collect();
     if b_set.len() != b.len() {
-        return Err(format!("line {line_no}: B has duplicate entries"));
+        return Err(format!("{line_id}: B has duplicate entries"));
     }
     if !b_set.is_subset(&universe) {
-        return Err(format!("line {line_no}: B is not a subset of F_p^*"));
+        return Err(format!("{line_id}: B is not a subset of F_p^*"));
     }
     if require_canonical && b != canonical_scale(&b, p) {
-        return Err(format!("line {line_no}: B is not canonical under scaling: {:?}", b));
+        return Err(format!("{line_id}: B is not canonical under scaling: {:?}", b));
     }
 
     let a_set: BTreeSet<u64> = universe.difference(&b_set).copied().collect();
     let order_set: BTreeSet<u64> = w.final_order.iter().copied().collect();
     if order_set.len() != w.final_order.len() {
-        return Err(format!("line {line_no}: final_order contains duplicates"));
+        return Err(format!("{line_id}: final_order contains duplicates"));
     }
     if order_set != a_set {
-        return Err(format!("line {line_no}: final_order is not F_p^* \\ B"));
+        return Err(format!("{line_id}: final_order is not F_p^* \\ B"));
     }
 
     let mut partials = HashSet::new();
@@ -151,7 +152,7 @@ fn verify_witness(w: &Witness, line_no: usize, require_canonical: bool) -> Resul
     for &x in &w.final_order {
         s = (s + x) % p;
         if !partials.insert(s) {
-            return Err(format!("line {line_no}: repeated nonempty partial sum {s}"));
+            return Err(format!("{line_id}: repeated nonempty partial sum {s}"));
         }
     }
 
@@ -161,30 +162,35 @@ fn verify_witness(w: &Witness, line_no: usize, require_canonical: bool) -> Resul
 fn main() -> Result<(), String> {
     let args = Args::parse();
 
-    let file = File::open(&args.certificate)
-        .map_err(|e| format!("failed to open {}: {e}", args.certificate))?;
-    let reader = BufReader::new(file);
-
-    let mut seen: BTreeMap<(u64, Vec<u64>), usize> = BTreeMap::new();
+    let mut seen: BTreeMap<(u64, Vec<u64>), String> = BTreeMap::new();
     let mut by_pk: BTreeMap<(u64, usize), BTreeSet<Vec<u64>>> = BTreeMap::new();
     let mut rows = 0usize;
 
-    for (idx, line_result) in reader.lines().enumerate() {
-        let line_no = idx + 1;
-        let line = line_result.map_err(|e| format!("line {line_no}: read error: {e}"))?;
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
-            continue;
+    for certificate in &args.certificates {
+        let file = File::open(certificate).map_err(|e| format!("failed to open {certificate}: {e}"))?;
+        let reader = BufReader::new(file);
+        let mut file_rows = 0usize;
+
+        for (idx, line_result) in reader.lines().enumerate() {
+            let line_no = idx + 1;
+            let line_id = format!("{certificate}:{line_no}");
+            let line = line_result.map_err(|e| format!("{line_id}: read error: {e}"))?;
+            let trimmed = line.trim();
+            if trimmed.is_empty() {
+                continue;
+            }
+            rows += 1;
+            file_rows += 1;
+            let witness: Witness = serde_json::from_str(trimmed)
+                .map_err(|e| format!("{line_id}: invalid JSON: {e}"))?;
+            let b = verify_witness(&witness, &line_id, args.require_canonical)?;
+            let key = (witness.p, b.clone());
+            if let Some(prev) = seen.insert(key, line_id.clone()) {
+                return Err(format!("{line_id}: duplicate witness; first seen at {prev}"));
+            }
+            by_pk.entry((witness.p, b.len())).or_default().insert(b);
         }
-        rows += 1;
-        let witness: Witness = serde_json::from_str(trimmed)
-            .map_err(|e| format!("line {line_no}: invalid JSON: {e}"))?;
-        let b = verify_witness(&witness, line_no, args.require_canonical)?;
-        let key = (witness.p, b.clone());
-        if let Some(prev) = seen.insert(key, line_no) {
-            return Err(format!("line {line_no}: duplicate witness; first seen at line {prev}"));
-        }
-        by_pk.entry((witness.p, b.len())).or_default().insert(b);
+        println!("certificate_file={certificate} verified_rows={file_rows}");
     }
 
     for domain in &args.domains {
