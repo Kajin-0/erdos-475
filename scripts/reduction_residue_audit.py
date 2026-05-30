@@ -16,12 +16,8 @@ Default built-in known ranges:
   small_set: t <= 12
   very_large: p - 3 <= t <= p - 1, equivalently |B| <= 2
 
-Verified finite domain currently recorded in docs/finite_verification_ledger.md:
-  p = 17, |B| = 3
-  p = 19, |B| = 3..5
-  p = 23, |B| = 3..9
-  p = 29, |B| = 3..15
-  p = 31, |B| = 3..17
+The verified finite domain is data-driven by default:
+  certificates/verified_domains.json
 
 The missing analytic input is the published medium/large/sufficiently-large
 prime reduction. Add those rules through --range once they are known.
@@ -47,6 +43,8 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import json
+from pathlib import Path
 from typing import List, Optional, Set, Tuple
 
 
@@ -144,22 +142,65 @@ def parse_rule(spec: str) -> Rule:
     return rule
 
 
-def verified_domain_rules() -> List[Rule]:
-    return [
-        Rule(name="verified_p17_b3", p_min=17, p_max=17, b_min=3, b_max=3),
-        Rule(name="verified_p19_b3_to_b5", p_min=19, p_max=19, b_min=3, b_max=5),
-        Rule(name="verified_p23_b3_to_b9", p_min=23, p_max=23, b_min=3, b_max=9),
-        Rule(name="verified_p29_b3_to_b15", p_min=29, p_max=29, b_min=3, b_max=15),
-        Rule(name="verified_p31_b3_to_b17", p_min=31, p_max=31, b_min=3, b_max=17),
-    ]
+def load_verified_domain_rules(path: Path) -> List[Rule]:
+    """Load verified finite complement-domain rules from JSON.
+
+    Expected domain row fields:
+      name, p, b_min, b_max
+
+    Optional row fields:
+      p_min, p_max, t_min, t_max
+    """
+    if not path.exists():
+        raise FileNotFoundError(f"verified domain file not found: {path}")
+
+    data = json.loads(path.read_text(encoding="utf-8"))
+    domains = data.get("domains")
+    if not isinstance(domains, list):
+        raise ValueError(f"{path}: expected top-level 'domains' list")
+
+    rules: List[Rule] = []
+    for idx, row in enumerate(domains, start=1):
+        if not isinstance(row, dict):
+            raise ValueError(f"{path}: domain row {idx} is not an object")
+
+        name = str(row.get("name", f"verified_domain_{idx}"))
+        p_value = row.get("p")
+        p_min = row.get("p_min", p_value)
+        p_max = row.get("p_max", p_value)
+
+        try:
+            rule = Rule(
+                name=name,
+                p_min=None if p_min is None else int(p_min),
+                p_max=None if p_max is None else int(p_max),
+                t_min=None if row.get("t_min") is None else int(row["t_min"]),
+                t_max=None if row.get("t_max") is None else int(row["t_max"]),
+                b_min=None if row.get("b_min") is None else int(row["b_min"]),
+                b_max=None if row.get("b_max") is None else int(row["b_max"]),
+            )
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"{path}: invalid numeric field in domain row {idx}: {row}") from exc
+
+        if rule.p_min is None or rule.p_max is None:
+            raise ValueError(f"{path}: domain row {idx} must specify p or p_min/p_max")
+        if rule.b_min is None and rule.t_min is None:
+            raise ValueError(f"{path}: domain row {idx} must specify b_min/b_max or t_min/t_max")
+        if rule.b_min is not None and rule.b_max is None:
+            raise ValueError(f"{path}: domain row {idx} has b_min but no b_max")
+        if rule.t_min is not None and rule.t_max is None:
+            raise ValueError(f"{path}: domain row {idx} has t_min but no t_max")
+        rules.append(rule)
+
+    return rules
 
 
-def verified_cases(max_prime: int) -> Set[Case]:
+def verified_cases(max_prime: int, verified_rules: List[Rule]) -> Set[Case]:
     out = set()
     for p in primes_upto(max_prime):
         for t in range(1, p):
             c = Case(p, t)
-            if any(rule.covers(c) for rule in verified_domain_rules()):
+            if any(rule.covers(c) for rule in verified_rules):
                 out.add(c)
     return out
 
@@ -195,17 +236,23 @@ def main() -> int:
     ap.add_argument("--range", action="append", default=[], help="Additional analytic coverage rule")
     ap.add_argument("--no-default-rules", action="store_true")
     ap.add_argument(
+        "--verified-domain-file",
+        default="certificates/verified_domains.json",
+        help="JSON file recording verified finite complement domains",
+    )
+    ap.add_argument(
         "--cover-verified-domain",
         action="store_true",
         help="Treat the verified finite domain as covered by finite verification rules",
     )
     args = ap.parse_args()
 
+    verified_rules = load_verified_domain_rules(Path(args.verified_domain_file))
     cases = [Case(p, t) for p in primes_upto(args.max_prime) for t in range(1, p)]
 
     rules = [] if args.no_default_rules else default_rules()
     if args.cover_verified_domain:
-        rules.extend(verified_domain_rules())
+        rules.extend(verified_rules)
     rules.extend(parse_rule(x) for x in args.range)
 
     covered = set()
@@ -219,7 +266,7 @@ def main() -> int:
 
     residue = sorted(set(cases) - covered, key=lambda c: (c.p, c.t))
     residue_set = set(residue)
-    verified = verified_cases(args.max_prime)
+    verified = verified_cases(args.max_prime, verified_rules)
 
     verified_in_residue = sorted(residue_set & verified, key=lambda c: (c.p, c.t))
     residue_not_verified = sorted(residue_set - verified, key=lambda c: (c.p, c.t))
@@ -227,6 +274,7 @@ def main() -> int:
 
     print("=== Erdos 475 reduction residue audit ===")
     print(f"max_prime={args.max_prime}")
+    print(f"verified_domain_file={args.verified_domain_file}")
     print(f"total_cases={len(cases)}")
     print(f"coverage_rules={len(rules)}")
     for r in rules:
