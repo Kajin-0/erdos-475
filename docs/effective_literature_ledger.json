@@ -1,0 +1,56 @@
+{
+  "schema": "erdos475.effective_literature_ledger.v1",
+  "purpose": "Record analytic source theorems and whether they have been converted into explicit residue-audit rules.",
+  "claim_boundary": "This file records source leads and audit status. It does not by itself prove that the analytic residue is contained in the verified finite domain.",
+  "entries": [
+    {
+      "source_id": "pham_sauermann_2026_large_prime",
+      "authors": "Huy Tuan Pham; Lisa Sauermann",
+      "title": "On Graham's rearrangement conjecture",
+      "year": 2026,
+      "arxiv": "2602.15797",
+      "url": "https://arxiv.org/abs/2602.15797",
+      "reported_statement": "For every alpha in (0,1), the conjecture is proved for subsets S of Z_p minus {0} with |S| <= p^(1-alpha) and |S| sufficiently large with respect to alpha. Combined with earlier results, this gives a complete resolution for all sufficiently large primes p.",
+      "effective_threshold_status": "not_extracted",
+      "residue_audit_rule_status": "not_encoded",
+      "notes": "This is the key source for a sufficiently-large-prime closure, but the repository still needs exact hypotheses, dependencies, and any effective finite threshold before using it as an audit rule."
+    },
+    {
+      "source_id": "costa_dellafiore_fontana_vena_2026_abelian_small_sets",
+      "authors": "Simone Costa; Stefano Della Fiore; Mattia Fontana; Lluís Vena",
+      "title": "Graham conjecture on small sets in abelian groups",
+      "year": 2026,
+      "arxiv": "2603.20961",
+      "url": "https://arxiv.org/abs/2603.20961",
+      "reported_statement": "The paper states that the prime-field conjecture was recently proved for sufficiently large primes by Pham and Sauermann combined with earlier results, while the broader problem remains open for general abelian groups, even cyclic groups Z_k. It proves small-set sequenceability results in generic abelian groups.",
+      "effective_threshold_status": "context_only",
+      "residue_audit_rule_status": "not_encoded",
+      "notes": "Useful for positioning and possible future generalization to cyclic or abelian groups. It is not itself the prime-field finite-residue closure."
+    },
+    {
+      "source_id": "bedert_kravitz_2024_small_prime_field_sets",
+      "authors": "Benjamin Bedert; Noah Kravitz",
+      "title": "Graham's rearrangement conjecture beyond the rectification barrier",
+      "year": 2024,
+      "arxiv": "2409.07403",
+      "url": "https://arxiv.org/abs/2409.07403",
+      "reported_statement": "The conjecture is proved for prime-field sets of size |A| <= exp((log p)^(1/4)), improving the previous log(p)/loglog(p) bound.",
+      "effective_threshold_status": "source_identified_not_encoded",
+      "residue_audit_rule_status": "not_encoded",
+      "notes": "Can replace or refine the script's default small_set_t_le_12 bookkeeping once exact dependencies and finite exceptions are audited."
+    },
+    {
+      "source_id": "very_large_set_finite_group_result",
+      "authors": "Bedert; Bucić; Kravitz; Montgomery; Müyesser",
+      "title": "On Graham's rearrangement conjecture over F_2^n",
+      "year": 2025,
+      "arxiv": "2508.18254",
+      "url": "https://arxiv.org/abs/2508.18254",
+      "reported_statement": "The abstract states, among other results, that for every group G, every subset S of G minus the identity with size at least |G|^(1-c) admits a valid ordering for an absolute constant c > 0.",
+      "effective_threshold_status": "source_identified_not_encoded",
+      "residue_audit_rule_status": "not_encoded",
+      "notes": "Potential large-set coverage input, but the constant and effective implications for specific prime fields must be extracted before use in a proof audit."
+    }
+  ],
+  "required_next_step": "Extract exact theorem statements, constants, thresholds, dependencies, and finite exceptions, then convert only source-backed ranges into scripts/reduction_residue_audit.py --range rules."
+}
