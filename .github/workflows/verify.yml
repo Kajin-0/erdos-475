@@ -24,6 +24,24 @@ jobs:
       - name: Run Python finite certificate verification
         run: bash scripts/run_all_verification.sh
 
+  residue-audit-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate verified domain JSON
+        run: python -m json.tool certificates/verified_domains.json > /dev/null
+      - name: Run finite residue audit smoke check
+        run: |
+          python scripts/reduction_residue_audit.py \
+            --max-prime 31 \
+            --cover-verified-domain \
+            | tee residue_audit_smoke.log
+          grep -q "residue_not_verified=0" residue_audit_smoke.log
+          grep -q "VERDICT: residue is contained in verified finite domain" residue_audit_smoke.log
+
   rust-independent-verifier:
     runs-on: ubuntu-latest
     needs: finite-certificate
