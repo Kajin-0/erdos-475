@@ -41,6 +41,19 @@ jobs:
             | tee residue_audit_smoke.log
           grep -q "residue_not_verified=0" residue_audit_smoke.log
           grep -q "VERDICT: residue is contained in verified finite domain" residue_audit_smoke.log
+      - name: Run coverage sandwich sweep smoke check
+        run: |
+          python scripts/sweep_coverage_sandwich.py \
+            --max-prime 31 \
+            --include-default-rules \
+            --include-verified-domain \
+            --alphas 0.10 \
+            --n-mins 13 \
+            --p-mins 37 \
+            --cs 0.05 \
+            --large-p-mins 37 \
+            | tee coverage_sweep_smoke.log
+          grep -q "tested=1" coverage_sweep_smoke.log
 
   rust-independent-verifier:
     runs-on: ubuntu-latest
