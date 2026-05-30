@@ -16,24 +16,121 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Classify changed files
+        id: changes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base_sha="${{ github.event.pull_request.base.sha }}"
+            head_sha="${{ github.event.pull_request.head.sha }}"
+            changed_files="$(git diff --name-only "$base_sha" "$head_sha")"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            before_sha="${{ github.event.before }}"
+            head_sha="${{ github.sha }}"
+            if [[ "$before_sha" =~ ^0+$ ]]; then
+              changed_files="$(git diff-tree --no-commit-id --name-only -r "$head_sha")"
+            else
+              changed_files="$(git diff --name-only "$before_sha" "$head_sha")"
+            fi
+          else
+            changed_files="__manual_full_verify__"
+          fi
+
+          echo "Changed files:"
+          printf '%s\n' "$changed_files"
+
+          docs_only=true
+          if [[ -z "$changed_files" ]]; then
+            docs_only=false
+          fi
+          while IFS= read -r path; do
+            [[ -z "$path" ]] && continue
+            case "$path" in
+              docs/*|local_artifacts/*|README.md|*.md)
+                ;;
+              *)
+                docs_only=false
+                ;;
+            esac
+          done <<< "$changed_files"
+
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+          echo "docs_only=$docs_only"
       - uses: actions/setup-python@v5
+        if: steps.changes.outputs.docs_only != 'true'
         with:
           python-version: '3.12'
       - name: Show Python version
+        if: steps.changes.outputs.docs_only != 'true'
         run: python --version
       - name: Run Python finite certificate verification
+        if: steps.changes.outputs.docs_only != 'true'
         run: bash scripts/run_all_verification.sh
+      - name: Skip finite certificate verification for docs-only change
+        if: steps.changes.outputs.docs_only == 'true'
+        run: echo "Docs/artifact-ledger-only change; skipping full Python finite-certificate verification."
 
   residue-audit-smoke:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Classify changed files
+        id: changes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base_sha="${{ github.event.pull_request.base.sha }}"
+            head_sha="${{ github.event.pull_request.head.sha }}"
+            changed_files="$(git diff --name-only "$base_sha" "$head_sha")"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            before_sha="${{ github.event.before }}"
+            head_sha="${{ github.sha }}"
+            if [[ "$before_sha" =~ ^0+$ ]]; then
+              changed_files="$(git diff-tree --no-commit-id --name-only -r "$head_sha")"
+            else
+              changed_files="$(git diff --name-only "$before_sha" "$head_sha")"
+            fi
+          else
+            changed_files="__manual_full_verify__"
+          fi
+
+          echo "Changed files:"
+          printf '%s\n' "$changed_files"
+
+          docs_only=true
+          if [[ -z "$changed_files" ]]; then
+            docs_only=false
+          fi
+          while IFS= read -r path; do
+            [[ -z "$path" ]] && continue
+            case "$path" in
+              docs/*|local_artifacts/*|README.md|*.md)
+                ;;
+              *)
+                docs_only=false
+                ;;
+            esac
+          done <<< "$changed_files"
+
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+          echo "docs_only=$docs_only"
       - uses: actions/setup-python@v5
+        if: steps.changes.outputs.docs_only != 'true'
         with:
           python-version: '3.12'
       - name: Validate verified domain JSON
+        if: steps.changes.outputs.docs_only != 'true'
         run: python -m json.tool certificates/verified_domains.json > /dev/null
       - name: Run finite residue audit smoke check
+        if: steps.changes.outputs.docs_only != 'true'
         run: |
           python scripts/reduction_residue_audit.py \
             --max-prime 31 \
@@ -42,6 +139,7 @@ jobs:
           grep -q "residue_not_verified=0" residue_audit_smoke.log
           grep -q "VERDICT: residue is contained in verified finite domain" residue_audit_smoke.log
       - name: Run coverage sandwich sweep smoke check
+        if: steps.changes.outputs.docs_only != 'true'
         run: |
           python scripts/sweep_coverage_sandwich.py \
             --max-prime 31 \
@@ -55,6 +153,7 @@ jobs:
             | tee coverage_sweep_smoke.log
           grep -q "tested=1" coverage_sweep_smoke.log
       - name: Run insertion analyzer smoke check
+        if: steps.changes.outputs.docs_only != 'true'
         run: |
           python scripts/analyze_insertion_blocks.py \
             --p 5 \
@@ -64,6 +163,7 @@ jobs:
           grep -q "blocked_count=" insertion_analyzer_smoke.log
           grep -q "unblocked_count=" insertion_analyzer_smoke.log
       - name: Run insertion reordering search smoke check
+        if: steps.changes.outputs.docs_only != 'true'
         run: |
           python scripts/search_insertion_reorderings.py \
             --p 5 \
@@ -75,6 +175,7 @@ jobs:
           grep -q "tasks=1" insertion_reordering_smoke.log
           grep -q "valid_order_found=" insertion_reordering_smoke.log
       - name: Run small counterexample search smoke check
+        if: steps.changes.outputs.docs_only != 'true'
         run: |
           python scripts/search_small_counterexamples.py \
             --max-prime 7 \
@@ -82,14 +183,63 @@ jobs:
             --canonical-only \
             | tee small_counterexample_smoke.log
           grep -q "VERDICT: no counterexamples found" small_counterexample_smoke.log
+      - name: Skip residue audit smoke checks for docs-only change
+        if: steps.changes.outputs.docs_only == 'true'
+        run: echo "Docs/artifact-ledger-only change; skipping residue-audit smoke checks."
 
   rust-independent-verifier:
     runs-on: ubuntu-latest
     needs: finite-certificate
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Classify changed files
+        id: changes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base_sha="${{ github.event.pull_request.base.sha }}"
+            head_sha="${{ github.event.pull_request.head.sha }}"
+            changed_files="$(git diff --name-only "$base_sha" "$head_sha")"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            before_sha="${{ github.event.before }}"
+            head_sha="${{ github.sha }}"
+            if [[ "$before_sha" =~ ^0+$ ]]; then
+              changed_files="$(git diff-tree --no-commit-id --name-only -r "$head_sha")"
+            else
+              changed_files="$(git diff --name-only "$before_sha" "$head_sha")"
+            fi
+          else
+            changed_files="__manual_full_verify__"
+          fi
+
+          echo "Changed files:"
+          printf '%s\n' "$changed_files"
+
+          docs_only=true
+          if [[ -z "$changed_files" ]]; then
+            docs_only=false
+          fi
+          while IFS= read -r path; do
+            [[ -z "$path" ]] && continue
+            case "$path" in
+              docs/*|local_artifacts/*|README.md|*.md)
+                ;;
+              *)
+                docs_only=false
+                ;;
+            esac
+          done <<< "$changed_files"
+
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+          echo "docs_only=$docs_only"
       - uses: dtolnay/rust-toolchain@stable
+        if: steps.changes.outputs.docs_only != 'true'
       - name: Run Rust independent verifier
+        if: steps.changes.outputs.docs_only != 'true'
         run: |
           if [[ ! -f certificates/minimal_witnesses.jsonl ]]; then
             echo "certificates/minimal_witnesses.jsonl not present; skipping Rust verifier"
@@ -110,3 +260,6 @@ jobs:
             --domain 31:3-6 \
             --require-canonical \
             --require-coverage
+      - name: Skip Rust verifier for docs-only change
+        if: steps.changes.outputs.docs_only == 'true'
+        run: echo "Docs/artifact-ledger-only change; skipping Rust independent verifier."
