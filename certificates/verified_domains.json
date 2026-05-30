@@ -45,9 +45,18 @@
       "artifact_status": "committed_or_generated_by_repository_verification"
     },
     {
-      "name": "verified_p29_b8_to_b15",
+      "name": "verified_p29_b8",
       "p": 29,
       "b_min": 8,
+      "b_max": 8,
+      "method": "direct_witness",
+      "trust_tier": 1,
+      "artifact_status": "committed_direct_witness_jsonl_verified_by_python_and_rust"
+    },
+    {
+      "name": "verified_p29_b9_to_b15",
+      "p": 29,
+      "b_min": 9,
       "b_max": 15,
       "method": "direct_witness",
       "trust_tier": 3,
