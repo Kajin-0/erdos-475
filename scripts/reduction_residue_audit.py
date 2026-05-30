@@ -20,7 +20,8 @@ The verified finite domain is data-driven by default:
   certificates/verified_domains.json
 
 The missing analytic input is the published medium/large/sufficiently-large
-prime reduction. Add those rules through --range once they are known.
+prime reduction. Add those rules through --range or the p-dependent rule flags
+once they are source-certified.
 
 Examples:
   python scripts/reduction_residue_audit.py --max-prime 31
@@ -30,6 +31,12 @@ Examples:
 
   python scripts/reduction_residue_audit.py --max-prime 31 \
     --range p>=37,t=all,name=sufficiently_large_prime_theorem
+
+  python scripts/reduction_residue_audit.py --max-prime 1000 \
+    --cover-small-exp-quarter \
+    --cover-medium-alpha 0.10:20:37:pham_sauermann_alpha_010 \
+    --cover-large-power-c 0.05 \
+    --cover-large-power-threshold 37
 
 Range syntax:
   p=29,t=13..20,name=label
@@ -44,8 +51,9 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import json
+import math
 from pathlib import Path
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Protocol, Set, Tuple
 
 
 @dataclasses.dataclass(frozen=True)
@@ -56,6 +64,13 @@ class Case:
     @property
     def b(self) -> int:
         return self.p - 1 - self.t
+
+
+class CoverageRule(Protocol):
+    name: str
+
+    def covers(self, case: Case) -> bool:
+        ...
 
 
 @dataclasses.dataclass
@@ -82,6 +97,47 @@ class Rule:
         if self.b_max is not None and case.b > self.b_max:
             return False
         return True
+
+
+@dataclasses.dataclass
+class SmallExpQuarterRule:
+    name: str = "small_exp_log_quarter"
+    p_min: int = 2
+
+    def covers(self, case: Case) -> bool:
+        if case.p < self.p_min:
+            return False
+        endpoint = math.floor(math.exp(math.log(case.p) ** 0.25))
+        return case.t <= endpoint
+
+
+@dataclasses.dataclass
+class MediumAlphaRule:
+    name: str
+    alpha: float
+    n_min: int
+    p_min: int
+
+    def covers(self, case: Case) -> bool:
+        if case.p < self.p_min:
+            return False
+        if case.t < self.n_min:
+            return False
+        endpoint = math.floor(case.p ** (1.0 - self.alpha))
+        return case.t <= endpoint
+
+
+@dataclasses.dataclass
+class LargePowerRule:
+    name: str
+    c: float
+    p_min: int
+
+    def covers(self, case: Case) -> bool:
+        if case.p < self.p_min:
+            return False
+        endpoint = math.ceil(case.p ** (1.0 - self.c))
+        return case.t >= endpoint
 
 
 def is_prime(n: int) -> bool:
@@ -142,6 +198,27 @@ def parse_rule(spec: str) -> Rule:
     return rule
 
 
+def parse_medium_alpha_rule(spec: str) -> MediumAlphaRule:
+    """Parse alpha:N:P[:name] into a p-dependent medium coverage rule."""
+    parts = spec.split(":")
+    if len(parts) not in {3, 4}:
+        raise ValueError(
+            "--cover-medium-alpha expects alpha:N_min:P_min[:name], "
+            f"got {spec!r}"
+        )
+    alpha = float(parts[0])
+    n_min = int(parts[1])
+    p_min = int(parts[2])
+    name = parts[3] if len(parts) == 4 else f"medium_alpha_{alpha:g}_N{n_min}_P{p_min}"
+    if not (0.0 < alpha < 1.0):
+        raise ValueError(f"alpha must lie in (0,1), got {alpha}")
+    if n_min < 1:
+        raise ValueError(f"N_min must be positive, got {n_min}")
+    if p_min < 2:
+        raise ValueError(f"P_min must be at least 2, got {p_min}")
+    return MediumAlphaRule(name=name, alpha=alpha, n_min=n_min, p_min=p_min)
+
+
 def load_verified_domain_rules(path: Path) -> List[Rule]:
     """Load verified finite complement-domain rules from JSON.
 
@@ -195,7 +272,7 @@ def load_verified_domain_rules(path: Path) -> List[Rule]:
     return rules
 
 
-def verified_cases(max_prime: int, verified_rules: List[Rule]) -> Set[Case]:
+def verified_cases(max_prime: int, verified_rules: List[CoverageRule]) -> Set[Case]:
     out = set()
     for p in primes_upto(max_prime):
         for t in range(1, p):
@@ -205,7 +282,7 @@ def verified_cases(max_prime: int, verified_rules: List[Rule]) -> Set[Case]:
     return out
 
 
-def default_rules() -> List[Rule]:
+def default_rules() -> List[CoverageRule]:
     return [
         Rule(name="small_set_t_le_12", t_min=None, t_max=12),
         Rule(name="very_large_b_le_2", b_min=None, b_max=2),
@@ -245,40 +322,84 @@ def main() -> int:
         action="store_true",
         help="Treat the verified finite domain as covered by finite verification rules",
     )
+    ap.add_argument(
+        "--cover-small-exp-quarter",
+        action="store_true",
+        help="Add p-dependent small-set rule t <= floor(exp((log p)^(1/4))). Use only for exploratory audits until source-certified.",
+    )
+    ap.add_argument(
+        "--small-exp-quarter-threshold",
+        type=int,
+        default=2,
+        help="Prime threshold for --cover-small-exp-quarter.",
+    )
+    ap.add_argument(
+        "--cover-medium-alpha",
+        action="append",
+        default=[],
+        help="Add medium rule alpha:N_min:P_min[:name], covering N_min <= t <= floor(p^(1-alpha)) for p >= P_min.",
+    )
+    ap.add_argument(
+        "--cover-large-power-c",
+        type=float,
+        default=None,
+        help="Add large-set rule t >= ceil(p^(1-c)). Use only after c is source-certified.",
+    )
+    ap.add_argument(
+        "--cover-large-power-threshold",
+        type=int,
+        default=2,
+        help="Prime threshold for --cover-large-power-c.",
+    )
     args = ap.parse_args()
 
     verified_rules = load_verified_domain_rules(Path(args.verified_domain_file))
     cases = [Case(p, t) for p in primes_upto(args.max_prime) for t in range(1, p)]
 
-    rules = [] if args.no_default_rules else default_rules()
+    rules: List[CoverageRule] = [] if args.no_default_rules else default_rules()
     if args.cover_verified_domain:
         rules.extend(verified_rules)
+    if args.cover_small_exp_quarter:
+        rules.append(SmallExpQuarterRule(p_min=args.small_exp_quarter_threshold))
+    for spec in args.cover_medium_alpha:
+        rules.append(parse_medium_alpha_rule(spec))
+    if args.cover_large_power_c is not None:
+        c = args.cover_large_power_c
+        if not (0.0 < c < 1.0):
+            raise ValueError(f"--cover-large-power-c must lie in (0,1), got {c}")
+        rules.append(
+            LargePowerRule(
+                name=f"large_power_c_{c:g}_P{args.cover_large_power_threshold}",
+                c=c,
+                p_min=args.cover_large_power_threshold,
+            )
+        )
     rules.extend(parse_rule(x) for x in args.range)
 
     covered = set()
     coverage_by_rule = {r.name: 0 for r in rules}
-    for c in cases:
-        for r in rules:
-            if r.covers(c):
-                covered.add(c)
-                coverage_by_rule[r.name] += 1
+    for ccase in cases:
+        for rule in rules:
+            if rule.covers(ccase):
+                covered.add(ccase)
+                coverage_by_rule[rule.name] += 1
                 break
 
-    residue = sorted(set(cases) - covered, key=lambda c: (c.p, c.t))
+    residue = sorted(set(cases) - covered, key=lambda ccase: (ccase.p, ccase.t))
     residue_set = set(residue)
     verified = verified_cases(args.max_prime, verified_rules)
 
-    verified_in_residue = sorted(residue_set & verified, key=lambda c: (c.p, c.t))
-    residue_not_verified = sorted(residue_set - verified, key=lambda c: (c.p, c.t))
-    verified_not_residue = sorted(verified - residue_set, key=lambda c: (c.p, c.t))
+    verified_in_residue = sorted(residue_set & verified, key=lambda ccase: (ccase.p, ccase.t))
+    residue_not_verified = sorted(residue_set - verified, key=lambda ccase: (ccase.p, ccase.t))
+    verified_not_residue = sorted(verified - residue_set, key=lambda ccase: (ccase.p, ccase.t))
 
     print("=== Erdos 475 reduction residue audit ===")
     print(f"max_prime={args.max_prime}")
     print(f"verified_domain_file={args.verified_domain_file}")
     print(f"total_cases={len(cases)}")
     print(f"coverage_rules={len(rules)}")
-    for r in rules:
-        print(f"  {r.name}: covered_first={coverage_by_rule[r.name]}")
+    for rule in rules:
+        print(f"  {rule.name}: covered_first={coverage_by_rule[rule.name]}")
     print(f"covered_cases={len(covered)}")
     print(f"residue_cases={len(residue)}")
     print()
@@ -299,15 +420,15 @@ def main() -> int:
         print()
         print("First residue cases not verified")
         print("---------------------------------")
-        for c in residue_not_verified[:120]:
-            print(format_case(c))
+        for ccase in residue_not_verified[:120]:
+            print(format_case(ccase))
 
     if verified_not_residue:
         print()
         print("Verified cases already covered by supplied rules")
         print("-------------------------------------------------")
-        for c in verified_not_residue[:120]:
-            print(format_case(c))
+        for ccase in verified_not_residue[:120]:
+            print(format_case(ccase))
         if len(verified_not_residue) > 120:
             print(f"... {len(verified_not_residue) - 120} more")
 
