@@ -46,7 +46,7 @@ s_0 = 0,
 s_i = c_1 + ... + c_i, 1 <= i <= n.
 ```
 
-The original problem only requires the nonempty sums `s_1,...,s_n` to be distinct.  The value `s_0=0` is an auxiliary endpoint and must be handled carefully.
+The original problem only requires the nonempty sums `s_1,...,s_n` to be distinct.  The value `s_0=0` is an auxiliary endpoint and must be handled carefully.  In particular, a nonempty partial sum `s_j` is allowed to equal `0`.
 
 ## 2. Insertion operation
 
@@ -76,15 +76,13 @@ Here the first block is absent when `i=0`.
 
 ### Lemma 3.1: internal insertion criterion
 
-Assume `C` is Graham-valid, so `s_1,...,s_n` are pairwise distinct.  The insertion `C^{(i,x)}` is Graham-valid if and only if the following two obstruction types are absent.
+Assume `C` is Graham-valid, so `s_1,...,s_n` are pairwise distinct.  For `1 <= i <= n`, the insertion `C^{(i,x)}` is Graham-valid if and only if the following two obstruction types are absent.
 
 ### Endpoint obstruction
 
 ```text
 s_i + x = s_k for some 1 <= k <= i.
 ```
-
-For `i=0`, this obstruction is empty because there are no earlier nonempty partial sums.
 
 ### Crossing obstruction
 
@@ -98,9 +96,25 @@ Equivalently,
 s_j - s_k = -x.
 ```
 
+### Cut-zero obstruction
+
+For `i=0`, the new partial sums are
+
+```text
+x, s_1+x, ..., s_n+x.
+```
+
+The inserted first sum `x` collides with a shifted suffix sum `s_j+x` if and only if
+
+```text
+s_j = 0
+```
+
+for some `1 <= j <= n`.  This is a real obstruction because Graham-validity does not forbid nonempty partial sums from equaling `0`.
+
 ### Proof
 
-The old prefix sums `s_1,...,s_i` remain distinct because `C` is valid.  The shifted suffix sums `s_{i+1}+x,...,s_n+x` remain distinct because translation by `x` is injective.  The inserted sum `s_i+x` cannot collide with a shifted suffix sum `s_j+x` for `j>i`, since this would imply `s_i=s_j`; if `i=0`, this would imply `s_j=0`, which is not automatically forbidden by Graham-validity and must be treated as an endpoint edge case.  For the internal-validity version, the remaining forbidden collisions are exactly endpoint collisions with earlier nonempty prefix sums and crossing collisions from shifted suffix sums into earlier prefix sums.  ∎
+The old prefix sums `s_1,...,s_i` remain distinct because `C` is valid.  The shifted suffix sums `s_{i+1}+x,...,s_n+x` remain distinct because translation by `x` is injective.  For `i >= 1`, the inserted sum `s_i+x` cannot collide with a shifted suffix sum `s_j+x` for `j>i`, since this would imply `s_i=s_j`, impossible by validity of `C`.  The remaining forbidden collisions are exactly endpoint collisions with earlier nonempty prefix sums and crossing collisions from shifted suffix sums into earlier prefix sums.  For `i=0`, there is no earlier prefix, but the inserted first sum `x` can collide with a shifted suffix sum precisely when some nonempty partial sum of `C` is zero. ∎
 
 ## 4. Cut-cover formulation
 
@@ -112,16 +126,22 @@ Block(C,x) subset {0,1,...,n}
 
 as the set of cuts `i` for which insertion of `x` is not Graham-valid.
 
-The endpoint obstruction blocks cut `i` if
+The endpoint obstruction blocks cut `i >= 1` if
 
 ```text
 s_i + x in {s_1,...,s_i}.
 ```
 
+Cut `0` is blocked by the zero-partial obstruction if
+
+```text
+0 in {s_1,...,s_n}.
+```
+
 For each pair `(k,j)` satisfying
 
 ```text
-1 <= k <= j <= n,
+1 <= k < j <= n,
 s_j - s_k = -x,
 ```
 
@@ -175,10 +195,10 @@ This would prove the full theorem by induction.
 Let
 
 ```text
-D_x(C) = #{(k,j): 1 <= k <= j <= n and s_j - s_k = -x}.
+D_x(C) = #{(k,j): 1 <= k < j <= n and s_j - s_k = -x}.
 ```
 
-Each pair contributes one blocking interval.  If the union of all crossing intervals and endpoint obstructions fails to cover all `n+1` cuts, insertion succeeds.
+Each pair contributes one blocking interval.  If the union of all crossing intervals, endpoint obstructions, and the cut-zero obstruction fails to cover all `n+1` cuts, insertion succeeds.
 
 The core challenge is that a small number of long intervals can cover all cuts.  Therefore a purely cardinality-based bound on `D_x(C)` is insufficient unless it also controls interval geometry.
 
@@ -191,6 +211,7 @@ minimum left endpoint;
 maximum right endpoint;
 coverage multiplicity per cut;
 endpoint obstruction count;
+whether cut zero is blocked by a zero partial sum;
 number of zero-sum consecutive blocks in C.
 ```
 
@@ -214,7 +235,8 @@ M(C,x) = (
   total_blocking_multiplicity,
   number_of_crossing_intervals,
   total_interval_length,
-  endpoint_obstruction_count
+  endpoint_obstruction_count,
+  zero_partial_cut_zero_flag
 ).
 ```
 
@@ -266,14 +288,21 @@ If all verified examples admit orderings with many unblocked cuts, that supports
 
 This program is not yet a proof.  It is the independent analytic route most aligned with the computational certificate data.
 
-The next useful artifact is a script that, given a valid ordering `C` and candidate `x`, computes:
+The first diagnostic artifact is implemented in:
+
+```text
+scripts/analyze_insertion_blocks.py
+```
+
+It computes:
 
 ```text
 Block(C,x),
 endpoint obstructions,
+zero-partial cut-zero obstruction,
 crossing intervals,
 coverage multiplicities,
 minimal unblocked cuts.
 ```
 
-This would connect the analytic obstruction program to the existing witness data.
+The next useful artifact is a local-search script that tries multiple valid orderings of `A\{x}` and minimizes the descent measure `M(C,x)`.
