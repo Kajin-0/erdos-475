@@ -3,8 +3,10 @@ set -euo pipefail
 
 PYTHON="${PYTHON:-python3}"
 CERT_FILE="${CERT_FILE:-certificates/minimal_witnesses.jsonl}"
+P29_B8_CERT="${P29_B8_CERT:-certificates/witnesses_p29_b08.jsonl}"
 STRICT_CERT="${STRICT_CERT:-0}"
 TRACE_ARGS=()
+CERT_ARGS=("$CERT_FILE")
 
 if [[ -f MANIFEST.required ]]; then
   echo "[verify] checking required artifact manifest"
@@ -52,12 +54,20 @@ if [[ ! -s "$CERT_FILE" ]]; then
   exit 2
 fi
 
+if [[ -f "$P29_B8_CERT" ]]; then
+  CERT_ARGS+=("$P29_B8_CERT")
+else
+  echo "[verify] missing optional p29 b8 certificate shard: $P29_B8_CERT" >&2
+  echo "[verify] p29 b8 is declared Tier 1; add this shard or set P29_B8_CERT" >&2
+  exit 2
+fi
+
 echo "[verify] checking minimal witnesses"
-"$PYTHON" scripts/verify_minimal_witnesses.py "$CERT_FILE" \
+"$PYTHON" scripts/verify_minimal_witnesses.py "${CERT_ARGS[@]}" \
   --domain 17:3 \
   --domain 19:3-5 \
   --domain 23:3-9 \
-  --domain 29:3-7 \
+  --domain 29:3-8 \
   --domain 31:3-6 \
   --require-canonical \
   --require-coverage

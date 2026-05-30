@@ -95,12 +95,18 @@ jobs:
             echo "certificates/minimal_witnesses.jsonl not present; skipping Rust verifier"
             exit 0
           fi
+          if [[ ! -f certificates/witnesses_p29_b08.jsonl ]]; then
+            echo "certificates/witnesses_p29_b08.jsonl not present; p29 b8 shard is required"
+            exit 2
+          fi
           cd rust-verifier
-          cargo run --release -- ../certificates/minimal_witnesses.jsonl \
+          cargo run --release -- \
+            ../certificates/minimal_witnesses.jsonl \
+            ../certificates/witnesses_p29_b08.jsonl \
             --domain 17:3 \
             --domain 19:3-5 \
             --domain 23:3-9 \
-            --domain 29:3-7 \
+            --domain 29:3-8 \
             --domain 31:3-6 \
             --require-canonical \
             --require-coverage

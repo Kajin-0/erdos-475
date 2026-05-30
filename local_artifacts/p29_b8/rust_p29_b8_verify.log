@@ -1,0 +1,6 @@
+certificate_file=../certificates/witnesses_p29_b08.jsonl verified_rows=111041
+domain p=29 |B|=8 observed=111041
+domain p=29 |B|=8 expected_canonical=111041 missing=0 extra=0
+verified_rows=111041
+unique_instances=111041
+PASS rust minimal witness verification

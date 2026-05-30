@@ -1,0 +1,47 @@
+certificate_file=../certificates/minimal_witnesses.jsonl verified_rows=136375
+certificate_file=../certificates/witnesses_p29_b08.jsonl verified_rows=111041
+domain p=17 |B|=3 observed=35
+domain p=17 |B|=3 expected_canonical=35 missing=0 extra=0
+domain p=19 |B|=3 observed=46
+domain p=19 |B|=3 expected_canonical=46 missing=0 extra=0
+domain p=19 |B|=4 observed=172
+domain p=19 |B|=4 expected_canonical=172 missing=0 extra=0
+domain p=19 |B|=5 observed=476
+domain p=19 |B|=5 expected_canonical=476 missing=0 extra=0
+domain p=23 |B|=3 observed=70
+domain p=23 |B|=3 expected_canonical=70 missing=0 extra=0
+domain p=23 |B|=4 observed=335
+domain p=23 |B|=4 expected_canonical=335 missing=0 extra=0
+domain p=23 |B|=5 observed=1197
+domain p=23 |B|=5 expected_canonical=1197 missing=0 extra=0
+domain p=23 |B|=6 observed=3399
+domain p=23 |B|=6 expected_canonical=3399 missing=0 extra=0
+domain p=23 |B|=7 observed=7752
+domain p=23 |B|=7 expected_canonical=7752 missing=0 extra=0
+domain p=23 |B|=8 observed=14550
+domain p=23 |B|=8 expected_canonical=14550 missing=0 extra=0
+domain p=23 |B|=9 observed=22610
+domain p=23 |B|=9 expected_canonical=22610 missing=0 extra=0
+domain p=29 |B|=3 observed=117
+domain p=29 |B|=3 expected_canonical=117 missing=0 extra=0
+domain p=29 |B|=4 observed=735
+domain p=29 |B|=4 expected_canonical=735 missing=0 extra=0
+domain p=29 |B|=5 observed=3510
+domain p=29 |B|=5 expected_canonical=3510 missing=0 extra=0
+domain p=29 |B|=6 observed=13468
+domain p=29 |B|=6 expected_canonical=13468 missing=0 extra=0
+domain p=29 |B|=7 observed=42288
+domain p=29 |B|=7 expected_canonical=42288 missing=0 extra=0
+domain p=29 |B|=8 observed=111041
+domain p=29 |B|=8 expected_canonical=111041 missing=0 extra=0
+domain p=31 |B|=3 observed=136
+domain p=31 |B|=3 expected_canonical=136 missing=0 extra=0
+domain p=31 |B|=4 observed=917
+domain p=31 |B|=4 expected_canonical=917 missing=0 extra=0
+domain p=31 |B|=5 observed=4751
+domain p=31 |B|=5 expected_canonical=4751 missing=0 extra=0
+domain p=31 |B|=6 observed=19811
+domain p=31 |B|=6 expected_canonical=19811 missing=0 extra=0
+verified_rows=247416
+unique_instances=247416
+PASS rust minimal witness verification
