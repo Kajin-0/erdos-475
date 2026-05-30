@@ -23,6 +23,7 @@ required docs/SOURCE_EXTRACTION_PRIME_FIELD.md
 required docs/INSERTION_CUT_COVER_PROGRAM.md
 required docs/INSERTION_BLOCK_ANALYZER_RUNBOOK.md
 required docs/RELEASE_HARDENING_CHECKLIST.md
+required docs/AI_PROVENANCE.md
 required docs/FINITE_CERTIFICATE_RUNBOOK.md
 required docs/FINITE_THEOREM.md
 required certificates/verified_domains.json
