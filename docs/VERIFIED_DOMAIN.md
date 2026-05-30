@@ -1,234 +1,140 @@
 # Verified domain
 
-This file is the repository-level source of truth for what is currently verified, what artifacts support it, and what remains outside the verified domain.
+This file records the repository-level claim boundary for finite-domain verification in the Erdős 475 / Graham rearrangement workspace.
 
-## Status summary
-
-Current status:
+The machine-readable source of truth is:
 
 ```text
-Local hidden-support branch closure: certificate-backed in the analyzed finite domain.
-Full Erdős 475 theorem: not yet verified.
+certificates/verified_domains.json
 ```
 
-The current finite-domain local branch result is:
+This Markdown file is explanatory only. If this file and `certificates/verified_domains.json` disagree, the JSON file controls the finite-domain audit tooling.
+
+## Current status summary
 
 ```text
-The pure worse-only m=3 hidden-support branch is certified closed in the analyzed finite domain.
+Repository role: finite-certificate verification and reduction-ledger workspace
+Full Erdős 475 theorem: not claimed
+Standalone proof: not claimed
 ```
 
-This file must be updated before any stronger theorem claim is made.
+The repository is intended to support direct finite witness verification for declared complement domains and to track the remaining analytic bridge needed for any theorem-level use.
 
-## Verified local branch
-
-The currently verified local branch is:
+## Notation
 
 ```text
-pure worse-only m=3 right-terminal hidden-support residual branch
+A subset F_p^*
+B = F_p^* \ A
+b = |B| = p - 1 - |A|
+t = |A|
 ```
 
-with structural form:
+A finite witness row has the form:
 
-```text
-R = X A z q B Y,
-A = A1 A2,
-A1 + A2 + z = 0,
-sum(B) + z = 0.
+```json
+{"p":29,"B":[...],"final_order":[...]}
 ```
 
-The hidden-support extraction families are:
+where `final_order` is an ordering of
 
 ```text
-B_tail + q = 0,
-B_tail + q + Y_prefix = 0,
-B_tail + q = A_complement,
-B_prefix = q.
+A = F_p^* \ B.
 ```
 
-Current coverage:
+A direct verifier checks that all nonempty partial sums of `final_order` are pairwise distinct modulo `p`.
+
+## Declared finite complement domains
+
+The currently declared finite complement domains are:
 
 ```text
-zero_sum records: 83/83 covered
-equality records: 11/11 covered
-combined hidden-support records: 94/94 covered
+p = 17, |B| = 3
+p = 19, |B| = 3..5
+p = 23, |B| = 3..9
+p = 29, |B| = 3..15
+p = 31, |B| = 3..17
 ```
 
-## Prime/domain coverage represented by current sprint artifacts
+These are recorded in `certificates/verified_domains.json` with method labels and trust tiers.
 
-The local hidden-support sprint artifacts currently report coverage for:
+## Trust tiers
+
+### Tier 1: committed or repository-generated witness certificate
+
+A domain is Tier 1 only when the repository has committed witness artifacts, or deterministic trace artifacts from which those witnesses are generated during verification, and independent verifiers can check the result.
+
+Current Tier 1 entries in `certificates/verified_domains.json` are:
 
 ```text
-p = 17
-p = 23
+p = 29, |B| = 3..7
+p = 31, |B| = 3..6
 ```
 
-The relevant local summaries include:
+### Tier 2: reproducible external artifact
+
+A domain is Tier 2 when raw witness artifacts are available externally or are reproducible from documented commands, with hashes and artifact locations recorded.
+
+### Tier 3: log, digest, or external-artifact pending evidence
+
+A domain is Tier 3 when evidence exists as logs, summaries, digests, or external artifacts that still require release-grade hardening.
+
+Current Tier 3 entries include:
 
 ```text
-p=17:
-  pure worse records: 35
-  zero_sum hidden-support records routed: 31
-  equality records tiebroken: 4
-
-p=23:
-  pure worse records: 59
-  zero_sum hidden-support records routed: 52
-  equality records tiebroken: 7
+p = 17, |B| = 3
+p = 19, |B| = 3..5
+p = 23, |B| = 3..9
+p = 29, |B| = 8..15
+p = 31, |B| = 7..17
 ```
 
-Combined:
+Tier 3 entries should not be described as release-grade certificate artifacts until the required JSONL witnesses, hashes, and verifier checks are committed or otherwise made independently reproducible.
+
+## Strict release-grade finite-certificate target
+
+Before this repository is presented externally as a hardened finite-certificate workspace, the following must be true:
 
 ```text
-p=17,p=23 hidden-support records: 94
+1. certificates/minimal_witnesses.jsonl exists and is nonempty.
+2. Python verification passes on the committed certificate file.
+3. Rust verification passes on the committed certificate file.
+4. MANIFEST.sha256 exists and hash-checks critical artifacts.
+5. CI fails if required certificate files or hashes are missing.
+6. No empty trace placeholders are presented as evidence.
+7. README.md, docs/CLAIM_BOUNDARY.md, and this file agree on the claim boundary.
+8. certificates/verified_domains.json remains the single source of truth for finite-domain audit rules.
 ```
 
-This does not by itself imply a global theorem range.
+## Current missing global bridge
 
-## Core local proof notes
-
-The local theorem package is documented in:
+The full theorem would require:
 
 ```text
-docs/analytic_sprint/S98_corrected_hidden_support_branch_theorem.md
-docs/analytic_sprint/S99_hidden_support_proof_dependency_ledger.md
-docs/analytic_sprint/S100_hidden_support_local_theorem_formalization.md
-docs/analytic_sprint/S105_zero_sum_routing_lemma_final_draft.md
-docs/analytic_sprint/S106_corrected_equality_tie_break_endpoint_proof.md
-docs/analytic_sprint/S107_equality_tie_break_symbolic_gap_closure.md
-docs/analytic_sprint/S108_final_local_hidden_support_closure_proof.md
+external analytic coverage
++ verified finite certificate domain
++ proof that the remaining analytic residue is contained in the verified finite domain
 ```
 
-## Certificate and diagnostic artifact classes
+This repository does not currently prove that bridge.
 
-The local branch closure depends on generated artifacts under `logs/`.  These are currently generated working artifacts, not yet hash-locked release artifacts.
+## Explicit non-claims
 
-Important artifact classes include:
+The repository does not currently claim:
 
 ```text
-analysis JSONL files:
-  logs/analyze_pure_m3_terminal_structure_p17_v2.jsonl
-  logs/analyze_pure_m3_terminal_structure_p23_v2.jsonl
-
-hidden-support equation JSONL files:
-  logs/bzqa_hidden_support_equations_p17_v3.jsonl
-  logs/bzqa_hidden_support_equations_p23_v3.jsonl
-
-bridge move JSONL files:
-  logs/hidden_support_bridge_moves_p17_v5.jsonl
-  logs/hidden_support_bridge_moves_p23_v5.jsonl
-
-zero-sum route JSONL files:
-  logs/route_bq_bqy_obstructions_p17_with_attempts.jsonl
-  logs/route_bq_bqy_obstructions_p23_with_attempts.jsonl
-
-zero-sum witness files:
-  logs/zero_sum_route_examples_with_attempts.jsonl
-  logs/zero_sum_attempt_witnesses_with_attempts.jsonl
-
-summary JSON files:
-  logs/summary_hidden_support_bridge_moves_p17_v5.json
-  logs/summary_hidden_support_bridge_moves_p23_v5.json
-  logs/summary_route_bq_bqy_obstructions_p17_with_attempts.json
-  logs/summary_route_bq_bqy_obstructions_p23_with_attempts.json
-  logs/summary_zero_sum_attempt_witnesses_with_attempts.json
+1. A complete proof of Erdős 475.
+2. A disproof of Erdős 475.
+3. A standalone analytic proof.
+4. That the declared finite certificate domain contains the full analytic residue.
+5. That Tier 3 evidence is release-grade independent verification.
 ```
 
-## Required reproduction scripts
-
-The sprint added or used scripts including:
+## Related theorem-architecture documents
 
 ```text
-scripts/test_hidden_support_bridge_moves.py
-scripts/route_bq_bqy_obstructions_with_attempts.py
-scripts/extract_zero_sum_route_examples.py
-scripts/extract_zero_sum_attempt_witnesses.py
-scripts/make_zero_sum_route_certificate.py
-scripts/verify_primary_failure_shape.py
-scripts/taxonomize_fallback_local_intervals.py
-scripts/make_pure_worse_certificate_table_v4.py
-```
-
-These scripts are part of the current proof-engineering workflow.
-
-## Current certification checks
-
-The current local branch certification checks are:
-
-```text
-zero-sum routing:
-  83/83 routed
-  24/24 route examples extracted
-  24/24 attempt-level witnesses matched
-
-equality tie-break:
-  11/11 equality records tiebroken
-  2/2 primary-failure rows are P_suffix+q
-  0 fallback-new-short blocks in primary-failure rows
-
-combined hidden-support branch:
-  94/94 records covered
-```
-
-## Explicit non-verified items
-
-The following are not yet verified by this file:
-
-```text
-1. Full Erdős 475 theorem.
-2. Global analytic residue inclusion.
-3. Exhaustive theorem range beyond the explicitly certified finite artifacts.
-4. Publication-grade symbolic proofs of all certificate-backed local lemmas.
-5. Hash-locked reproducibility of all logs and generated artifacts.
-```
-
-## Required before full-theorem claim
-
-Before claiming the full theorem, the repository must include:
-
-```text
-1. A complete analytic-residue ledger.
-2. A proof that analytic residue subset certified finite domain.
-3. A checked finite-certificate manifest with hashes.
-4. CI checks that fail on missing/stale critical artifacts.
-5. Synchronized claim text across README.md, proof.tex, docs, and PR descriptions.
-```
-
-## Manifest status
-
-Current status:
-
-```text
-MANIFEST.sha256: not yet present as a complete release artifact.
-```
-
-Until a manifest exists and CI enforces it, `logs/` artifacts should be treated as working certificates rather than release-grade locked evidence.
-
-## Merge guidance
-
-Merging the current PR to `main` is acceptable only as a checkpoint merge for:
-
-```text
-proof infrastructure,
-finite-certificate workflow,
-local hidden-support branch progress,
-claim-boundary documentation.
-```
-
-It should not be presented as:
-
-```text
-full Erdős 475 proof merged.
-```
-
-## Update rule
-
-Any future change that strengthens the claim must update this file in the same PR.
-
-Any future change that modifies the certified finite domain must update:
-
-```text
-1. this file,
-2. the relevant summary artifacts,
-3. the manifest once it exists,
-4. CI checks once they exist.
+docs/THEOREM_DOMAIN_LEDGER.md
+docs/EFFECTIVE_FINITE_COMPLETION_THEOREM.md
+docs/COVERAGE_SANDWICH_LEMMA.md
+docs/SOURCE_EXTRACTION_PRIME_FIELD.md
+docs/INSERTION_CUT_COVER_PROGRAM.md
 ```
