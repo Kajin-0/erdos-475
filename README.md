@@ -34,7 +34,8 @@ See:
 ```text
 docs/CLAIM_BOUNDARY.md
 docs/VERIFIED_DOMAIN.md
-docs/EFFECTIVE_FINITE_COMPLETION_THEOREM.md
+docs/FINITE_FRONTIER_STATUS.md
+docs/EXTERNAL_REVIEW_PACKET.md
 ```
 
 ---
@@ -47,7 +48,7 @@ The package works with complements
 B = F_p^* \ A
 ```
 
-where `A subset F_p^*`.  A finite witness row records:
+where `A subset F_p^*`. A finite witness row records:
 
 ```text
 p
@@ -73,13 +74,16 @@ The machine-readable finite-domain ledger is:
 certificates/verified_domains.json
 ```
 
-The explanatory ledger is:
+The explanatory ledgers are:
 
 ```text
 docs/VERIFIED_DOMAIN.md
+docs/FINITE_FRONTIER_STATUS.md
+docs/EXTERNAL_ARTIFACT_LEDGER.md
+docs/EXTERNAL_ARTIFACT_VERIFICATION_MODEL.md
 ```
 
-The currently declared Tier 1 verified finite complement domains are:
+The currently declared finite complement frontier is:
 
 ```text
 p = 17, |B| = 3
@@ -89,14 +93,7 @@ p = 29, |B| = 3..15
 p = 31, |B| = 3..17
 ```
 
-Artifact storage is split into classes:
-
-```text
-Tier 1A: committed or repository-generated artifacts are available for routine CI/Python/Rust verification.
-Tier 1B: verified local/external JSONL or summary-digest artifacts exist, but are not committed to Git due to size.
-```
-
-The current Tier 1A committed/repository-checkable subset is:
+The current committed CI-verified certificate covers:
 
 ```text
 p = 17, |B| = 3
@@ -109,26 +106,34 @@ p = 31, |B| = 3..6
 with:
 
 ```text
-247416 canonical finite instances
+247,416 canonical finite instances
 Python verifier pass
 Rust verifier pass
 MANIFEST.sha256 hash locking
+GitHub Actions CI verification
 ```
 
-The current Tier 1B verified local/external artifact subset is:
+The committed certificate artifacts are:
+
+```text
+certificates/minimal_witnesses.jsonl
+certificates/witnesses_p29_b08.jsonl
+```
+
+The external/hash-backed finite evidence frontier records:
 
 ```text
 p = 29, |B| = 9..15
-p = 31, |B| = 7..16
+p = 31, |B| = 7..17
 ```
 
-and the current Tier 1B summary-digest subset is:
+with:
 
 ```text
-p = 31, |B| = 17
+36,219,267 canonical instances represented by committed plus external/hash-backed evidence
 ```
 
-Tier 1B artifacts should be described as verified finite evidence, but not as routine Git/CI-checkable artifacts until their raw files or reproducible artifact storage are available to independent reviewers.
+External/hash-backed evidence should not be presented as equivalent to committed CI verification unless the corresponding external-artifact verification model is explicitly accepted for that domain.
 
 ---
 
@@ -137,26 +142,25 @@ Tier 1B artifacts should be described as verified finite evidence, but not as ro
 Before this repository is linked externally as a hardened finite-certificate workspace, the following should be true:
 
 ```text
-1. certificates/minimal_witnesses.jsonl exists and is nonempty.
-2. certificates/witnesses_p29_b08.jsonl exists and is nonempty.
-3. Python verifier passes on committed certificate artifacts.
-4. Rust verifier passes on committed certificate artifacts.
-5. MANIFEST.sha256 exists and verifies critical artifacts.
-6. CI fails if strict certificate artifacts are missing.
-7. No empty trace placeholders are presented as evidence.
-8. README.md, docs/CLAIM_BOUNDARY.md, and docs/VERIFIED_DOMAIN.md are synchronized.
-9. certificates/verified_domains.json remains the single source of truth for finite-domain audit rules.
-10. Tier 1B external/local artifacts have recorded hashes, locations, and reproduction or retrieval instructions before public release claims depend on them.
+1. Committed certificate artifacts exist and are nonempty.
+2. Python verifier passes on committed certificate artifacts.
+3. Rust verifier passes on committed certificate artifacts.
+4. MANIFEST.sha256 exists and verifies critical artifacts.
+5. CI fails if strict certificate artifacts are missing.
+6. No empty trace placeholders are presented as evidence.
+7. README.md, docs/CLAIM_BOUNDARY.md, docs/VERIFIED_DOMAIN.md, and docs/EXTERNAL_REVIEW_PACKET.md are synchronized.
+8. certificates/verified_domains.json remains the single source of truth for finite-domain audit rules.
 ```
 
 ---
 
-## Minimal witness certificate
+## Minimal witness certificates
 
-The preferred trusted artifact is:
+The committed trusted artifacts are:
 
 ```text
 certificates/minimal_witnesses.jsonl
+certificates/witnesses_p29_b08.jsonl
 ```
 
 with one JSON object per canonical complement representative:
@@ -176,13 +180,7 @@ nonempty partial sums of final_order are pairwise distinct mod p;
 declared canonical coverage is complete.
 ```
 
-Trace files and descent certificates are provenance.  Final witnesses are the smaller finite-existence kernel.
-
-The Tier 1A `p=29, |B|=8` domain is stored as a committed shard:
-
-```text
-certificates/witnesses_p29_b08.jsonl
-```
+Trace files and descent certificates are provenance. Final witnesses are the smaller finite-existence kernel.
 
 ---
 
@@ -194,33 +192,33 @@ Run all configured development checks from the repository root:
 bash scripts/run_all_verification.sh
 ```
 
-Development verification may generate `certificates/minimal_witnesses.jsonl` from committed traces if the witness file is absent.  This is useful for iteration, but it is not the same as strict release-grade verification of Tier 1B external/local artifacts.
+Development verification may generate `certificates/minimal_witnesses.jsonl` from committed traces if the witness file is absent. This is useful for iteration, but it is not the same as strict release-grade certificate verification.
 
 ---
 
 ## Strict certificate verification
 
-Strict mode requires the committed witness files and hash manifest to exist:
+Strict mode requires committed witness artifacts and hash manifest to exist:
 
 ```bash
 STRICT_CERT=1 bash scripts/run_all_verification.sh
 ```
 
-Strict mode currently verifies the Tier 1A committed/repository-checkable subset. Tier 1B external/local artifacts require their own artifact retrieval or local-path verification commands.
+Expected committed certificate result:
+
+```text
+verified_rows=247416
+unique_instances=247416
+PASS minimal witness verification
+```
+
+Strict mode should be used before external database-link outreach or release claims.
 
 ---
 
-## Generate minimal witnesses from traces
+## Verify committed witnesses directly
 
-```bash
-python scripts/extract_minimal_witnesses.py \
-  --trace traces/p29_r3_to_r7_repair_traces_strict.jsonl \
-  --trace traces/p31_r3_to_r6_repair_traces_strict.jsonl \
-  --out certificates/minimal_witnesses.jsonl \
-  --strict
-```
-
-Then verify the current Tier 1A committed/repository-checkable subset:
+Python:
 
 ```bash
 python scripts/verify_minimal_witnesses.py \
@@ -239,7 +237,9 @@ Independent Rust verification:
 
 ```bash
 cd rust-verifier
-cargo run --release -- ../certificates/minimal_witnesses.jsonl ../certificates/witnesses_p29_b08.jsonl \
+cargo run --release -- \
+  ../certificates/minimal_witnesses.jsonl \
+  ../certificates/witnesses_p29_b08.jsonl \
   --domain 17:3 \
   --domain 19:3-5 \
   --domain 23:3-9 \
@@ -248,6 +248,31 @@ cargo run --release -- ../certificates/minimal_witnesses.jsonl ../certificates/w
   --require-canonical \
   --require-coverage
 ```
+
+Expected Rust result:
+
+```text
+verified_rows=247416
+unique_instances=247416
+PASS rust minimal witness verification
+```
+
+---
+
+## External artifact review
+
+Large witness JSONL artifacts are recorded by hash, count, and size rather than committed directly when they are hundreds of MiB to more than 1.5 GiB.
+
+See:
+
+```text
+docs/EXTERNAL_ARTIFACT_LEDGER.md
+docs/EXTERNAL_ARTIFACT_VERIFICATION_MODEL.md
+local_artifacts/batch_manifest/local_jsonl_artifact_manifest.md
+local_artifacts/batch_manifest/summary_only_artifact_manifest.md
+```
+
+The external ledger is evidence infrastructure. It is not a complete proof and does not establish analytic residue inclusion.
 
 ---
 
