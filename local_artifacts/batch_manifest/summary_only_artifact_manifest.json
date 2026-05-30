@@ -1,0 +1,28 @@
+{
+  "schema": "erdos475.summary_only_artifact_manifest.v1",
+  "artifacts": [
+    {
+      "p": 31,
+      "b": 17,
+      "domain": "31:17",
+      "artifact_type": "summary_only_digest",
+      "filename": "p31_b17_summary_only_pass.txt",
+      "full_path": "C:\\Users\\User1\\Documents\\erdos-475\\local_artifacts\\summary_only\\p31_b17_summary_only_pass.txt",
+      "cases": "31:17",
+      "seed": 475,
+      "max_nodes": 1000000,
+      "restarts": 8,
+      "greedy_restarts": 80,
+      "processed": 3991995,
+      "solved": 3991995,
+      "failed": 0,
+      "expected_canonical": 3991995,
+      "status": "PASS_SUMMARY_COUNT",
+      "aggregate_sha256": "e1aa6a80e90560084d5538867d396d03057d1b777cde2e20dd7bcdebf4b4e2cb",
+      "elapsed_seconds": 42409.89,
+      "verdict": "PASS",
+      "artifact_availability": "summary_only_log",
+      "verification_status": "summary_only_deterministic_generation_pass"
+    }
+  ]
+}
