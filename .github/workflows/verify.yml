@@ -23,6 +23,22 @@ jobs:
         run: python --version
       - name: Run Python finite certificate verification
         run: bash scripts/run_all_verification.sh
+      - name: Run Python multi-file certificate smoke check
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          src = Path('certificates/minimal_witnesses.jsonl')
+          lines = src.read_text(encoding='utf-8').splitlines()
+          Path('tmp_cert_a.jsonl').write_text(lines[0] + '\n', encoding='utf-8')
+          Path('tmp_cert_b.jsonl').write_text(lines[1] + '\n', encoding='utf-8')
+          PY
+          python scripts/verify_minimal_witnesses.py \
+            tmp_cert_a.jsonl tmp_cert_b.jsonl \
+            --require-canonical \
+            | tee python_multifile_smoke.log
+          grep -q "certificate_file=tmp_cert_a.jsonl verified_rows=1" python_multifile_smoke.log
+          grep -q "certificate_file=tmp_cert_b.jsonl verified_rows=1" python_multifile_smoke.log
+          grep -q "verified_rows=2" python_multifile_smoke.log
 
   residue-audit-smoke:
     runs-on: ubuntu-latest
@@ -104,3 +120,20 @@ jobs:
             --domain 31:3-6 \
             --require-canonical \
             --require-coverage
+      - name: Run Rust multi-file certificate smoke check
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          src = Path('certificates/minimal_witnesses.jsonl')
+          lines = src.read_text(encoding='utf-8').splitlines()
+          Path('tmp_cert_a.jsonl').write_text(lines[0] + '\n', encoding='utf-8')
+          Path('tmp_cert_b.jsonl').write_text(lines[1] + '\n', encoding='utf-8')
+          PY
+          cd rust-verifier
+          cargo run --release -- ../tmp_cert_a.jsonl ../tmp_cert_b.jsonl \
+            --require-canonical \
+            | tee ../rust_multifile_smoke.log
+          cd ..
+          grep -q "certificate_file=../tmp_cert_a.jsonl verified_rows=1" rust_multifile_smoke.log
+          grep -q "certificate_file=../tmp_cert_b.jsonl verified_rows=1" rust_multifile_smoke.log
+          grep -q "verified_rows=2" rust_multifile_smoke.log
