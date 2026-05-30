@@ -54,6 +54,15 @@ jobs:
             --large-p-mins 37 \
             | tee coverage_sweep_smoke.log
           grep -q "tested=1" coverage_sweep_smoke.log
+      - name: Run insertion analyzer smoke check
+        run: |
+          python scripts/analyze_insertion_blocks.py \
+            --p 5 \
+            --order 1,2 \
+            --x 3 \
+            | tee insertion_analyzer_smoke.log
+          grep -q "blocked_count=" insertion_analyzer_smoke.log
+          grep -q "unblocked_count=" insertion_analyzer_smoke.log
 
   rust-independent-verifier:
     runs-on: ubuntu-latest
