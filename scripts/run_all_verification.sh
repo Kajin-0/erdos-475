@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+PYTHON="${PYTHON:-python3}"
 CERT_FILE="${CERT_FILE:-certificates/minimal_witnesses.jsonl}"
 STRICT_CERT="${STRICT_CERT:-0}"
 TRACE_ARGS=()
 
 if [[ -f MANIFEST.required ]]; then
   echo "[verify] checking required artifact manifest"
-  python scripts/check_required_artifacts.py MANIFEST.required
+  "$PYTHON" scripts/check_required_artifacts.py MANIFEST.required
 else
   echo "[verify] missing MANIFEST.required" >&2
   echo "[verify] add MANIFEST.required to declare required docs/scripts/certificate sources" >&2
@@ -37,7 +38,7 @@ else
   if [[ ! -f "$CERT_FILE" ]]; then
     if [[ ${#TRACE_ARGS[@]} -gt 0 ]]; then
       echo "[verify] generating $CERT_FILE from traces"
-      python scripts/extract_minimal_witnesses.py "${TRACE_ARGS[@]}" --out "$CERT_FILE" --strict
+      "$PYTHON" scripts/extract_minimal_witnesses.py "${TRACE_ARGS[@]}" --out "$CERT_FILE" --strict
     else
       echo "[verify] missing $CERT_FILE and no known trace files are present" >&2
       echo "[verify] add certificates/minimal_witnesses.jsonl or trace files first" >&2
@@ -52,7 +53,7 @@ if [[ ! -s "$CERT_FILE" ]]; then
 fi
 
 echo "[verify] checking minimal witnesses"
-python scripts/verify_minimal_witnesses.py "$CERT_FILE" \
+"$PYTHON" scripts/verify_minimal_witnesses.py "$CERT_FILE" \
   --domain 29:3-7 \
   --domain 31:3-6 \
   --require-canonical \
