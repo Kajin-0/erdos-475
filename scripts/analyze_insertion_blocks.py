@@ -32,6 +32,7 @@ class InsertionAnalysis:
     blocked_cuts: tuple[int, ...]
     unblocked_cuts: tuple[int, ...]
     endpoint_blocked_cuts: tuple[int, ...]
+    zero_partial_blocked_cut_zero: bool
     crossing_intervals: tuple[tuple[int, int], ...]
     cut_multiplicities: tuple[int, ...]
 
@@ -85,7 +86,15 @@ def is_subset_of_fp_star(values: Iterable[int], p: int) -> bool:
 
 
 def analyze_insertion(order: Sequence[int], x: int, p: int) -> InsertionAnalysis:
-    """Return cut-cover obstruction data for inserting x into valid order."""
+    """Return cut-cover obstruction data for inserting x into valid order.
+
+    Internal-validity convention:
+      - C itself only requires nonempty partial sums to be pairwise distinct.
+      - A nonempty partial sum of C is allowed to equal 0.
+      - Therefore cut i=0 has a special obstruction: after inserting x first,
+        the inserted first partial sum x collides with a shifted suffix sum
+        s_j + x exactly when s_j = 0 for some j >= 1.
+    """
     if not is_subset_of_fp_star(order, p):
         raise ValueError("order must be contained in F_p^*")
     if not (1 <= x <= p - 1):
@@ -100,6 +109,13 @@ def analyze_insertion(order: Sequence[int], x: int, p: int) -> InsertionAnalysis
     multiplicities = [0 for _ in range(n + 1)]
     endpoint_cuts: set[int] = set()
     crossing_intervals: list[tuple[int, int]] = []
+
+    # Special internal-validity obstruction for insertion at the beginning:
+    # new sums are x, s_1+x, ..., s_n+x.  If any nonempty s_j is 0,
+    # then x = s_j + x and cut 0 is blocked.
+    zero_partial_blocks_cut_zero = any(value == 0 for value in s[1:])
+    if zero_partial_blocks_cut_zero:
+        multiplicities[0] += 1
 
     for i in range(n + 1):
         if i >= 1:
@@ -120,8 +136,6 @@ def analyze_insertion(order: Sequence[int], x: int, p: int) -> InsertionAnalysis
                         multiplicities[i] += 1
 
     blocked = {i for i, m in enumerate(multiplicities) if m > 0}
-    # Endpoint collisions at a cut are already counted in multiplicities.
-    # Keep endpoint_cuts explicit for diagnostic attribution.
     blocked |= endpoint_cuts
     unblocked = [i for i in range(n + 1) if i not in blocked]
 
@@ -132,6 +146,7 @@ def analyze_insertion(order: Sequence[int], x: int, p: int) -> InsertionAnalysis
         blocked_cuts=tuple(sorted(blocked)),
         unblocked_cuts=tuple(unblocked),
         endpoint_blocked_cuts=tuple(sorted(endpoint_cuts)),
+        zero_partial_blocked_cut_zero=zero_partial_blocks_cut_zero,
         crossing_intervals=tuple(crossing_intervals),
         cut_multiplicities=tuple(multiplicities),
     )
@@ -184,6 +199,7 @@ def analyze_witness_deletions(path: Path, limit: int | None = None) -> list[dict
                     "blocked_count": analysis.blocked_count,
                     "unblocked_count": analysis.unblocked_count,
                     "endpoint_count": len(analysis.endpoint_blocked_cuts),
+                    "zero_partial_blocked_cut_zero": analysis.zero_partial_blocked_cut_zero,
                     "crossing_interval_count": analysis.crossing_interval_count,
                     "total_crossing_length": analysis.total_crossing_length,
                     "max_cut_multiplicity": analysis.max_cut_multiplicity,
@@ -201,10 +217,12 @@ def summarize_results(results: Sequence[dict]) -> None:
     invalid_deletions = sum(1 for r in results if not r.get("deleted_order_valid"))
     valid = [r for r in results if r.get("deleted_order_valid")]
     full_blocked = [r for r in valid if r.get("unblocked_count") == 0]
+    zero_cut0 = sum(1 for r in valid if r.get("zero_partial_blocked_cut_zero"))
     print("=== Insertion block analysis summary ===")
     print(f"records={total}")
     print(f"valid_deletion_orders={len(valid)}")
     print(f"invalid_deletion_orders={invalid_deletions}")
+    print(f"zero_partial_blocked_cut_zero={zero_cut0}")
     print(f"fully_blocked_valid_deletions={len(full_blocked)}")
     if valid:
         print(f"min_unblocked={min(int(r['unblocked_count']) for r in valid)}")
@@ -252,6 +270,7 @@ def main() -> int:
     print(f"blocked_cuts={list(analysis.blocked_cuts)}")
     print(f"unblocked_cuts={list(analysis.unblocked_cuts)}")
     print(f"endpoint_blocked_cuts={list(analysis.endpoint_blocked_cuts)}")
+    print(f"zero_partial_blocked_cut_zero={analysis.zero_partial_blocked_cut_zero}")
     print(f"crossing_intervals={list(analysis.crossing_intervals)}")
     print(f"cut_multiplicities={list(analysis.cut_multiplicities)}")
     return 0
