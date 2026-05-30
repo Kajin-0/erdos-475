@@ -1,0 +1,75 @@
+{
+  "schema": "erdos475.verified_domains.v1",
+  "claim_boundary": "Finite-domain verification data only. This file does not assert that the analytic residue of Erdős 475 is contained in these domains.",
+  "notation": {
+    "A": "subset of F_p^*",
+    "B": "F_p^* \\ A",
+    "b": "|B| = p - 1 - |A|",
+    "t": "|A|"
+  },
+  "domains": [
+    {
+      "name": "verified_p17_b3",
+      "p": 17,
+      "b_min": 3,
+      "b_max": 3,
+      "method": "direct_witness",
+      "trust_tier": 3,
+      "artifact_status": "log_or_external_artifact"
+    },
+    {
+      "name": "verified_p19_b3_to_b5",
+      "p": 19,
+      "b_min": 3,
+      "b_max": 5,
+      "method": "direct_witness",
+      "trust_tier": 3,
+      "artifact_status": "log_or_external_artifact"
+    },
+    {
+      "name": "verified_p23_b3_to_b9",
+      "p": 23,
+      "b_min": 3,
+      "b_max": 9,
+      "method": "direct_witness",
+      "trust_tier": 3,
+      "artifact_status": "log_or_external_artifact"
+    },
+    {
+      "name": "verified_p29_b3_to_b7",
+      "p": 29,
+      "b_min": 3,
+      "b_max": 7,
+      "method": "descent_certificate",
+      "trust_tier": 1,
+      "artifact_status": "committed_or_generated_by_repository_verification"
+    },
+    {
+      "name": "verified_p29_b8_to_b15",
+      "p": 29,
+      "b_min": 8,
+      "b_max": 15,
+      "method": "direct_witness",
+      "trust_tier": 3,
+      "artifact_status": "log_or_external_artifact"
+    },
+    {
+      "name": "verified_p31_b3_to_b6",
+      "p": 31,
+      "b_min": 3,
+      "b_max": 6,
+      "method": "descent_certificate",
+      "trust_tier": 1,
+      "artifact_status": "committed_or_generated_by_repository_verification"
+    },
+    {
+      "name": "verified_p31_b7_to_b17",
+      "p": 31,
+      "b_min": 7,
+      "b_max": 17,
+      "method": "direct_or_summary_witness",
+      "trust_tier": 3,
+      "artifact_status": "log_digest_or_external_artifact"
+    }
+  ]
+}
