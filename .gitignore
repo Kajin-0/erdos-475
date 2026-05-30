@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Rust build output
+rust-verifier/target/
+
+# Local editor/OS files
+.DS_Store
+*.swp
+*.swo
