@@ -66,9 +66,20 @@ A domain is Tier 1 only when the repository has committed witness artifacts, or 
 Current Tier 1 entries in `certificates/verified_domains.json` are:
 
 ```text
+p = 17, |B| = 3
+p = 19, |B| = 3..5
+p = 23, |B| = 3..9
 p = 29, |B| = 3..7
 p = 31, |B| = 3..6
 ```
+
+The strict certificate file currently contains:
+
+```text
+136375 canonical finite instances
+```
+
+covering the Tier 1 domains above, with Python verification, Rust verification, and `MANIFEST.sha256` hash locking.
 
 ### Tier 2: reproducible external artifact
 
@@ -81,9 +92,6 @@ A domain is Tier 3 when evidence exists as logs, summaries, digests, or external
 Current Tier 3 entries include:
 
 ```text
-p = 17, |B| = 3
-p = 19, |B| = 3..5
-p = 23, |B| = 3..9
 p = 29, |B| = 8..15
 p = 31, |B| = 7..17
 ```
