@@ -1,24 +1,27 @@
-# Erdos 475 Certified Finite Complement Check
+# Erdős 475 finite-certificate workspace
 
-This repository contains a computer-assisted certificate package for finite complement cases in Erdos Problem 475, also known as Graham's rearrangement problem.
+This repository is a finite-certificate verification, analytic-reduction, and proof-engineering workspace for Erdős Problem 475, also known as Graham's rearrangement problem.
 
 ## Claim boundary
 
-This repository should be read as a finite-certificate project unless and until the external reduction ledger is completed.
+This repository should be read as a finite-certificate project unless and until the analytic reduction ledger and strict certificate artifacts are complete.
 
-Safe claim:
-
-```text
-The declared finite complement domains are checkable by direct witness verification.
-```
-
-Not claimed here yet:
+Safe current claim:
 
 ```text
-A complete standalone proof of Erdos 475 for all primes and all subsets.
+The repository records and develops independently checkable finite-certificate verification infrastructure for declared finite complement domains.
 ```
 
-The full theorem requires:
+Not claimed here:
+
+```text
+A complete proof of Erdős 475.
+A disproof of Erdős 475.
+A standalone analytic proof.
+That the remaining analytic residue is contained in the verified finite domain.
+```
+
+The full theorem would require:
 
 ```text
 external analytic reductions
@@ -29,12 +32,14 @@ external analytic reductions
 See:
 
 ```text
-docs/REDUCTION_LEDGER.md
+docs/CLAIM_BOUNDARY.md
+docs/VERIFIED_DOMAIN.md
+docs/EFFECTIVE_FINITE_COMPLETION_THEOREM.md
 ```
 
 ---
 
-## Finite certificate target
+## Finite certificate notation
 
 The package works with complements
 
@@ -42,21 +47,66 @@ The package works with complements
 B = F_p^* \ A
 ```
 
-and targets the following complement domain, modulo nonzero multiplicative scaling:
+where `A subset F_p^*`.  A finite witness row records:
 
 ```text
-p = 29, |B| = 3..7
-p = 31, |B| = 3..6
+p
+B
+final_order
 ```
 
-Equivalently, the original set sizes are:
+where `final_order` is an ordering of
 
 ```text
-p = 29, |A| = 21..25
-p = 31, |A| = 24..27
+A = F_p^* \ B.
 ```
 
-The finite theorem is certified only when `certificates/minimal_witnesses.jsonl` exists and passes the Python and Rust witness verifiers.
+A direct verifier checks that all nonempty partial sums of `final_order` are pairwise distinct modulo `p`.
+
+---
+
+## Verified domain source of truth
+
+The machine-readable finite-domain ledger is:
+
+```text
+certificates/verified_domains.json
+```
+
+The explanatory ledger is:
+
+```text
+docs/VERIFIED_DOMAIN.md
+```
+
+The currently declared finite complement domains are:
+
+```text
+p = 17, |B| = 3
+p = 19, |B| = 3..5
+p = 23, |B| = 3..9
+p = 29, |B| = 3..15
+p = 31, |B| = 3..17
+```
+
+These domains have different trust tiers.  In particular, Tier 3 log/digest/external-artifact-pending evidence should not be presented as release-grade independent verification.
+
+---
+
+## Strict public-certificate standard
+
+Before this repository is linked externally as a hardened finite-certificate workspace, the following should be true:
+
+```text
+1. certificates/minimal_witnesses.jsonl exists and is nonempty.
+2. Python verifier passes on committed certificate artifacts.
+3. Rust verifier passes on committed certificate artifacts.
+4. MANIFEST.sha256 exists and verifies critical artifacts.
+5. CI fails if strict certificate artifacts are missing.
+6. No empty trace placeholders are presented as evidence.
+7. README.md, docs/CLAIM_BOUNDARY.md, and docs/VERIFIED_DOMAIN.md are synchronized.
+8. certificates/verified_domains.json remains the single source of truth for finite-domain audit rules.
+```
 
 ---
 
@@ -89,15 +139,27 @@ Trace files and descent certificates are provenance.  Final witnesses are the sm
 
 ---
 
-## Quick verification
+## Development verification
 
-Run all configured checks from the repository root:
+Run all configured development checks from the repository root:
 
 ```bash
 bash scripts/run_all_verification.sh
 ```
 
-This checks the minimal witness file if present.  If it is missing but the known trace files are present, the script attempts to generate it first.
+Development verification may generate `certificates/minimal_witnesses.jsonl` from committed traces if the witness file is absent.  This is useful for iteration, but it is not the same as strict release-grade certificate verification.
+
+---
+
+## Strict certificate verification
+
+Strict mode requires the committed witness file and hash manifest to exist:
+
+```bash
+STRICT_CERT=1 bash scripts/run_all_verification.sh
+```
+
+Strict mode should be used before external database-link outreach or release claims.
 
 ---
 
@@ -132,6 +194,32 @@ cargo run --release -- ../certificates/minimal_witnesses.jsonl \
   --require-canonical \
   --require-coverage
 ```
+
+---
+
+## Residue-audit and proof-mining tools
+
+Finite-completion tooling:
+
+```text
+scripts/reduction_residue_audit.py
+scripts/sweep_coverage_sandwich.py
+```
+
+Insertion/cut-cover proof-mining tooling:
+
+```text
+scripts/analyze_insertion_blocks.py
+scripts/search_insertion_reorderings.py
+```
+
+Small-prime counterexample sanity tooling:
+
+```text
+scripts/search_small_counterexamples.py
+```
+
+These tools support research and audit workflows.  They do not by themselves prove the full theorem.
 
 ---
 
@@ -188,11 +276,17 @@ sha256sum -c MANIFEST.sha256
 
 ---
 
+## AI disclosure
+
+Some documentation and code development used AI assistance.  The intended finite-certificate claims are direct machine-checkable witness-verification claims.  Theorem-level claims require independently checkable artifacts plus a completed analytic residue inclusion.
+
+---
+
 ## Repository layout
 
 ```text
 docs/            proof drafts, finite theorem docs, trust model, reduction ledger
-scripts/         Python verification and extraction scripts
+scripts/         Python verification, audit, and proof-mining scripts
 rust-verifier/   independent Rust witness verifier
 traces/          JSONL trace universes, if committed
 certificates/    witness JSONL and CSV certificate tables
@@ -205,10 +299,13 @@ logs/            saved validation logs, if committed
 ## Main documents
 
 ```text
-docs/FINITE_THEOREM.md
-docs/TRUST_MODEL.md
-docs/REDUCTION_LEDGER.md
-docs/FINITE_CERTIFICATE_RUNBOOK.md
+docs/CLAIM_BOUNDARY.md
+docs/VERIFIED_DOMAIN.md
+docs/THEOREM_DOMAIN_LEDGER.md
+docs/EFFECTIVE_FINITE_COMPLETION_THEOREM.md
+docs/COVERAGE_SANDWICH_LEMMA.md
+docs/SOURCE_EXTRACTION_PRIME_FIELD.md
+docs/INSERTION_CUT_COVER_PROGRAM.md
 ```
 
-Older analytic and SNS proof drafts remain research notes unless explicitly promoted into a verified theorem chain.
+Older analytic and proof drafts remain research notes unless explicitly promoted into a verified theorem chain.
