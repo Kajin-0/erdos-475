@@ -1,6 +1,20 @@
-# Finite verification ledger for Erdos 475
+# Finite verification ledger for Erdős 475
 
-This ledger records the verified finite complement-domain computations completed so far.
+This ledger records finite complement-domain computations completed so far.
+
+## Claim boundary
+
+This file is a research ledger. It records both release-grade committed certificates and lower-trust local/external evidence.
+
+It does **not** claim a complete proof of Erdős 475.
+
+It does **not** claim that the analytic residue is contained in these finite domains.
+
+For release-grade finite-domain claims, the machine-readable source of truth is:
+
+```text
+certificates/verified_domains.json
+```
 
 Notation:
 
@@ -10,24 +24,52 @@ B = F_p^* \ A
 |B| = p - 1 - |A|
 ```
 
-## Verification domains
+---
 
-The currently verified finite domain is:
+## Tier 1 committed / repository-checkable finite domain
+
+The current Tier 1 finite certificate domain is:
 
 ```text
 p = 17, |B| = 3
 p = 19, |B| = 3..5
 p = 23, |B| = 3..9
-p = 29, |B| = 3..15
-p = 31, |B| = 3..17
+p = 29, |B| = 3..8
+p = 31, |B| = 3..6
 ```
 
-The classes split into two proof/certificate styles:
+Current Tier 1 committed/repository-checkable total:
 
 ```text
-1. Main descent certificate for p=29, |B|=3..7 and p=31, |B|=3..6.
-2. Direct witness generation for the remaining finite residue classes listed below.
+247416 canonical finite instances
 ```
+
+This includes the committed shard:
+
+```text
+certificates/witnesses_p29_b08.jsonl
+```
+
+for:
+
+```text
+p = 29, |B| = 8.
+```
+
+---
+
+## Tier 3 local/external evidence frontier
+
+The broader finite evidence frontier represented by local logs, external artifacts, summary digests, and artifact ledgers is:
+
+```text
+p = 29, |B| = 9..15
+p = 31, |B| = 7..17
+```
+
+These Tier 3 entries are useful research evidence, but they are not release-grade committed finite certificates until the required witness artifacts, hashes, and verifier checks are committed or otherwise independently reproducible.
+
+---
 
 ## Main descent certificate
 
@@ -74,6 +116,8 @@ TOTAL ok=198631 fail=0
 VERDICT: PASS
 ```
 
+---
+
 ## Direct witness supplement: small-prime residue
 
 File kept locally in the research sandbox:
@@ -106,6 +150,8 @@ p=23 |B|=8: 14550
 p=23 |B|=9: 22610
 ```
 
+---
+
 ## Direct witness supplement: p = 29 medium residue
 
 The following classes were generated as direct witness JSONL files and verified by `verify_erdos475_trace_semantics.py`.
@@ -121,18 +167,31 @@ p=29 |B|=14: 1432860 records, failures=0, VERDICT: PASS
 p=29 |B|=15: 1337220 records, failures=0, VERDICT: PASS
 ```
 
-These cover:
+Trust status:
 
 ```text
-p = 29, |B| = 8..15
-p = 29, |A| = 20..13
+p=29 |B|=8:
+  Tier 1, committed shard certificates/witnesses_p29_b08.jsonl.
+
+p=29 |B|=9..15:
+  Tier 3, local/external/hash-backed evidence until raw artifacts are committed or independently reproducible.
 ```
 
-Together with the main descent certificate, this verifies:
+Together with the main descent certificate, the research evidence frontier covers:
 
 ```text
 p = 29, |B| = 3..15
 ```
+
+but only:
+
+```text
+p = 29, |B| = 3..8
+```
+
+is currently Tier 1 committed/repository-checkable.
+
+---
 
 ## Direct witness supplement: p = 31 medium residue
 
@@ -164,34 +223,50 @@ aggregate_sha256 = e1aa6a80e90560084d5538867d396d03057d1b777cde2e20dd7bcdebf4b4e
 elapsed_seconds = 42409.89
 ```
 
-These cover:
+Trust status:
 
 ```text
-p = 31, |B| = 7..17
-p = 31, |A| = 23..13
+p=31 |B|=7..17:
+  Tier 3, local/external/hash-backed or summary-only evidence until raw artifacts are committed or independently reproducible.
 ```
 
-Together with the main descent certificate, this verifies:
+Together with the main descent certificate, the research evidence frontier covers:
 
 ```text
 p = 31, |B| = 3..17
 ```
 
+but only:
+
+```text
+p = 31, |B| = 3..6
+```
+
+is currently Tier 1 committed/repository-checkable.
+
+---
+
 ## Storage policy
 
-Large witness JSONL files are not committed to the repository at this stage.
+Large witness JSONL files are not committed to the repository at this stage, except for promoted Tier 1 shards such as:
+
+```text
+certificates/witnesses_p29_b08.jsonl
+```
 
 Current policy:
 
 ```text
 1. Keep raw JSONL files in the local research sandbox only while actively needed.
-2. Commit concise PASS logs, counts, and SHA256 digests instead of multi-GB witness files.
+2. Commit concise PASS logs, counts, and SHA256 digests instead of multi-GB witness files unless a domain is promoted to Tier 1.
 3. Decide later whether raw artifacts should be stored as compressed archives, GitHub releases, external storage, or regenerated from scripts.
 ```
 
+---
+
 ## Current finite status
 
-Under the current reduction-residue audit through `p <= 31`, all exposed finite residue classes are covered by either:
+Under the current reduction-residue audit through `p <= 31`, the research evidence frontier has coverage by either:
 
 ```text
 1. the main three-branch descent certificate,
@@ -199,4 +274,14 @@ Under the current reduction-residue audit through `p <= 31`, all exposed finite 
 3. or summary-only witness verification with an aggregate digest.
 ```
 
-The remaining global task is not more finite computation through `p <= 31`. The remaining task is the analytic reduction audit: identify the published theorem ranges that reduce the infinite problem to this verified finite domain, or list any additional residue cases not yet covered.
+However, the release-grade Tier 1 committed/repository-checkable finite certificate domain is only:
+
+```text
+p = 17, |B| = 3
+p = 19, |B| = 3..5
+p = 23, |B| = 3..9
+p = 29, |B| = 3..8
+p = 31, |B| = 3..6
+```
+
+The remaining global task is not merely more finite computation through `p <= 31`. The remaining task is the analytic reduction audit: identify the published theorem ranges that reduce the infinite problem to this verified finite domain, or list any additional residue cases not yet covered.
