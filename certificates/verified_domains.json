@@ -7,6 +7,15 @@
     "b": "|B| = p - 1 - |A|",
     "t": "|A|"
   },
+  "tier_model": {
+    "trust_tier": "1 means verified finite-certificate evidence exists for the declared domain. Artifact storage is recorded separately.",
+    "artifact_class": {
+      "tier_1a_committed_repo_checkable": "Committed or repository-generated artifacts are available for routine CI/Python/Rust verification.",
+      "tier_1b_verified_external_jsonl": "Raw JSONL artifacts exist outside Git due to size and have passed verification; hashes/logs should be recorded in artifact ledgers.",
+      "tier_1b_verified_summary_digest": "Summary/digest verification passed for a large class where full JSONL was intentionally not retained in Git.",
+      "tier_3_unhardened": "Research-only evidence not yet suitable for release-grade finite-certificate claims. No currently declared domain is intentionally assigned this class."
+    }
+  },
   "domains": [
     {
       "name": "verified_p17_b3",
@@ -15,6 +24,7 @@
       "b_max": 3,
       "method": "direct_witness",
       "trust_tier": 1,
+      "artifact_class": "tier_1a_committed_repo_checkable",
       "artifact_status": "committed_direct_witness_jsonl_verified_by_python_and_rust"
     },
     {
@@ -24,6 +34,7 @@
       "b_max": 5,
       "method": "direct_witness",
       "trust_tier": 1,
+      "artifact_class": "tier_1a_committed_repo_checkable",
       "artifact_status": "committed_direct_witness_jsonl_verified_by_python_and_rust"
     },
     {
@@ -33,6 +44,7 @@
       "b_max": 9,
       "method": "direct_witness",
       "trust_tier": 1,
+      "artifact_class": "tier_1a_committed_repo_checkable",
       "artifact_status": "committed_direct_witness_jsonl_verified_by_python_and_rust"
     },
     {
@@ -42,6 +54,7 @@
       "b_max": 7,
       "method": "descent_certificate",
       "trust_tier": 1,
+      "artifact_class": "tier_1a_committed_repo_checkable",
       "artifact_status": "committed_or_generated_by_repository_verification"
     },
     {
@@ -51,6 +64,7 @@
       "b_max": 8,
       "method": "direct_witness",
       "trust_tier": 1,
+      "artifact_class": "tier_1a_committed_repo_checkable",
       "artifact_status": "committed_direct_witness_jsonl_verified_by_python_and_rust"
     },
     {
@@ -59,8 +73,9 @@
       "b_min": 9,
       "b_max": 15,
       "method": "direct_witness",
-      "trust_tier": 3,
-      "artifact_status": "log_or_external_artifact"
+      "trust_tier": 1,
+      "artifact_class": "tier_1b_verified_external_jsonl",
+      "artifact_status": "verified_local_or_external_jsonl_not_committed_due_to_size"
     },
     {
       "name": "verified_p31_b3_to_b6",
@@ -69,16 +84,28 @@
       "b_max": 6,
       "method": "descent_certificate",
       "trust_tier": 1,
+      "artifact_class": "tier_1a_committed_repo_checkable",
       "artifact_status": "committed_or_generated_by_repository_verification"
     },
     {
-      "name": "verified_p31_b7_to_b17",
+      "name": "verified_p31_b7_to_b16",
       "p": 31,
       "b_min": 7,
+      "b_max": 16,
+      "method": "direct_witness",
+      "trust_tier": 1,
+      "artifact_class": "tier_1b_verified_external_jsonl",
+      "artifact_status": "verified_local_or_external_jsonl_not_committed_due_to_size"
+    },
+    {
+      "name": "verified_p31_b17",
+      "p": 31,
+      "b_min": 17,
       "b_max": 17,
-      "method": "direct_or_summary_witness",
-      "trust_tier": 3,
-      "artifact_status": "log_digest_or_external_artifact"
+      "method": "summary_digest_witness",
+      "trust_tier": 1,
+      "artifact_class": "tier_1b_verified_summary_digest",
+      "artifact_status": "verified_summary_digest_not_full_committed_jsonl"
     }
   ]
 }
