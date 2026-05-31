@@ -69,17 +69,23 @@ Current Tier 1 entries in `certificates/verified_domains.json` are:
 p = 17, |B| = 3
 p = 19, |B| = 3..5
 p = 23, |B| = 3..9
-p = 29, |B| = 3..7
+p = 29, |B| = 3..8
 p = 31, |B| = 3..6
 ```
 
-The strict certificate file currently contains:
+The strict certificate artifacts currently contain:
 
 ```text
-136375 canonical finite instances
+247416 canonical finite instances
 ```
 
 covering the Tier 1 domains above, with Python verification, Rust verification, and `MANIFEST.sha256` hash locking.
+
+The Tier 1 `p=29, |B|=8` domain is stored as the committed shard:
+
+```text
+certificates/witnesses_p29_b08.jsonl
+```
 
 ### Tier 2: reproducible external artifact
 
@@ -92,7 +98,7 @@ A domain is Tier 3 when evidence exists as logs, summaries, digests, or external
 Current Tier 3 entries include:
 
 ```text
-p = 29, |B| = 8..15
+p = 29, |B| = 9..15
 p = 31, |B| = 7..17
 ```
 
@@ -104,13 +110,14 @@ Before this repository is presented externally as a hardened finite-certificate 
 
 ```text
 1. certificates/minimal_witnesses.jsonl exists and is nonempty.
-2. Python verification passes on the committed certificate file.
-3. Rust verification passes on the committed certificate file.
-4. MANIFEST.sha256 exists and hash-checks critical artifacts.
-5. CI fails if required certificate files or hashes are missing.
-6. No empty trace placeholders are presented as evidence.
-7. README.md, docs/CLAIM_BOUNDARY.md, and this file agree on the claim boundary.
-8. certificates/verified_domains.json remains the single source of truth for finite-domain audit rules.
+2. certificates/witnesses_p29_b08.jsonl exists and is nonempty.
+3. Python verification passes on committed certificate files.
+4. Rust verification passes on committed certificate files.
+5. MANIFEST.sha256 exists and hash-checks critical artifacts.
+6. CI fails if required certificate files or hashes are missing.
+7. No empty trace placeholders are presented as evidence.
+8. README.md, docs/CLAIM_BOUNDARY.md, and this file agree on the claim boundary.
+9. certificates/verified_domains.json remains the single source of truth for finite-domain audit rules.
 ```
 
 ## Current missing global bridge
