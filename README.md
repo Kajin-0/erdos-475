@@ -79,7 +79,7 @@ The explanatory ledger is:
 docs/VERIFIED_DOMAIN.md
 ```
 
-The currently declared finite complement domains are:
+The currently declared Tier 1 verified finite complement domains are:
 
 ```text
 p = 17, |B| = 3
@@ -89,7 +89,14 @@ p = 29, |B| = 3..15
 p = 31, |B| = 3..17
 ```
 
-The current strict Tier 1 certificate covers:
+Artifact storage is split into classes:
+
+```text
+Tier 1A: committed or repository-generated artifacts are available for routine CI/Python/Rust verification.
+Tier 1B: verified local/external JSONL or summary-digest artifacts exist, but are not committed to Git due to size.
+```
+
+The current Tier 1A committed/repository-checkable subset is:
 
 ```text
 p = 17, |B| = 3
@@ -108,14 +115,20 @@ Rust verifier pass
 MANIFEST.sha256 hash locking
 ```
 
-The remaining declared Tier 3 domains are:
+The current Tier 1B verified local/external artifact subset is:
 
 ```text
 p = 29, |B| = 9..15
-p = 31, |B| = 7..17
+p = 31, |B| = 7..16
 ```
 
-Tier 3 log/digest/external-artifact-pending evidence should not be presented as release-grade independent verification.
+and the current Tier 1B summary-digest subset is:
+
+```text
+p = 31, |B| = 17
+```
+
+Tier 1B artifacts should be described as verified finite evidence, but not as routine Git/CI-checkable artifacts until their raw files or reproducible artifact storage are available to independent reviewers.
 
 ---
 
@@ -133,6 +146,7 @@ Before this repository is linked externally as a hardened finite-certificate wor
 7. No empty trace placeholders are presented as evidence.
 8. README.md, docs/CLAIM_BOUNDARY.md, and docs/VERIFIED_DOMAIN.md are synchronized.
 9. certificates/verified_domains.json remains the single source of truth for finite-domain audit rules.
+10. Tier 1B external/local artifacts have recorded hashes, locations, and reproduction or retrieval instructions before public release claims depend on them.
 ```
 
 ---
@@ -164,7 +178,7 @@ declared canonical coverage is complete.
 
 Trace files and descent certificates are provenance.  Final witnesses are the smaller finite-existence kernel.
 
-The Tier 1 `p=29, |B|=8` domain is stored as a committed shard:
+The Tier 1A `p=29, |B|=8` domain is stored as a committed shard:
 
 ```text
 certificates/witnesses_p29_b08.jsonl
@@ -180,7 +194,7 @@ Run all configured development checks from the repository root:
 bash scripts/run_all_verification.sh
 ```
 
-Development verification may generate `certificates/minimal_witnesses.jsonl` from committed traces if the witness file is absent.  This is useful for iteration, but it is not the same as strict release-grade certificate verification.
+Development verification may generate `certificates/minimal_witnesses.jsonl` from committed traces if the witness file is absent.  This is useful for iteration, but it is not the same as strict release-grade verification of Tier 1B external/local artifacts.
 
 ---
 
@@ -192,7 +206,7 @@ Strict mode requires the committed witness files and hash manifest to exist:
 STRICT_CERT=1 bash scripts/run_all_verification.sh
 ```
 
-Strict mode should be used before external database-link outreach or release claims.
+Strict mode currently verifies the Tier 1A committed/repository-checkable subset. Tier 1B external/local artifacts require their own artifact retrieval or local-path verification commands.
 
 ---
 
@@ -206,7 +220,7 @@ python scripts/extract_minimal_witnesses.py \
   --strict
 ```
 
-Then verify the current strict Tier 1 certificate:
+Then verify the current Tier 1A committed/repository-checkable subset:
 
 ```bash
 python scripts/verify_minimal_witnesses.py \
