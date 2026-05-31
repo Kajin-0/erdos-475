@@ -95,14 +95,14 @@ The current strict Tier 1 certificate covers:
 p = 17, |B| = 3
 p = 19, |B| = 3..5
 p = 23, |B| = 3..9
-p = 29, |B| = 3..7
+p = 29, |B| = 3..8
 p = 31, |B| = 3..6
 ```
 
 with:
 
 ```text
-136375 canonical finite instances
+247416 canonical finite instances
 Python verifier pass
 Rust verifier pass
 MANIFEST.sha256 hash locking
@@ -111,7 +111,7 @@ MANIFEST.sha256 hash locking
 The remaining declared Tier 3 domains are:
 
 ```text
-p = 29, |B| = 8..15
+p = 29, |B| = 9..15
 p = 31, |B| = 7..17
 ```
 
@@ -125,13 +125,14 @@ Before this repository is linked externally as a hardened finite-certificate wor
 
 ```text
 1. certificates/minimal_witnesses.jsonl exists and is nonempty.
-2. Python verifier passes on committed certificate artifacts.
-3. Rust verifier passes on committed certificate artifacts.
-4. MANIFEST.sha256 exists and verifies critical artifacts.
-5. CI fails if strict certificate artifacts are missing.
-6. No empty trace placeholders are presented as evidence.
-7. README.md, docs/CLAIM_BOUNDARY.md, and docs/VERIFIED_DOMAIN.md are synchronized.
-8. certificates/verified_domains.json remains the single source of truth for finite-domain audit rules.
+2. certificates/witnesses_p29_b08.jsonl exists and is nonempty.
+3. Python verifier passes on committed certificate artifacts.
+4. Rust verifier passes on committed certificate artifacts.
+5. MANIFEST.sha256 exists and verifies critical artifacts.
+6. CI fails if strict certificate artifacts are missing.
+7. No empty trace placeholders are presented as evidence.
+8. README.md, docs/CLAIM_BOUNDARY.md, and docs/VERIFIED_DOMAIN.md are synchronized.
+9. certificates/verified_domains.json remains the single source of truth for finite-domain audit rules.
 ```
 
 ---
@@ -163,6 +164,12 @@ declared canonical coverage is complete.
 
 Trace files and descent certificates are provenance.  Final witnesses are the smaller finite-existence kernel.
 
+The Tier 1 `p=29, |B|=8` domain is stored as a committed shard:
+
+```text
+certificates/witnesses_p29_b08.jsonl
+```
+
 ---
 
 ## Development verification
@@ -179,7 +186,7 @@ Development verification may generate `certificates/minimal_witnesses.jsonl` fro
 
 ## Strict certificate verification
 
-Strict mode requires the committed witness file and hash manifest to exist:
+Strict mode requires the committed witness files and hash manifest to exist:
 
 ```bash
 STRICT_CERT=1 bash scripts/run_all_verification.sh
@@ -204,10 +211,11 @@ Then verify the current strict Tier 1 certificate:
 ```bash
 python scripts/verify_minimal_witnesses.py \
   certificates/minimal_witnesses.jsonl \
+  certificates/witnesses_p29_b08.jsonl \
   --domain 17:3 \
   --domain 19:3-5 \
   --domain 23:3-9 \
-  --domain 29:3-7 \
+  --domain 29:3-8 \
   --domain 31:3-6 \
   --require-canonical \
   --require-coverage
@@ -217,11 +225,11 @@ Independent Rust verification:
 
 ```bash
 cd rust-verifier
-cargo run --release -- ../certificates/minimal_witnesses.jsonl \
+cargo run --release -- ../certificates/minimal_witnesses.jsonl ../certificates/witnesses_p29_b08.jsonl \
   --domain 17:3 \
   --domain 19:3-5 \
   --domain 23:3-9 \
-  --domain 29:3-7 \
+  --domain 29:3-8 \
   --domain 31:3-6 \
   --require-canonical \
   --require-coverage
@@ -237,108 +245,3 @@ Finite-completion tooling:
 scripts/reduction_residue_audit.py
 scripts/sweep_coverage_sandwich.py
 ```
-
-Insertion/cut-cover proof-mining tooling:
-
-```text
-scripts/analyze_insertion_blocks.py
-scripts/search_insertion_reorderings.py
-```
-
-Small-prime counterexample sanity tooling:
-
-```text
-scripts/search_small_counterexamples.py
-```
-
-These tools support research and audit workflows.  They do not by themselves prove the full theorem.
-
----
-
-## Existing trace/certificate validation
-
-The repository may also contain richer trace and CSV certificate checks.
-
-### Trace semantics
-
-```bash
-python scripts/verify_erdos475_trace_semantics.py \
-  traces/p29_r3_to_r7_repair_traces_strict.jsonl \
-  traces/p31_r3_to_r6_repair_traces_strict.jsonl
-```
-
-### Certificate verification
-
-```bash
-python scripts/verify_erdos475_certificates.py \
-  --trace-files \
-    traces/p29_r3_to_r7_repair_traces_strict.jsonl \
-    traces/p31_r3_to_r6_repair_traces_strict.jsonl \
-  --nonatomic-csv \
-    certificates/p29_nonatomic_descent_full.csv \
-    certificates/p31_nonatomic_descent_full.csv \
-  --onecollision-csv \
-    certificates/p29_one_collision_deep_full.csv \
-    certificates/p31_one_collision_deep_full.csv \
-  --atomic-instances certificates/atomic_local_cert_instances.csv \
-  --atomic-certs certificates/atomic_local_certs.csv \
-  --require-onecollision-intermediates \
-  --strict-csv
-```
-
-### Coverage audit
-
-```bash
-python scripts/audit_erdos475_trace_coverage.py \
-  traces/p29_r3_to_r7_repair_traces_strict.jsonl \
-  traces/p31_r3_to_r6_repair_traces_strict.jsonl \
-  --summary-csv certificates/trace_coverage_summary.csv
-```
-
----
-
-## Hash manifest
-
-After certificates are finalized:
-
-```bash
-bash scripts/make_manifest.sh
-sha256sum -c MANIFEST.sha256
-```
-
----
-
-## AI disclosure
-
-Some documentation and code development used AI assistance.  The intended finite-certificate claims are direct machine-checkable witness-verification claims.  Theorem-level claims require independently checkable artifacts plus a completed analytic residue inclusion.
-
----
-
-## Repository layout
-
-```text
-docs/            proof drafts, finite theorem docs, trust model, reduction ledger
-scripts/         Python verification, audit, and proof-mining scripts
-rust-verifier/   independent Rust witness verifier
-traces/          JSONL trace universes, if committed
-certificates/    witness JSONL and CSV certificate tables
-logs/            saved validation logs, if committed
-.github/         CI workflow
-```
-
----
-
-## Main documents
-
-```text
-docs/CLAIM_BOUNDARY.md
-docs/VERIFIED_DOMAIN.md
-docs/THEOREM_DOMAIN_LEDGER.md
-docs/EFFECTIVE_FINITE_COMPLETION_THEOREM.md
-docs/COVERAGE_SANDWICH_LEMMA.md
-docs/SOURCE_EXTRACTION_PRIME_FIELD.md
-docs/INSERTION_CUT_COVER_PROGRAM.md
-docs/TIER1_EXPANSION_RUNBOOK.md
-```
-
-Older analytic and proof drafts remain research notes unless explicitly promoted into a verified theorem chain.
