@@ -43,9 +43,9 @@ A = F_p^* \ B.
 
 A direct verifier checks that all nonempty partial sums of `final_order` are pairwise distinct modulo `p`.
 
-## Declared finite complement domains
+## Declared Tier 1 verified finite complement domains
 
-The currently declared finite complement domains are:
+The currently declared Tier 1 verified finite complement domains are:
 
 ```text
 p = 17, |B| = 3
@@ -55,15 +55,17 @@ p = 29, |B| = 3..15
 p = 31, |B| = 3..17
 ```
 
-These are recorded in `certificates/verified_domains.json` with method labels and trust tiers.
+These are recorded in `certificates/verified_domains.json` with method labels, trust tiers, and artifact storage classes.
 
-## Trust tiers
+## Tier 1 artifact storage classes
 
-### Tier 1: committed or repository-generated witness certificate
+Tier 1 means verified finite-certificate evidence exists for the declared domain. Artifact storage is recorded separately.
 
-A domain is Tier 1 only when the repository has committed witness artifacts, or deterministic trace artifacts from which those witnesses are generated during verification, and independent verifiers can check the result.
+### Tier 1A: committed or repository-checkable artifacts
 
-Current Tier 1 entries in `certificates/verified_domains.json` are:
+Tier 1A domains have committed or repository-generated artifacts available for routine CI/Python/Rust verification.
+
+Current Tier 1A subset:
 
 ```text
 p = 17, |B| = 3
@@ -73,36 +75,44 @@ p = 29, |B| = 3..8
 p = 31, |B| = 3..6
 ```
 
-The strict certificate artifacts currently contain:
+The committed/repository-checkable artifacts currently contain:
 
 ```text
 247416 canonical finite instances
 ```
 
-covering the Tier 1 domains above, with Python verification, Rust verification, and `MANIFEST.sha256` hash locking.
+with Python verification, Rust verification, and `MANIFEST.sha256` hash locking.
 
-The Tier 1 `p=29, |B|=8` domain is stored as the committed shard:
+The Tier 1A `p=29, |B|=8` domain is stored as the committed shard:
 
 ```text
 certificates/witnesses_p29_b08.jsonl
 ```
 
-### Tier 2: reproducible external artifact
+### Tier 1B: verified local/external artifacts
 
-A domain is Tier 2 when raw witness artifacts are available externally or are reproducible from documented commands, with hashes and artifact locations recorded.
+Tier 1B domains have verified local/external JSONL artifacts or verified summary-digest artifacts that are not committed to Git due to size.
 
-### Tier 3: log, digest, or external-artifact pending evidence
-
-A domain is Tier 3 when evidence exists as logs, summaries, digests, or external artifacts that still require release-grade hardening.
-
-Current Tier 3 entries include:
+Current Tier 1B verified local/external JSONL subset:
 
 ```text
 p = 29, |B| = 9..15
-p = 31, |B| = 7..17
+p = 31, |B| = 7..16
 ```
 
-Tier 3 entries should not be described as release-grade certificate artifacts until the required JSONL witnesses, hashes, and verifier checks are committed or otherwise made independently reproducible.
+Current Tier 1B verified summary-digest subset:
+
+```text
+p = 31, |B| = 17
+```
+
+Tier 1B artifacts should be described as verified finite evidence, but not as routine Git/CI-checkable artifacts until their raw files or reproducible artifact storage are available to independent reviewers.
+
+### Tier 3: unhardened research evidence
+
+Tier 3 is reserved for research-only evidence not yet suitable for release-grade finite-certificate claims.
+
+No currently declared finite domain is intentionally classified as Tier 3 in `certificates/verified_domains.json` after the p=29 and p=31 verification status correction.
 
 ## Strict release-grade finite-certificate target
 
@@ -118,6 +128,7 @@ Before this repository is presented externally as a hardened finite-certificate 
 7. No empty trace placeholders are presented as evidence.
 8. README.md, docs/CLAIM_BOUNDARY.md, and this file agree on the claim boundary.
 9. certificates/verified_domains.json remains the single source of truth for finite-domain audit rules.
+10. Tier 1B external/local artifacts have recorded hashes, locations, and reproduction or retrieval instructions before public release claims depend on them.
 ```
 
 ## Current missing global bridge
@@ -141,7 +152,7 @@ The repository does not currently claim:
 2. A disproof of Erdős 475.
 3. A standalone analytic proof.
 4. That the declared finite certificate domain contains the full analytic residue.
-5. That Tier 3 evidence is release-grade independent verification.
+5. That Tier 1B external/local evidence is routine Git/CI-checkable without artifact retrieval.
 ```
 
 ## Related theorem-architecture documents
