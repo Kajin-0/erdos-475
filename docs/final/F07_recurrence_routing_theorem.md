@@ -9,7 +9,7 @@ A5   adjacent blocker lemma
 A64  recurrence theorem / bounded blocker framework
 A65  H1 long-blocker uncrossing
 A66  H1 crossing cases
-A67  H2 long-blocker uncrossing
+A67  H2 long-blocker uncrossing, corrected by analytic_f7_h1_h2_sign_audit.md
 A68  recurrence status after atom insertion
 A69  pair-difference recurrence
 A70  singleton-prefix recurrence
@@ -29,7 +29,7 @@ F10 weighted normal form and cut-swap theorem
 F11 weighted cut-selection theorem
 ```
 
-This is an extracted draft, not the final manuscript version.  The remaining risks are sign, endpoint, and long-blocker case audit.
+This is an extracted draft, not the final manuscript version. The remaining risks are endpoint, cyclic, weighted-exit, and long-blocker measure audits.
 
 ---
 
@@ -105,7 +105,7 @@ If a recurrent A5 blocker is bounded in the augmented-support sense, then the pu
 
 ### Proof
 
-The A5 blocker relation is pulled back onto support contained in `Supp_blk^+(j,H)`.  Since this support is a proper subinterval of `Supp_src^+(O)`, the enclosing span of the pulled-back obstruction is strictly smaller than the enclosing span of the source.  Enclosing span is the first coordinate of `M_NW^*`, so the measure strictly decreases. ∎
+The A5 blocker relation is pulled back onto support contained in `Supp_blk^+(j,H)`. Since this support is a proper subinterval of `Supp_src^+(O)`, the enclosing span of the pulled-back obstruction is strictly smaller than the enclosing span of the source. Enclosing span is the first coordinate of `M_NW^*`, so the measure strictly decreases. ∎
 
 ---
 
@@ -153,11 +153,11 @@ external bridge composite,
 cyclic wrapped composite.
 ```
 
-The first three are internal.  The last two are routed by F6/F8 or cyclic recurrence.
+The first three are internal. The last two are routed by F6/F8 or cyclic recurrence.
 
 ### Proof
 
-Use the left and right blocker equations above.  If the support remains inside the active local window, the equations are internal zero-composite or pair-difference relations.  If the support crosses the local window boundary, it is external and is routed by F6.  If the support wraps around a cyclic cut, it is routed by the cyclic recurrence branch. ∎
+Use the left and right blocker equations above. If the support remains inside the active local window, the equations are internal zero-composite or pair-difference relations. If the support crosses the local window boundary, it is external and is routed by F6. If the support wraps around a cyclic cut, it is routed by the cyclic recurrence branch. ∎
 
 ---
 
@@ -175,7 +175,7 @@ Every recurrence branch is either:
 
 ### Proof
 
-Choose a nearest A5 blocker, minimizing augmented blocker span.  If it is finally bounded, Lemma F7.1 applies.  If it crosses outside the local window or wraps cyclically, it is external/cyclic.  Otherwise it is long internal by definition. ∎
+Choose a nearest A5 blocker, minimizing augmented blocker span. If it is finally bounded, Lemma F7.1 applies. If it crosses outside the local window or wraps cyclically, it is external/cyclic. Otherwise it is long internal by definition. ∎
 
 ---
 
@@ -187,7 +187,61 @@ Atom-insertion recurrence arises from local transformations of the form
 P Q q -> P q Q
 ```
 
-or the opposite orientation.  These are H1 and H2 branches in A65--A67.
+or the opposite orientation. These are H1 and H2 branches in A65--A67.
+
+The H1 sign table is audited in:
+
+```text
+docs/analytic_f7_h1_h2_sign_audit.md
+```
+
+H1 crossing cases route as:
+
+```text
+C1: L+P+q1=0       -> equal interval L=Q^+.
+C2: R-P+q-q1=0     -> zero composite R+Q^+ + q=0.
+C3: P+q1-q=0       -> pair-difference boundary.
+```
+
+The H2 convention is corrected as follows. In the non-endpoint H2 case, write:
+
+```text
+Q = U V,
+U = U^- u_*,
+V = v_1 V^+.
+```
+
+The H2 hit occurs after:
+
+```text
+P q U^- u_*.
+```
+
+A5 uses:
+
+```text
+S'_{H-1}+v_1=S'_{j'},
+```
+
+while:
+
+```text
+S'_H=S'_{H-1}+u_*.
+```
+
+Therefore left-blocker pullbacks stop before `u_*`. The corrected H2 crossing cases are:
+
+```text
+D1: L+P+q+U^-+v_1=0  -> signed/equal relation L+q-u_*-V^+=0.
+D2: R+V^+ + u_*=0   -> bridge zero-composite.
+D3: V^+ + u_*=0     -> proper zero-composite or zero-atom contradiction.
+```
+
+The endpoint case `V=empty` reduces to the atom singleton recurrence:
+
+```text
+x+q=f.
+```
 
 ## Lemma F7.4: H1/H2 long blockers route to known classes
 
@@ -205,15 +259,17 @@ collapse.
 
 ### Extracted proof
 
-For H1 and H2, the A5 blocker pullback gives a zero relation using a long suffix/prefix of the insertion window plus one or two boundary atom corrections.  Non-crossing pullbacks produce zero-composite or pair-difference relations.  Crossing pullbacks produce bridge/equal/signed interval relations and are routed by F6/F8.  Endpoint pullbacks produce singleton-prefix or cyclic recurrence.  Collapse occurs when a nonempty zero interval or zero atom is forced.
+For H1, the A5 blocker pullback gives the C1/C2/C3 table above. Non-crossing pullbacks produce zero-composite or pair-difference descent. Crossing pullbacks produce equal interval, zero-composite, or pair-difference boundary branches.
 
-This is the extracted content of A65--A67, using the augmented span convention of A99. ∎
+For H2, use the corrected `U^- / u_*` convention. Non-crossing pullbacks produce suffix-zero, zero-composite, or pair-difference descent. The corrected crossing cases D1--D3 produce signed/equal interval, bridge zero-composite, proper zero-composite, zero-atom contradiction, or endpoint singleton recurrence. All outputs are in the existing F3/F9 class universe.
+
+This is the extracted content of A65--A67 plus `analytic_f7_h1_h2_sign_audit.md`, using the augmented span convention of A99. ∎
 
 ### Audit flags
 
 ```text
-The final manuscript must spell out the H1 and H2 orientations separately.
-Right-blocker signs in H2 require line-by-line audit.
+The H1 sign table and H2 U^- / u_* convention are now recorded in analytic_f7_h1_h2_sign_audit.md.
+The final manuscript must still spell out both orientations and cross-reference A67 corrected formulas.
 ```
 
 ---
@@ -238,7 +294,7 @@ collapse.
 
 ### Extracted proof
 
-Apply A5 at the recurrent hit.  If the nearest blocker is bounded, Lemma F7.1 gives strict descent.  If the blocker is non-crossing but long, the pullback remains in the pair-difference window and gives a smaller pair-difference prefix or zero-composite branch.  If the blocker crosses the local boundary, F6/F8 classify it as external bridge, equal/signed interval, or cyclic recurrence.  Endpoint cases reduce to singleton-prefix recurrence or collapse. ∎
+Apply A5 at the recurrent hit. If the nearest blocker is bounded, Lemma F7.1 gives strict descent. If the blocker is non-crossing but long, the pullback remains in the pair-difference window and gives a smaller pair-difference prefix or zero-composite branch. If the blocker crosses the local boundary, F6/F8 classify it as external bridge, equal/signed interval, or cyclic recurrence. Endpoint cases reduce to singleton-prefix recurrence or collapse. ∎
 
 ### Audit flags
 
@@ -262,6 +318,12 @@ or in the atom case:
 x+q=f.
 ```
 
+The atom-singleton endpoint cases are audited in:
+
+```text
+docs/analytic_f7_singleton_endpoint_audit.md
+```
+
 ## Lemma F7.6: singleton-prefix recurrence routes to known classes
 
 Every singleton-prefix recurrence routes to one of:
@@ -277,12 +339,15 @@ collapse.
 
 ### Extracted proof
 
-Apply A5 at the singleton/prefix hit.  A left blocker inside the active prefix gives suffix-zero descent.  A right blocker inside the active block gives pair-difference prefix descent.  A blocker outside the active block gives an external bridge branch handled by F6/F8.  Endpoint and wrapped cases give cyclic recurrence or collapse.  The bounded cases strictly decrease by Lemma F7.1. ∎
+Apply A5 at the singleton/prefix hit. A left blocker inside the active prefix gives suffix-zero descent. A right blocker inside the active block gives pair-difference prefix descent. A blocker outside the active block gives an external bridge branch handled by F6/F8. Endpoint and wrapped cases give cyclic recurrence or collapse. The bounded cases strictly decrease by Lemma F7.1.
+
+In the atom case `x+q=f`, the endpoint audit shows that the only empty-suffix cases become zero-atom contradictions, while the remaining cases route to bridge zero-composite, pair-difference prefix descent, pair-difference boundary, or signed bridge composite. ∎
 
 ### Audit flags
 
 ```text
-A70 atom-singleton endpoint cases need explicit final text.
+A70 atom-singleton endpoint cases are now expanded in analytic_f7_singleton_endpoint_audit.md.
+The final manuscript should inline that table or cite it explicitly.
 ```
 
 ---
@@ -321,7 +386,7 @@ collapse.
 
 ### Extracted proof
 
-Use the cyclic endpoint formulas.  A recurrent wrapped endpoint either gives an earlier forbidden hit under the original basepoint, a symmetric endpoint equation producing midpoint boundary, or a wrapping interval equation.  Non-wrapping equations are zero-composite/equal-interval branches.  Wrapping equations split into suffix and prefix bridges handled by F6/F8.  Endpoint cases reduce to singleton-prefix or pair-difference recurrence. ∎
+Use the cyclic endpoint formulas. A recurrent wrapped endpoint either gives an earlier forbidden hit under the original basepoint, a symmetric endpoint equation producing midpoint boundary, or a wrapping interval equation. Non-wrapping equations are zero-composite/equal-interval branches. Wrapping equations split into suffix and prefix bridges handled by F6/F8. Endpoint cases reduce to singleton-prefix or pair-difference recurrence. ∎
 
 ### Audit flags
 
@@ -353,13 +418,13 @@ No recurrence branch introduces a new obstruction species outside the state mach
 
 ### Proof
 
-Apply the recurrence dichotomy Lemma F7.3.  Bounded blockers descend by Lemma F7.1.  External/cyclic blockers are routed by F6 or Lemma F7.7.  Long internal blockers are covered by the H1/H2, pair-difference, and singleton-prefix recurrence lemmas F7.4--F7.6.  Any weighted-core output is routed to F10/F11.  Collapse and contradiction are terminal. ∎
+Apply the recurrence dichotomy Lemma F7.3. Bounded blockers descend by Lemma F7.1. External/cyclic blockers are routed by F6 or Lemma F7.7. Long internal blockers are covered by the H1/H2, pair-difference, and singleton-prefix recurrence lemmas F7.4--F7.6. Any weighted-core output is routed to F10/F11. Collapse and contradiction are terminal. ∎
 
 ---
 
 ## F7.10. Interface with non-weighted termination
 
-F7 is a routing theorem.  It does not alone prove global termination.  Its outputs are consumed by:
+F7 is a routing theorem. It does not alone prove global termination. Its outputs are consumed by:
 
 ```text
 F4 zero-composite/equal/pair descent;
@@ -379,12 +444,18 @@ The termination statement belongs to F9.
 Before final manuscript status:
 
 ```text
-R1. H1/H2 blocker equations must be written separately with signs.
+R1. H1/H2 blocker equations must be written in final manuscript form using the corrected H2 convention.
 R2. Pair-difference recurrence endpoint cases require explicit table.
-R3. Singleton-prefix atom case requires explicit table.
-R4. Cyclic-cut midpoint equations require characteristic audit.
-R5. Each recurrence source must use the augmented span convention from A99.
-R6. Exits to F6/F8/F10/F11 must be cross-referenced exactly.
+R3. Cyclic-cut midpoint equations require characteristic audit.
+R4. Each recurrence source must use the augmented span convention from A99.
+R5. Exits to F6/F8/F10/F11 must be cross-referenced exactly.
+```
+
+Resolved or reduced in this extraction phase:
+
+```text
+A70 atom-singleton endpoint table -> analytic_f7_singleton_endpoint_audit.md.
+H1/H2 sign audit and H2 correction -> analytic_f7_h1_h2_sign_audit.md and corrected A67.
 ```
 
 ---
@@ -392,7 +463,7 @@ R6. Exits to F6/F8/F10/F11 must be cross-referenced exactly.
 ## F7.12. Extraction status
 
 ```text
-Status: extracted draft.
-Risk: ORANGE.
-Next recommended extraction: F8 bridge/gap descent theorem or F4 local descent theorem.
+Status: extracted draft with H2 convention corrected.
+Risk: ORANGE trending YELLOW, pending pair-difference endpoint table and cyclic-cut characteristic audit.
+Next recommended extraction: pair-difference recurrence endpoint table or cyclic-cut midpoint audit.
 ```
