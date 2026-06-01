@@ -4,7 +4,7 @@ This ledger records finite complement-domain computations completed so far.
 
 ## Claim boundary
 
-This file is a research ledger. It records both release-grade committed certificates and lower-trust local/external evidence.
+This file is a research ledger. It records both Tier 1A committed/repository-checkable certificates and Tier 1B verified local/external artifacts.
 
 It does **not** claim a complete proof of Erdős 475.
 
@@ -26,9 +26,30 @@ B = F_p^* \ A
 
 ---
 
-## Tier 1 committed / repository-checkable finite domain
+## Tier 1 verified finite domain
 
-The current Tier 1 finite certificate domain is:
+The current Tier 1 verified finite certificate domain is:
+
+```text
+p = 17, |B| = 3
+p = 19, |B| = 3..5
+p = 23, |B| = 3..9
+p = 29, |B| = 3..15
+p = 31, |B| = 3..17
+```
+
+Artifact storage is split into:
+
+```text
+Tier 1A: committed or repository-checkable artifacts.
+Tier 1B: verified local/external JSONL or summary-digest artifacts not committed to Git due to size.
+```
+
+---
+
+## Tier 1A committed / repository-checkable finite domain
+
+The current Tier 1A subset is:
 
 ```text
 p = 17, |B| = 3
@@ -38,7 +59,7 @@ p = 29, |B| = 3..8
 p = 31, |B| = 3..6
 ```
 
-Current Tier 1 committed/repository-checkable total:
+Current Tier 1A committed/repository-checkable total:
 
 ```text
 247416 canonical finite instances
@@ -58,16 +79,22 @@ p = 29, |B| = 8.
 
 ---
 
-## Tier 3 local/external evidence frontier
+## Tier 1B verified local/external artifact frontier
 
-The broader finite evidence frontier represented by local logs, external artifacts, summary digests, and artifact ledgers is:
+The broader verified Tier 1B finite frontier represented by local JSONL files, external artifacts, summary digests, and artifact ledgers is:
 
 ```text
 p = 29, |B| = 9..15
-p = 31, |B| = 7..17
+p = 31, |B| = 7..16
 ```
 
-These Tier 3 entries are useful research evidence, but they are not release-grade committed finite certificates until the required witness artifacts, hashes, and verifier checks are committed or otherwise independently reproducible.
+with summary-digest verification for:
+
+```text
+p = 31, |B| = 17
+```
+
+These entries are verified finite evidence, but they are not routine Git/CI-checkable artifacts until the required witness artifacts, hashes, and verifier commands are committed or otherwise independently reproducible.
 
 ---
 
@@ -171,25 +198,23 @@ Trust status:
 
 ```text
 p=29 |B|=8:
-  Tier 1, committed shard certificates/witnesses_p29_b08.jsonl.
+  Tier 1A, committed shard certificates/witnesses_p29_b08.jsonl.
 
 p=29 |B|=9..15:
-  Tier 3, local/external/hash-backed evidence until raw artifacts are committed or independently reproducible.
+  Tier 1B, verified local/external JSONL not committed to Git due to size.
 ```
 
-Together with the main descent certificate, the research evidence frontier covers:
+Together with the main descent certificate, Tier 1 evidence covers:
 
 ```text
 p = 29, |B| = 3..15
 ```
 
-but only:
+with Tier 1A repository-checkable coverage through:
 
 ```text
-p = 29, |B| = 3..8
+p = 29, |B| = 3..8.
 ```
-
-is currently Tier 1 committed/repository-checkable.
 
 ---
 
@@ -226,29 +251,30 @@ elapsed_seconds = 42409.89
 Trust status:
 
 ```text
-p=31 |B|=7..17:
-  Tier 3, local/external/hash-backed or summary-only evidence until raw artifacts are committed or independently reproducible.
+p=31 |B|=7..16:
+  Tier 1B, verified local/external JSONL not committed to Git due to size.
+
+p=31 |B|=17:
+  Tier 1B summary, verified summary digest rather than committed full JSONL.
 ```
 
-Together with the main descent certificate, the research evidence frontier covers:
+Together with the main descent certificate, Tier 1 evidence covers:
 
 ```text
 p = 31, |B| = 3..17
 ```
 
-but only:
+with Tier 1A repository-checkable coverage through:
 
 ```text
-p = 31, |B| = 3..6
+p = 31, |B| = 3..6.
 ```
-
-is currently Tier 1 committed/repository-checkable.
 
 ---
 
 ## Storage policy
 
-Large witness JSONL files are not committed to the repository at this stage, except for promoted Tier 1 shards such as:
+Large witness JSONL files are not committed to the repository at this stage, except for promoted Tier 1A shards such as:
 
 ```text
 certificates/witnesses_p29_b08.jsonl
@@ -258,7 +284,7 @@ Current policy:
 
 ```text
 1. Keep raw JSONL files in the local research sandbox only while actively needed.
-2. Commit concise PASS logs, counts, and SHA256 digests instead of multi-GB witness files unless a domain is promoted to Tier 1.
+2. Commit concise PASS logs, counts, and SHA256 digests instead of multi-GB witness files unless a domain is promoted to Tier 1A.
 3. Decide later whether raw artifacts should be stored as compressed archives, GitHub releases, external storage, or regenerated from scripts.
 ```
 
@@ -266,7 +292,7 @@ Current policy:
 
 ## Current finite status
 
-Under the current reduction-residue audit through `p <= 31`, the research evidence frontier has coverage by either:
+Under the current reduction-residue audit through `p <= 31`, the Tier 1 evidence frontier has coverage by either:
 
 ```text
 1. the main three-branch descent certificate,
@@ -274,7 +300,7 @@ Under the current reduction-residue audit through `p <= 31`, the research eviden
 3. or summary-only witness verification with an aggregate digest.
 ```
 
-However, the release-grade Tier 1 committed/repository-checkable finite certificate domain is only:
+The Tier 1A committed/repository-checkable finite certificate subset is:
 
 ```text
 p = 17, |B| = 3
