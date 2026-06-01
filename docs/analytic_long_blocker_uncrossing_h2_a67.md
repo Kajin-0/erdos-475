@@ -14,9 +14,25 @@ The second atom-insertion forbidden branch is H2:
 x+sum(P)+q+Q_j=f.
 ```
 
-where the forbidden hit occurs after an inserted atom and a nonempty prefix of the trailing zero-block side.  This note derives the H2 long-blocker pullback formulas and proves the non-crossing descent cases.
+where the forbidden hit occurs after an inserted atom and a nonempty prefix of the trailing zero-block side.
 
-The bridge-crossing cases remain routed but not globally terminated; they reduce to equal/separated interval, zero-composite, or pair-difference machinery plus A34.
+This note derives the H2 long-blocker pullback formulas and proves the non-crossing descent cases.
+
+Correction status:
+
+```text
+This version incorporates the H2 endpoint-convention correction from:
+
+docs/analytic_f7_h1_h2_sign_audit.md
+```
+
+The key point is that A5 at the H2 hit uses the endpoint immediately before the last atom of the hit prefix. Therefore if
+
+```text
+U = U^- u_*,
+```
+
+then left-blocker pullbacks use `U^-`, not full `U`.
 
 ---
 
@@ -45,35 +61,39 @@ Let
 ```text
 p=sum(P),
 q=sum(q),
-Q=U V,
+Q=U V.
 ```
 
-where
+For the non-endpoint H2 case, write
 
 ```text
-U=prefix_j(Q),
-V=tail_j(Q),
-1 <= j < |Q| or j=|Q|.
+U = U^- u_*,
+V = v_1 V^+,
 ```
 
-Write
+where:
 
 ```text
-u=sum(U),
-v=sum(V),
-u+v=sum(Q)=-p.
+u_* = last atom of U,
+v_1 = first atom of V.
+```
+
+Thus:
+
+```text
+sum(Q)=sum(U^-)+u_*+v_1+sum(V^+)=-p.
 ```
 
 The H2 forbidden hit is the endpoint after
 
 ```text
-P q U.
+P q U = P q U^- u_*.
 ```
 
 Thus H2 is
 
 ```text
-x+p+q+u=f.
+x+p+q+sum(U)=f.
 ```
 
 Assume the transformed ordering is Graham-valid and this forbidden hit is not earlier than the original minimal hit.
@@ -90,10 +110,16 @@ s=|P|+|Q|.
 
 Let `H` be the endpoint after `P q U` in the transformed ordering.
 
+The atom immediately before the H2 endpoint is:
+
+```text
+u_*.
+```
+
 The atom immediately after `H` is:
 
 ```text
-v_1 = first atom of V,
+v_1.
 ```
 
 if `V` is nonempty.
@@ -106,7 +132,15 @@ By A64, because the transformed ordering is recurrent, A5 gives a blocker index 
 S'_{H-1}+v_1=S'_{j'}.
 ```
 
-Choose a nearest blocker.  The long-blocker condition is
+But
+
+```text
+S'_H=S'_{H-1}+u_*.
+```
+
+Therefore all left-blocker intervals ending at `H-1` stop before `u_*`, while all right-blocker intervals compare `v_1` against `u_*`.
+
+Choose a nearest blocker. The long-blocker condition is
 
 ```text
 |j'-H|+1 >= s.
@@ -121,24 +155,32 @@ Assume first that `V` is nonempty.
 The transformed local segment is
 
 ```text
-P q U V.
+P q U^- u_* v_1 V^+.
 ```
 
-The H2 hit occurs after `P q U`; the next atom is `v_1`.
+The H2 hit occurs after `P q U^- u_*`; the next atom is `v_1`.
 
 There are left and right blockers.
 
 ---
 
-## Lemma A67.1: left blocker inside U gives suffix-zero descent
+## Lemma A67.1: left blocker inside U^- gives suffix-zero descent
 
-If the A5 blocker lies inside the prefix `U`, then the left-blocker relation pulls back to
+If the A5 blocker lies inside the prefix `U^-`, then the left-blocker relation pulls back to
 
 ```text
-sum(tail(U from blocker))+v_1=0.
+sum(tail(U^- from blocker))+v_1=0.
 ```
 
-This is a two-piece zero composite supported on a proper suffix of `U` plus the first atom of `V`, hence strictly smaller than the source zero block `P Q`.
+This is a two-piece zero composite supported on a proper suffix of `U^-` plus the first atom of `V`, hence strictly smaller than the source zero block `P Q`.
+
+If the blocker is exactly at the endpoint before `u_*`, the relation is
+
+```text
+v_1=0,
+```
+
+which is impossible because atoms lie in `F_p^*`.
 
 ### Proof
 
@@ -148,13 +190,13 @@ For a left blocker, A64.2 gives
 sum'(j',H-1]+v_1=0.
 ```
 
-If `j'` lies inside `U`, then `(j',H-1]` is a proper suffix of `U`.  Adding `v_1` gives the displayed two-piece zero relation.  Its support is contained in `U V`, and uses a proper suffix of `U`; it is strictly smaller than `P Q` unless `P` is empty and the suffix is all of `Q`, which cannot occur because the blocker lies inside `U` and `V` is nonempty. ∎
+Since `H-1` is the endpoint immediately before `u_*`, a blocker inside `U^-` gives a suffix of `U^-`; a blocker at the endpoint immediately before `u_*` gives the empty suffix and hence `v_1=0`. ∎
 
 ---
 
 ## Lemma A67.2: left blocker inside q is impossible
 
-There is no distinct partial-sum endpoint strictly inside the inserted atom `q`.  Therefore a left A5 blocker cannot lie inside `q`.
+There is no distinct partial-sum endpoint strictly inside the inserted atom `q`. Therefore a left A5 blocker cannot lie inside `q`.
 
 ### Proof
 
@@ -162,25 +204,21 @@ The ordering is discrete by atoms; endpoints occur only between atoms. ∎
 
 ---
 
-## Lemma A67.3: left blocker inside P gives a three-piece zero descent
+## Lemma A67.3: left blocker inside P gives a zero-composite descent
 
 If the left blocker lies inside `P`, then the pullback relation is
 
 ```text
-sum(tail(P from blocker))+q+U+v_1=0.
+sum(tail(P from blocker))+q+U^-+v_1=0.
 ```
 
-This is a zero composite using a proper suffix of `P`, the inserted atom, the prefix `U`, and the first atom of `V`.
+This is a zero composite using a proper suffix of `P`, the inserted atom, the prefix `U^-`, and the first atom of `V`.
 
-It has smaller support than `P Q` unless `U` is almost all of `Q` and the suffix is almost all of `P`; the tied endpoint case is a boundary recurrence routed to A34.
+It has smaller support than `P Q` unless an exact support-tie boundary case occurs. Such exact ties are boundary-rank cases in A64 and route to the global recurrence machinery.
 
 ### Proof
 
-The interval `(j',H-1]` runs from inside `P` through the end of `P q U`.  Thus it is a proper suffix of `P`, followed by `q`, followed by `U`.  Add the A5 atom `v_1`. ∎
-
-### Status
-
-This is controlled by zero-composite surgery unless the support tie is exact; exact ties are boundary-rank cases in A64.
+The interval `(j',H-1]` runs from inside `P` through the end of `P q U^-`. Thus it is a proper suffix of `P`, followed by `q`, followed by `U^-`. Add the A5 atom `v_1`. ∎
 
 ---
 
@@ -189,24 +227,28 @@ This is controlled by zero-composite surgery unless the support tie is exact; ex
 If the left blocker lies before `P`, then its pullback is
 
 ```text
-L+P+q+U+v_1=0,
+L+P+q+U^-+v_1=0,
 ```
 
 where `L` is the external bridge ending at the start of `P`.
 
 ### Proof
 
-The interval from the blocker to `H-1` contains the left bridge, all of `P`, the inserted atom `q`, and all of `U`.  Add `v_1`. ∎
+The interval from the blocker to `H-1` contains the left bridge, all of `P`, the inserted atom `q`, and all of `U^-`. Add `v_1`. ∎
 
 ### Status
 
-This is a crossing bridge branch.  It is not automatically smaller and must be uncrossed against the original zero relation `P+U+V=0`.
+This is a crossing bridge branch. It is not automatically smaller and must be uncrossed against the corrected original zero relation
+
+```text
+P+U^-+u_*+v_1+V^+=0.
+```
 
 ---
 
 # 4. Right blockers in the non-endpoint case
 
-For a right blocker, subtract the H2 endpoint.  From
+For a right blocker, subtract the H2 endpoint. From
 
 ```text
 S'_{H-1}+v_1=S'_{j'},
@@ -215,10 +257,16 @@ S'_{H-1}+v_1=S'_{j'},
 and
 
 ```text
-S'_H=S'_{H-1}+u_j
+S'_H=S'_{H-1}+u_*,
 ```
 
-where the H2 endpoint atom is the last atom of `U`, it is cleaner to use the total prefix notation.  The interval from `H` to `j'` starts inside `V`.
+we get
+
+```text
+S'_{j'}-S'_H=v_1-u_*.
+```
+
+The interval from `H` to `j'` starts inside `V`.
 
 Let `V_r` be the prefix of `V` ending at `j'` when `j'` lies inside `V`.
 
@@ -229,28 +277,50 @@ Let `V_r` be the prefix of `V` ending at `j'` when `j'` lies inside `V`.
 If the right blocker lies inside `V`, and `V_r` is the prefix of `V` ending at the blocker, then
 
 ```text
-V_r = v_1 - u_j,
+V_r = v_1-u_*.
 ```
-
-where `u_j` is the last atom of `U`.
 
 Equivalently,
 
 ```text
-u_j - v_1 + V_r=0.
+u_* - v_1 + V_r=0.
 ```
 
 ### Proof
 
-The A5 relation compares the partial sum before the last atom of `U` plus `v_1` with a later endpoint inside `V`.  Moving from the H2 endpoint to the blocker accumulates a prefix of `V`.  The difference between the A5 atom `v_1` and the last hit atom `u_j` gives the displayed pair-difference prefix relation. ∎
+The A5 relation compares the partial sum before `u_*` plus `v_1` with a later endpoint inside `V`. Moving from the H2 endpoint to the blocker accumulates a prefix of `V`. The difference between the A5 atom `v_1` and the hit atom `u_*` gives the displayed pair-difference prefix relation. ∎
 
 ### Endpoint cases
 
-If the blocker is the first endpoint in `V`, then `V_r=v_1`, so the equation forces `u_j=0`, impossible.
+If the blocker is the first endpoint in `V`, then `V_r=v_1`, so the equation forces
+
+```text
+u_*=0,
+```
+
+impossible because atoms lie in `F_p^*`.
 
 If the blocker lies in a proper prefix of `V`, this is a smaller pair-difference/zero-composite branch.
 
-If it uses all of `V`, it is an endpoint pair-difference branch involving `U` and `V`.
+If it uses all of `V`, then
+
+```text
+V+u_*-v_1=0.
+```
+
+Since
+
+```text
+V=v_1+V^+,
+```
+
+this reduces to
+
+```text
+V^+ + u_*=0.
+```
+
+Thus the all-of-`V` endpoint case is a proper zero composite unless `V^+` is empty, in which case it forces `u_*=0`, impossible.
 
 ---
 
@@ -259,7 +329,7 @@ If it uses all of `V`, it is an endpoint pair-difference branch involving `U` an
 If the right blocker lies after `V`, then the pullback has the form
 
 ```text
-V + R = v_1-u_j,
+V+R = v_1-u_*,
 ```
 
 where `R` is the external bridge after `Q` up to the blocker.
@@ -267,16 +337,22 @@ where `R` is the external bridge after `Q` up to the blocker.
 Equivalently,
 
 ```text
-R+V+u_j-v_1=0.
+R+V+u_*-v_1=0.
+```
+
+Since `V=v_1+V^+`, this reduces to
+
+```text
+R+V^+ + u_*=0.
 ```
 
 ### Proof
 
-The interval from the H2 endpoint to the blocker contains all remaining `V` and the external bridge `R`.  Compare this interval to the A5 atom substitution `v_1-u_j`. ∎
+The interval from the H2 endpoint to the blocker contains all remaining `V` and the external bridge `R`. Compare this interval to the A5 atom substitution `v_1-u_*`. ∎
 
 ### Status
 
-This is the right bridge crossing branch.
+This is the right bridge crossing branch, now in ordinary zero-composite form with a proper tail `V^+` and the hit atom `u_*`.
 
 ---
 
@@ -286,11 +362,11 @@ Call a blocker non-crossing if its pullback lies inside:
 
 ```text
 P,
-U,
+U^-,
 or a proper prefix of V.
 ```
 
-Call it crossing if it reaches outside `P Q` or uses all of `V` in the endpoint pair-difference case.
+Call it crossing if it reaches outside `P Q` or uses all of `V`.
 
 ## Proposition A67.7: non-crossing H2 blockers descend after pullback
 
@@ -298,7 +374,7 @@ In atom-insertion H2 recurrence with `V` nonempty, every non-crossing A5 blocker
 
 ### Proof
 
-Inside-`U` blockers descend by Lemma A67.1.  Inside-`P` blockers route to smaller zero-composite support by Lemma A67.3 except possible endpoint ties.  Proper inside-`V` blockers descend by Lemma A67.5. ∎
+Inside-`U^-` blockers descend by Lemma A67.1. Inside-`P` blockers route to smaller zero-composite support by Lemma A67.3 except possible endpoint ties. Proper inside-`V` blockers descend by Lemma A67.5. ∎
 
 ---
 
@@ -307,84 +383,92 @@ Inside-`U` blockers descend by Lemma A67.1.  Inside-`P` blockers route to smalle
 After Proposition A67.7, a genuine H2 long-blocker recurrence must be one of:
 
 ```text
-D1. left bridge before P:       L+P+q+U+v_1=0;
-D2. right bridge after V:       R+V+u_j-v_1=0;
-D3. right blocker uses all V:   V+u_j-v_1=0.
+D1. left bridge before P:       L+P+q+U^-+v_1=0;
+D2. right bridge after V:       R+V^+ + u_*=0;
+D3. right blocker uses all V:   V^+ + u_*=0.
 ```
 
 These route as follows.
 
 ---
 
-## Lemma A67.8: D3 is a pair-difference boundary branch
+## Lemma A67.8: D3 is a proper zero-composite or zero-atom contradiction
 
 If the right blocker uses all of `V`, then
 
 ```text
-V+u_j-v_1=0,
+V^+ + u_*=0.
 ```
 
-or
+If `V^+` is empty, this gives
 
 ```text
-v_1-u_j=sum(V).
+u_*=0,
 ```
 
-This is a pair-difference boundary branch analogous to A33.
+which is impossible. Otherwise it is a two-piece zero composite using a proper tail of `V` plus the hit atom `u_*`.
 
 ### Proof
 
-This is the endpoint case of Lemma A67.5. ∎
+This is the all-of-`V` endpoint case of Lemma A67.5 after writing `V=v_1+V^+`. ∎
 
 ---
 
-## Lemma A67.9: D1 left bridge implies an equal/signed relation with the complementary tail of Q
+## Lemma A67.9: D1 left bridge gives a signed/equal relation with the complementary tail of Q
 
-Use the original zero relation
+Use the corrected original zero relation
 
 ```text
-P+U+V=0.
+P+U^-+u_*+v_1+V^+=0.
 ```
 
 D1 is
 
 ```text
-L+P+q+U+v_1=0.
+L+P+q+U^-+v_1=0.
 ```
 
 Subtracting the original zero relation from D1 gives
 
 ```text
-L+q+v_1-V=0.
+L+q-u_*-V^+=0.
 ```
 
 Equivalently,
 
 ```text
-V = L+q+v_1.
+V^+ = L+q-u_*.
 ```
 
-Thus D1 routes to a signed/equal interval relation between the right tail `V` and the left bridge plus two atoms.
+Thus D1 routes to a signed/equal interval relation between the right tail `V^+` and the left bridge plus the atom correction `q-u_*`.
 
 ### Proof
 
-Subtract `P+U+V=0` from `L+P+q+U+v_1=0`. ∎
+Subtract `P+U^-+u_*+v_1+V^+=0` from `L+P+q+U^-+v_1=0`. ∎
 
 ---
 
-## Lemma A67.10: D2 right bridge is already a zero/signed composite
+## Lemma A67.10: D2 right bridge is a zero composite
 
 D2 has form
 
 ```text
-R+V+u_j-v_1=0.
+R+V^+ + u_*=0.
 ```
 
-This is a bridge composite plus a pair-difference correction.  It routes to the pair-difference/zero-composite machinery.  If `V` is empty this case belongs to the endpoint branch below; if `V` is nonempty, the support contains a proper tail of `Q` and can be uncrossed with `P+U+V=0`.
+This is a bridge zero-composite involving the right bridge, a proper tail of `V`, and the hit atom `u_*`.
+
+If `V^+` is empty, it reduces to
+
+```text
+R+u_*=0,
+```
+
+a two-piece bridge zero-composite.
 
 ### Proof
 
-The equation is already in signed zero-composite form. ∎
+This is Lemma A67.6 after writing `V=v_1+V^+`. ∎
 
 ---
 
@@ -418,7 +502,11 @@ When `j=|Q|`, H2 reduces to
 x+q=f.
 ```
 
-This is not a new atom-insertion branch.  It is a singleton-prefix forbidden recurrence of the type already present in A14/A17/A34.
+This is not a new atom-insertion branch. It is a singleton-prefix forbidden recurrence of the type handled in:
+
+```text
+docs/analytic_f7_singleton_endpoint_audit.md
+```
 
 ### Proof
 
@@ -426,7 +514,7 @@ Use `sum(P)+sum(Q)=0`. ∎
 
 ---
 
-# 8. H2 long-blocker theorem, partial
+# 8. H2 long-blocker theorem, corrected
 
 ## Proposition A67.12: H2 long-blocker recurrence is routed modulo existing mechanisms
 
@@ -435,9 +523,9 @@ Every H2 long-blocker recurrence is one of:
 ```text
 1. non-crossing descent by Proposition A67.7;
 2. endpoint singleton recurrence by Lemma A67.11;
-3. pair-difference boundary by Lemma A67.8;
-4. bridge signed/equal relation by Lemma A67.9;
-5. bridge zero/signed composite by Lemma A67.10.
+3. D3 proper zero-composite or zero-atom contradiction by Lemma A67.8;
+4. D1 signed/equal relation by Lemma A67.9;
+5. D2 bridge zero-composite by Lemma A67.10.
 ```
 
 Therefore H2 recurrence introduces no new local algebraic species beyond:
@@ -445,14 +533,14 @@ Therefore H2 recurrence introduces no new local algebraic species beyond:
 ```text
 zero-composite,
 signed/equal interval,
-pair-difference,
 singleton recurrence,
+bridge/gap or external-collision routing,
 A34 recurrence.
 ```
 
 ### Proof
 
-The blocker cases partition into left/right and internal/external positions.  The lemmas above route each case. ∎
+The blocker cases partition into left/right and internal/external positions. The lemmas above route each case. ∎
 
 ---
 
@@ -462,12 +550,12 @@ Combining A64--A67:
 
 ```text
 H1 recurrence is routed modulo existing global mechanisms;
-H2 recurrence is routed modulo existing global mechanisms;
+H2 recurrence is routed modulo existing global mechanisms with the corrected U^- / u_* convention;
 bounded blockers descend;
-long blockers reduce to crossing equal/signed/composite/pair branches.
+long blockers reduce to crossing equal/signed/composite branches or singleton recurrence.
 ```
 
-Thus atom-insertion recurrence is no longer an abstract A34 gap.  It is reduced to the same global termination problem for routed classes.
+Thus atom-insertion recurrence is no longer an abstract A34 gap. It is reduced to the same global termination problem for routed classes.
 
 ---
 
@@ -487,7 +575,7 @@ R4. singleton-prefix recurrence;
 R5. cyclic-cut recurrence.
 ```
 
-The most natural next target is R3 because H1/H2 already route endpoint cases into A33 pair-difference machinery.
+The most natural next target is R3 because H1/H2 already route endpoint cases into pair-difference, zero-composite, signed/equal, and singleton recurrence machinery.
 
 ---
 
@@ -495,14 +583,19 @@ The most natural next target is R3 because H1/H2 already route endpoint cases in
 
 Proved here:
 
-1. H2 pullback formulas for left and right blockers;
+```text
+1. corrected H2 pullback formulas for left and right blockers;
 2. non-crossing H2 blockers descend;
 3. endpoint H2 reduces to singleton recurrence;
-4. crossing H2 blockers route to signed/equal interval, zero-composite, or pair-difference machinery.
+4. crossing H2 blockers route to signed/equal interval or zero-composite machinery;
+5. the previous full-U H2 convention has been corrected to U^- / u_*.
+```
 
 Not proved here:
 
+```text
 1. full crossing bridge termination;
 2. full A34 recurrence theorem;
 3. weighted cut-selection theorem;
 4. endpoint avoidance theorem.
+```
