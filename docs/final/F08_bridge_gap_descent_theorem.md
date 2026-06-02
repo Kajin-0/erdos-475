@@ -18,6 +18,7 @@ Recent hardening checkpoints:
 ```text
 docs/analytic_bridge_gap_measure_hardening_a98.md
 docs/analytic_f8_bridge_gap_hardening_checkpoint.md
+docs/analytic_mbg_to_mnw_subrank_convention.md
 docs/analytic_f7_h1_h2_sign_audit.md
 docs/analytic_f7_pair_difference_endpoint_audit.md
 docs/analytic_f7_singleton_endpoint_audit.md
@@ -101,7 +102,7 @@ type_rank      = obstruction-class rank;
 boundary_rank  = endpoint-degeneracy rank.
 ```
 
-Embedding into `M_NW^*`:
+Embedding into `M_NW^*` follows:
 
 ```text
 enclosing_span   -> enclosing_span;
@@ -119,9 +120,25 @@ bridge_length,
 internal_length
 ```
 
-must be absorbed into a finite F8 subrank inside either `type_rank` or `bridge_depth` in the final F9 measure convention.
+are absorbed into the global `bridge_depth` coordinate using the finite bridge-local subrank convention in:
 
-This explicit subrank convention remains an F9 integration requirement.
+```text
+docs/analytic_mbg_to_mnw_subrank_convention.md
+```
+
+Specifically:
+
+```text
+bridge_depth_BG = (
+  bridge_cycle_depth,
+  bridge_length,
+  internal_length,
+  bridge_orientation_rank,
+  bridge_endpoint_rank
+).
+```
+
+This removes the F8/F9 measure-notation ambiguity. The remaining task is to verify edge-by-edge that F8 transitions either decrease an earlier global coordinate, decrease this bridge-local subrank, exit to a destination theorem, or terminate.
 
 ---
 
@@ -455,7 +472,25 @@ F8 supplies F9 with the bridge/gap cycle-breaking statement:
 
 ```text
 bridge/gap recurrence cannot preserve all coordinates of M_NW^* indefinitely,
-provided M_BG is embedded with an explicit finite subrank and F10/F11 weighted exits terminate.
+provided the M_BG bridge-local subrank convention is applied and F10/F11 weighted exits terminate.
+```
+
+The convention is:
+
+```text
+M_BG.bridge_length/internal_length -> M_NW^*.bridge_depth
+```
+
+via the finite subrank:
+
+```text
+bridge_depth_BG = (
+  bridge_cycle_depth,
+  bridge_length,
+  internal_length,
+  bridge_orientation_rank,
+  bridge_endpoint_rank
+).
 ```
 
 Bridge/gap exits go to:
@@ -480,8 +515,7 @@ R1. Put the gap-after collision table in an appendix with endpoint cases.
 R2. Finalize direct-exchange table reference in F5.
 R3. Prove or explicitly route all signed bridge correction exits through F6/F10 or bounded pair machinery.
 R4. Add same-orientation rigid-return endpoint table.
-R5. Define the explicit F8 subrank embedding of bridge_length/internal_length into M_NW^*.
-R6. Close F10/F11 weighted-core termination for irreducible signed corrections.
+R5. Close F10/F11 weighted-core termination for irreducible signed corrections.
 ```
 
 Resolved or reduced:
@@ -490,6 +524,7 @@ Resolved or reduced:
 A98 supplies the bridge/gap measure-hardening architecture.
 F7 recurrence endpoint/sign risks are substantially hardened.
 Endpoint-local bridge outputs are class-routed into F8/F6/F9.
+M_BG bridge_length/internal_length are embedded into M_NW^*.bridge_depth by analytic_mbg_to_mnw_subrank_convention.md.
 ```
 
 ---
@@ -499,5 +534,5 @@ Endpoint-local bridge outputs are class-routed into F8/F6/F9.
 ```text
 Status: bridge/gap class routing mostly hardened.
 Risk: YELLOW, with one RED inherited dependency: F10/F11 weighted-core termination.
-Next recommended extraction: explicit M_BG -> M_NW^* subrank convention, then F10/F11 weighted-core audit.
+Next recommended extraction: F10/F11 weighted-core audit.
 ```
