@@ -2,7 +2,7 @@
 
 This file continues the final-proof extraction phase.
 
-F9 extracts the non-weighted termination theorem from the A-notes and the already extracted final lemmas.  It is mainly backed by:
+F9 extracts the non-weighted termination theorem from the A-notes and the already extracted final lemmas. It is mainly backed by:
 
 ```text
 A72  obstruction dependency graph
@@ -22,7 +22,13 @@ F10  weighted normal form and fixed cut-swap theorem
 F11  weighted cut-selection and termination theorem
 ```
 
-F9 is an extracted draft, not yet the final manuscript version.  Its main remaining risk is that the edge-by-edge class graph must be checked against the final F4--F8 and F10--F11 outputs.
+F9 also uses the bridge-local subrank convention:
+
+```text
+docs/analytic_mbg_to_mnw_subrank_convention.md
+```
+
+F9 is an extracted draft, not yet the final manuscript version. Its main remaining risk is that the edge-by-edge class graph must be checked against the final F4--F8 and F10--F11 outputs.
 
 ---
 
@@ -36,7 +42,7 @@ The weighted class
 WEIGHTED_CORE
 ```
 
-is not treated as a non-weighted node.  When a non-weighted branch enters a genuine weighted core, the proof delegates to F10--F11.  F11 then either returns to non-weighted machinery, succeeds/collapses, or decreases the weighted middle length.
+is not treated as a non-weighted node. When a non-weighted branch enters a genuine weighted core, the proof delegates to F10--F11. F11 then either returns to non-weighted machinery, succeeds/collapses, or decreases the weighted middle length.
 
 Thus F9 is the non-weighted half of the global termination proof.
 
@@ -63,7 +69,34 @@ M_NW^* = (
 
 The order is lexicographic over nonnegative integers.
 
-The final coordinate `h_excess` records the recurrent hit index relative to the globally minimal first forbidden hit.  It is intentionally placed last.
+The coordinate
+
+```text
+bridge_depth
+```
+
+contains the finite bridge-local subrank used by F8:
+
+```text
+bridge_depth_BG = (
+  bridge_cycle_depth,
+  bridge_length,
+  internal_length,
+  bridge_orientation_rank,
+  bridge_endpoint_rank
+).
+```
+
+Thus the F8-local coordinates
+
+```text
+bridge_length,
+internal_length
+```
+
+are not new global coordinates; they are tie-breakers inside `bridge_depth` for `BRIDGE_GAP` states.
+
+The final coordinate `h_excess` records the recurrent hit index relative to the globally minimal first forbidden hit. It is intentionally placed last.
 
 ---
 
@@ -133,7 +166,7 @@ either:
 
 ### Proof
 
-This is exactly F4.10.  Zero intervals are terminal contradictions.  Proper-overlap equalities reduce enclosing span.  Proper containment reduces support size.  Pair-difference and transported-prefix cases either normalize to local classes, enter recurrence/external routing, or become genuine weighted-core candidates handled by F10--F11. ∎
+This is exactly F4.10. Zero intervals are terminal contradictions. Proper-overlap equalities reduce enclosing span. Proper containment reduces support size. Pair-difference and transported-prefix cases either normalize to local classes, enter recurrence/external routing, or become genuine weighted-core candidates handled by F10--F11. ∎
 
 ---
 
@@ -163,7 +196,7 @@ either:
 
 ### Proof
 
-This is F5.10.  Direct exchange and gap-after moves have the success/collision/recurrent trichotomy.  Successful gap-after reduces gap.  Gap-preserving recurrence is rigid and routes through direct exchange, midpoint, recurrence, external, or bridge/gap machinery. ∎
+This is F5.10. Direct exchange and gap-after moves have the success/collision/recurrent trichotomy. Successful gap-after reduces gap. Gap-preserving recurrence is rigid and routes through direct exchange, midpoint, recurrence, external, or bridge/gap machinery. ∎
 
 ---
 
@@ -195,7 +228,7 @@ Thus it exits to F4, F5, F7, F8, F10/F11, or terminal contradiction.
 
 ### Proof
 
-This is F6.7.  Left, right, unchanged-family, wrapped/cyclic, and external forbidden-hit cases exhaust external endpoints. ∎
+This is F6.7. Left, right, unchanged-family, wrapped/cyclic, and external forbidden-hit cases exhaust external endpoints. ∎
 
 ---
 
@@ -224,7 +257,7 @@ either:
 
 ### Proof
 
-This is F7.8.  Bounded blockers strictly decrease enclosing span by augmented support containment.  Long blockers are classified into H1/H2, pair-difference, singleton-prefix, cyclic, external, bridge, or weighted branches. ∎
+This is F7.8. Bounded blockers strictly decrease enclosing span by augmented support containment. Long blockers are classified into H1/H2, pair-difference, singleton-prefix, cyclic, external, bridge, or weighted branches. ∎
 
 ---
 
@@ -244,17 +277,18 @@ either:
 1. decreases enclosing span by proper-overlap uncrossing;
 2. decreases support size by proper-containment subtraction;
 3. decreases gap by gap-after success or proper-gap recurrence;
-4. exits to local descent F4;
-5. exits to separated-equal/midpoint routing F5;
-6. exits to external collision F6;
-7. exits to recurrence F7;
-8. exits to weighted machinery F10/F11;
-9. reaches collapse or success.
+4. decreases the finite bridge-local subrank stored in bridge_depth;
+5. exits to local descent F4;
+6. exits to separated-equal/midpoint routing F5;
+7. exits to external collision F6;
+8. exits to recurrence F7;
+9. exits to weighted machinery F10/F11;
+10. reaches collapse or success.
 ```
 
 ### Proof
 
-This is F8.11.  Proper overlap, proper containment, disjoint separated equality, gap-after recurrence, and rigid same/exchange returns exhaust bridge/gap geometry. ∎
+This is F8.11 plus `analytic_mbg_to_mnw_subrank_convention.md`. Proper overlap, proper containment, disjoint separated equality, gap-after recurrence, and rigid same/exchange returns exhaust bridge/gap geometry. When span, gap, or support do not decrease, the bridge-local tuple inside `bridge_depth` supplies the F8 tie-breaker. Irreducible signed corrections exit to F10/F11. ∎
 
 ---
 
@@ -276,11 +310,11 @@ Therefore weighted exits cannot support an infinite non-weighted obstruction cyc
 
 ### Proof
 
-F10 classifies the local weighted normal forms and fixed cut-swaps.  F11 proves weighted cut-selection and termination by induction on the middle length `|B|`, with atom-middle base case, proper-middle cut-swap, weak-to-pattern rigidity reduction, and pattern-rigid impossibility. ∎
+F10 classifies the local weighted normal forms and fixed cut-swaps. F11 proves weighted cut-selection and termination by induction on the middle length `|B|`, with atom-middle base case, proper-middle cut-swap, weak-to-pattern rigidity reduction, and pattern-rigid impossibility. ∎
 
 ### Audit flag
 
-This lemma inherits the risk status of F11.  In the final manuscript, F11 must be fully hardened before F9 can be considered final.
+This lemma inherits the risk status of F11. In the final manuscript, F11 must be fully hardened before F9 can be considered final.
 
 ---
 
@@ -288,7 +322,7 @@ This lemma inherits the risk status of F11.  In the final manuscript, F11 must b
 
 ## Theorem F9.7: non-weighted obstruction graph terminates
 
-Assume the extracted lemmas F3--F8 and F10--F11 are valid.  Then every non-weighted obstruction path either:
+Assume the extracted lemmas F3--F8 and F10--F11 are valid. Then every non-weighted obstruction path either:
 
 ```text
 1. reaches SUCCESS;
@@ -301,13 +335,13 @@ In particular, there is no infinite non-weighted obstruction path avoiding succe
 
 ### Proof
 
-Let an obstruction state be nonterminal and non-weighted.  Its class lies in the non-weighted universe of F9.3.
+Let an obstruction state be nonterminal and non-weighted. Its class lies in the non-weighted universe of F9.3.
 
-If it is local zero/equal/pair/transported-prefix, Lemma F9.1 applies.  If it is separated-equal or midpoint, Lemma F9.2 applies.  If it is external collision, Lemma F9.3 applies.  If it is recurrence, Lemma F9.4 applies.  If it is bridge/gap, Lemma F9.5 applies.
+If it is local zero/equal/pair/transported-prefix, Lemma F9.1 applies. If it is separated-equal or midpoint, Lemma F9.2 applies. If it is external collision, Lemma F9.3 applies. If it is recurrence, Lemma F9.4 applies. If it is bridge/gap, Lemma F9.5 applies.
 
-Every output either terminates, strictly decreases one of the coordinates of `M_NW^*`, enters another named class with a lower finite rank/depth tracked by `M_NW^*`, or exits to the weighted branch.  Weighted exits terminate by Lemma F9.6.
+Every output either terminates, strictly decreases one of the coordinates of `M_NW^*`, enters another named class with a lower finite rank/depth tracked by `M_NW^*`, or exits to the weighted branch. Weighted exits terminate by Lemma F9.6.
 
-Since `M_NW^*` is lexicographic over nonnegative integers, it admits no infinite strictly decreasing chain.  Since finite type/depth returns are included in the measure coordinates and bridge/recurrence ties are broken by F7/F8, no same-measure cycle remains.  Therefore no infinite non-weighted obstruction path exists. ∎
+Since `M_NW^*` is lexicographic over nonnegative integers, it admits no infinite strictly decreasing chain. Since finite type/depth returns are included in the measure coordinates and bridge/recurrence ties are broken by F7/F8, no same-measure cycle remains. Therefore no infinite non-weighted obstruction path exists. ∎
 
 ---
 
@@ -329,10 +363,17 @@ Before final manuscript status:
 
 ```text
 R1. The edge-by-edge class graph should be included as a table.
-R2. type_rank, boundary_rank, and depth coordinates need explicit finite orders.
+R2. type_rank, boundary_rank, recurrence_depth, pair_depth, separated_depth, and bridge_depth need explicit finite orders.
 R3. F11 must be hardened, because F9 depends on weighted termination.
 R4. Verify no F4--F8 output class is missing from F9.3.
 R5. Replace “lower finite rank/depth” with explicit rank inequalities in the final manuscript.
+```
+
+Resolved or reduced:
+
+```text
+F8 bridge_length/internal_length are embedded into bridge_depth by analytic_mbg_to_mnw_subrank_convention.md.
+Endpoint branch class graph and measure checkpoint created in analytic_global_class_graph_measure_checkpoint.md.
 ```
 
 ---
@@ -340,7 +381,7 @@ R5. Replace “lower finite rank/depth” with explicit rank inequalities in the
 ## F9.13. Extraction status
 
 ```text
-Status: extracted draft.
-Risk: ORANGE, dependent on F11.
-Next recommended extraction: F1/F2 minimal setup and adjacent blocker, then F12 endpoint avoidance.
+Status: extracted draft with bridge-local subrank convention added.
+Risk: ORANGE, dependent on F11 and final edge-by-edge rank table.
+Next recommended extraction: F10/F11 weighted-core audit.
 ```
