@@ -13,6 +13,17 @@ A95  external collision hardening
 A98  bridge/gap measure hardening
 ```
 
+Recent hardening checkpoints:
+
+```text
+docs/analytic_bridge_gap_measure_hardening_a98.md
+docs/analytic_f8_bridge_gap_hardening_checkpoint.md
+docs/analytic_f7_h1_h2_sign_audit.md
+docs/analytic_f7_pair_difference_endpoint_audit.md
+docs/analytic_f7_singleton_endpoint_audit.md
+docs/analytic_f7_cyclic_cut_midpoint_characteristic_audit.md
+```
+
 F8 is used by:
 
 ```text
@@ -23,13 +34,13 @@ F10 weighted normal form and cut-swap theorem
 F11 weighted cut-selection theorem
 ```
 
-This is an extracted draft, not the final manuscript version.  The remaining risk is converting all bridge/gap routing references into line-by-line endpoint algebra in the appendix.
+This is an extracted draft, not the final manuscript version. The bridge/gap class routing is mostly hardened, but F8 still depends on F4/F5/F6/F7/F10/F11/F9 for global termination.
 
 ---
 
 ## F8.1. Bridge/gap setup
 
-A bridge obstruction appears when a local relation involves one piece inside the active local window and another piece outside it.  Write the generic bridge relation as
+A bridge obstruction appears when a local relation involves one piece inside the active local window and another piece outside it. Write the generic bridge relation as
 
 ```text
 B_ext + U = 0
@@ -90,40 +101,44 @@ type_rank      = obstruction-class rank;
 boundary_rank  = endpoint-degeneracy rank.
 ```
 
-This embeds into the global non-weighted measure `M_NW^*` used in F9.
+Embedding into `M_NW^*`:
+
+```text
+enclosing_span   -> enclosing_span;
+bridge_gap       -> gap_length;
+support_size     -> support_size;
+recurrence_depth -> recurrence_depth;
+type_rank        -> type_rank;
+boundary_rank    -> boundary_rank.
+```
+
+The local coordinates
+
+```text
+bridge_length,
+internal_length
+```
+
+must be absorbed into a finite F8 subrank inside either `type_rank` or `bridge_depth` in the final F9 measure convention.
+
+This explicit subrank convention remains an F9 integration requirement.
 
 ---
 
-## F8.3. Proper-overlap bridge descent
+## F8.3. Interval-geometry trichotomy
 
-Two intervals properly overlap if they intersect but neither contains the other.
-
-In one orientation, write
+For intervals in a linear ordering, a bridge relation is one of:
 
 ```text
-B_ext = B_0 O,
-U     = O U_1,
+1. proper overlap;
+2. proper containment;
+3. disjoint separated relation;
+4. identical/equal interval cancellation.
 ```
 
-where:
+The first two give strict local descent. The third is the serious separated bridge/gap case. The fourth collapses or reduces to a smaller local class.
 
-```text
-O nonempty,
-B_0 nonempty,
-U_1 nonempty.
-```
-
-If
-
-```text
-sum(B_ext)=sum(U),
-```
-
-then cancellation gives
-
-```text
-sum(B_0)=sum(U_1).
-```
+---
 
 ## Lemma F8.1: proper-overlap bridge decreases enclosing span
 
@@ -131,25 +146,16 @@ A proper-overlap bridge equality or signed bridge relation, after bounded correc
 
 ### Proof
 
-Cancel the common overlap `O`.  The remaining active pieces are the non-overlapping tails `B_0` and `U_1`, possibly together with bounded correction `E`.  Since `O` is nonempty and has been removed from the active support, the new enclosure is strictly smaller unless the correction `E` lies outside the old enclosure.  If `E` lies outside, the case is an external signed bridge and is routed by F6 before re-entering F8. ∎
+Write one orientation as
+
+```text
+B_ext = B_0 O,
+U     = O U_1,
+```
+
+with nonempty overlap `O` and nonempty tails `B_0,U_1`. Cancelling `O` leaves an obstruction supported on `B_0,U_1`, possibly with bounded correction `E`. The overlap contains at least one atom and is removed from the active support, so the new enclosure is strictly smaller unless `E` lies outside the old enclosure. If `E` lies outside, the case is an external signed bridge classified by F6 before re-entering F8. ∎
 
 ---
-
-## F8.4. Proper-containment bridge descent
-
-Suppose one interval properly contains the other.  For example:
-
-```text
-B_ext = L U R
-```
-
-where at least one of `L,R` is nonempty.  Then equality of `B_ext` and `U` gives
-
-```text
-sum(L)+sum(R)=0.
-```
-
-The other containment orientation is identical.
 
 ## Lemma F8.2: proper containment decreases support or span
 
@@ -161,17 +167,33 @@ two-piece zero-composite,
 signed zero-composite after bounded correction normalization.
 ```
 
-The resulting obstruction has strictly smaller support size than the original bridge relation.  If the complement lies on one side, the enclosing span also strictly decreases.
+The resulting obstruction has strictly smaller support size than the original bridge relation. If the complement lies on one side, the enclosing span also strictly decreases.
 
 ### Proof
 
-Subtract the contained interval from the containing interval.  The contained block is removed from the active relation, so support size strictly decreases.  If the complement is one-sided, the enclosing interval is also strictly smaller. ∎
+If, for example,
+
+```text
+B_ext = L U R
+```
+
+with at least one of `L,R` nonempty, equality of `B_ext` and `U` gives
+
+```text
+sum(L)+sum(R)=0.
+```
+
+The contained block `U` is removed from the active relation, so support size strictly decreases. The other containment orientation is identical. ∎
 
 ---
 
-## F8.5. Disjoint bridge equality
+## Lemma F8.3: disjoint bridge equality is separated-equal
 
-If the bridge and internal interval are neither overlapping nor contained, they are disjoint.  Then the branch has separated form:
+A nontrivial disjoint bridge equality is a separated-equal or signed separated-equal branch, controlled by the gap coordinate.
+
+### Proof
+
+If the bridge and internal interval are neither overlapping nor contained, they are disjoint:
 
 ```text
 B G U
@@ -180,30 +202,14 @@ B G U
 or
 
 ```text
-U G B
+U G B,
 ```
 
-where `G` is the nonempty gap.
-
-If
-
-```text
-sum(B)=sum(U),
-```
-
-this is a separated-equal branch.
-
-## Lemma F8.3: disjoint bridge equality is separated-equal
-
-A nontrivial disjoint bridge equality is a separated-equal or signed separated-equal branch, with complexity controlled by `bridge_gap=|G|`.
-
-### Proof
-
-For two intervals in a linear order, the alternatives are equality, proper overlap, containment, or disjointness.  Equality cancels or collapses.  Proper overlap and containment are Lemmas F8.1--F8.2.  The remaining nontrivial case is disjoint separated equality. ∎
+where `G` is nonempty. Equality of `B` and `U` is exactly a separated-equal branch. ∎
 
 ---
 
-## F8.6. Equal-span separated bridge return
+## F8.4. Equal-span separated bridge return
 
 Consider the separated-equal configuration
 
@@ -213,7 +219,7 @@ sum(B)=sum(U),
 G nonempty.
 ```
 
-The gap-after move is
+Use the gap-after move:
 
 ```text
 B G U -> B U G.
@@ -225,7 +231,7 @@ If the gap-after move is Graham-valid and avoids the forbidden value `f`, then t
 
 ### Proof
 
-Before the move, `G` separates `B` from `U`.  After the move, the equal-sum blocks are adjacent as `B U`.  Therefore the separating gap is zero. ∎
+Before the move, `G` separates `B` from `U`. After the move, the equal-sum blocks are adjacent as `B U`. Therefore the separating gap is zero. ∎
 
 ---
 
@@ -250,7 +256,7 @@ external collision handled by F6.
 
 ### Extracted proof
 
-The displayed collision equations are exactly the gap-after table from A49--A54/A75.  They produce relations of the form:
+The displayed collision equations are the gap-after table from A49--A54/A75/A98:
 
 ```text
 prefix(U)+tail(B)=0,
@@ -260,7 +266,11 @@ tail(G)+prefix(Y)=0,
 B+prefix(G)=prefix(U).
 ```
 
-The first four are zero-composite or zero-collapse branches.  The last is equal-interval or pair-difference after uncrossing.  Collisions involving endpoints outside the displayed table are external collisions handled by F6. ∎
+The first four are zero-composite or zero-collapse branches. The last is equal-interval or pair-difference after uncrossing. Collisions involving endpoints outside the displayed table are external collisions handled by F6. ∎
+
+### Remaining manuscript task
+
+The final manuscript should inline this as an appendix-style table with endpoint cases. This is manuscript hardening, not a known new class.
 
 ---
 
@@ -279,21 +289,21 @@ Thus the only possible non-descending continuation is recurrence.
 
 ### Proof
 
-The transformed ordering is either Graham-valid and avoids `f`, non-Graham, or Graham-valid but recurrent.  Non-Graham cases are displayed or external collisions.  Recurrent cases route through F7. ∎
+The transformed ordering is either Graham-valid and avoids `f`, non-Graham, or Graham-valid but recurrent. Non-Graham cases are displayed or external collisions. Recurrent cases route through F7. ∎
 
 ---
 
-## F8.7. Gap-preserving recurrence
+## F8.5. Gap-preserving recurrence
 
 A recurrence after the gap-after move is gap-preserving only if the A5 blocker pullback reconstructs a separated-equal bridge with the same gap length.
 
 ## Lemma F8.7: proper use of old gap decreases bridge gap
 
-If the A5 pullback uses a proper prefix or proper tail of the old gap `G` as the new separating gap, then the new bridge gap length is strictly less than `|G|`.
+If the recurrent A5 blocker pullback uses a proper prefix or proper tail of the old gap `G` as the new separating gap, then the new bridge gap length is strictly less than `|G|`.
 
 ### Proof
 
-A proper prefix or proper tail of `G` contains fewer atoms than `G`.  Since bridge gap counts the atoms strictly between the separated equal pieces, the gap coordinate strictly decreases. ∎
+A proper prefix or proper tail of `G` contains fewer atoms than `G`. Since bridge gap counts the atoms strictly between the separated equal pieces, the gap coordinate strictly decreases. ∎
 
 ---
 
@@ -303,11 +313,11 @@ If the recurrence pullback returns to a separated-equal bridge with the same gap
 
 ### Proof
 
-Moving either endpoint inward shortens the gap.  Moving either endpoint outward either increases the enclosing span or absorbs external material into the gap.  The outward case is external bridge routing handled by F6/F8 before being considered a same-span separated return.  Under equal-span and same-gap preservation, the old endpoints must be reused. ∎
+Moving either endpoint inward shortens the gap. Moving either endpoint outward either increases the enclosing span or absorbs external material into the gap. The outward case is external bridge routing handled by F6/F8 before being considered a same-span separated return. Under equal-span and same-gap preservation, the old endpoints must be reused. ∎
 
 ---
 
-## F8.8. Rigid separated self-return
+## F8.6. Rigid separated self-return
 
 By Lemma F8.8, a same-gap recurrence must be rigid: it reconstructs either
 
@@ -338,7 +348,27 @@ Hence it does not preserve `M_BG` as a new bridge/gap state.
 
 ### Proof
 
-Proper-prefix cases reduce support or gap length.  Endpoint `U` places the equal blocks adjacent and gives the midpoint/adjacent-equal branch.  Endpoint `G` is a post-segment or cyclic recurrence handled by F7/F6.  Internal zero inside `G` is collapse. ∎
+Proper-prefix cases reduce support or gap length. Endpoint `U` places the equal blocks adjacent and gives the midpoint/adjacent-equal branch. Endpoint `G` is a post-segment or cyclic/external recurrence handled by F7/F6. Internal zero inside `G` is collapse. Recent F7 audits harden the endpoint-G branch:
+
+```text
+cyclic midpoint characteristic audit;
+singleton endpoint table;
+pair-difference endpoint table;
+H1/H2 corrected sign conventions.
+```
+
+∎
+
+### Remaining manuscript task
+
+A final proof should add a compact rigid-return endpoint table. The expected destinations are already known:
+
+```text
+proper endpoints -> strict descent;
+endpoint U -> F5/A55;
+endpoint G -> F7/A71/F6;
+zero in G -> collapse.
+```
 
 ---
 
@@ -356,15 +386,43 @@ is exactly the direct-exchange target of the original separated-equal pair:
 B G U -> U G B.
 ```
 
-If direct exchange succeeds, the obstruction path succeeds.  If it collides, the separated-equal direct-exchange table routes it to non-weighted local classes.  If it is recurrent, F7 routes it.
+If direct exchange succeeds, the obstruction path succeeds. If it collides, the separated-equal direct-exchange table routes it to non-weighted local classes. If it is recurrent, F7 routes it.
 
 ### Proof
 
-The exchanged separated-equal state is definitionally the direct-exchange target.  The success/collision/recurrent trichotomy is exhaustive. ∎
+The exchanged separated-equal state is definitionally the direct-exchange target. The success/collision/recurrent trichotomy is exhaustive. ∎
+
+### Dependency
+
+The direct-exchange collision table should be finalized in F5. This is now an inherited F5 dependency rather than a new F8-local class.
 
 ---
 
-## F8.9. Bridge/gap descent theorem
+## F8.7. Signed bridge corrections
+
+Signed bridge forms are:
+
+```text
+B_ext + U + E = 0,
+B_ext - U + E = 0,
+```
+
+where `E` is a bounded atom/pair correction.
+
+Routing convention:
+
+```text
+if E lies inside the bridge enclosure -> signed zero/equal/pair local class;
+if E lies outside the bridge enclosure -> F6 external signed collision;
+if coefficient-2/core remains -> F10/F11 weighted-core branch;
+if bounded pair correction -> F7/F4 pair-difference machinery.
+```
+
+This remains a high-risk inherited dependency because F10/F11 weighted-core termination is not yet closed.
+
+---
+
+## F8.8. Bridge/gap descent theorem
 
 ## Theorem F8.11: bridge/gap descent theorem
 
@@ -379,23 +437,25 @@ Every bridge/gap obstruction produced by external-collision or recurrence machin
 6. routes to external collision handled by F6;
 7. routes to midpoint/adjacent-equal machinery;
 8. factors through direct exchange and routes through separated-equal local tables;
-9. reaches collapse or success.
+9. exits to weighted-core machinery F10/F11 if a signed correction remains irreducible;
+10. reaches collapse or success.
 ```
 
-No bridge/gap branch can cycle indefinitely with fixed `M_BG`.
+No bridge/gap branch creates a new obstruction species. A complete global termination proof still requires F9 to consume these exits and F10/F11 to terminate weighted-core branches.
 
 ### Proof
 
-Proper overlap is Lemma F8.1.  Proper containment is Lemma F8.2.  Disjoint equality is Lemma F8.3.  Equal-span separated returns are Lemmas F8.4--F8.6.  Gap-preserving recurrence is Lemmas F8.7--F8.8.  Rigid same-orientation and exchange-orientation returns are Lemmas F8.9--F8.10.  These cases exhaust interval geometry for bridge/gap relations. ∎
+Proper overlap is Lemma F8.1. Proper containment is Lemma F8.2. Disjoint equality is Lemma F8.3. Equal-span separated returns are Lemmas F8.4--F8.6. Gap-preserving recurrence is Lemmas F8.7--F8.8. Rigid same-orientation and exchange-orientation returns are Lemmas F8.9--F8.10. Signed corrections route by F8.7. These cases exhaust interval geometry for bridge/gap relations. ∎
 
 ---
 
-## F8.10. Interface with F9
+## F8.9. Interface with F9
 
 F8 supplies F9 with the bridge/gap cycle-breaking statement:
 
 ```text
-bridge/gap recurrence cannot preserve all coordinates of M_NW^* indefinitely.
+bridge/gap recurrence cannot preserve all coordinates of M_NW^* indefinitely,
+provided M_BG is embedded with an explicit finite subrank and F10/F11 weighted exits terminate.
 ```
 
 Bridge/gap exits go to:
@@ -411,24 +471,33 @@ terminal success/collapse.
 
 ---
 
-## F8.11. Remaining extraction risks
+## F8.10. Remaining extraction risks
 
 Before final manuscript status:
 
 ```text
 R1. Put the gap-after collision table in an appendix with endpoint cases.
-R2. Formalize direct exchange table reference to F5.
-R3. Ensure signed bridge corrections are always routed through F6/F10 or bounded pair machinery.
-R4. Check same-orientation rigid return endpoint cases line by line.
-R5. Ensure M_BG embeds consistently into M_NW^*.
+R2. Finalize direct-exchange table reference in F5.
+R3. Prove or explicitly route all signed bridge correction exits through F6/F10 or bounded pair machinery.
+R4. Add same-orientation rigid-return endpoint table.
+R5. Define the explicit F8 subrank embedding of bridge_length/internal_length into M_NW^*.
+R6. Close F10/F11 weighted-core termination for irreducible signed corrections.
+```
+
+Resolved or reduced:
+
+```text
+A98 supplies the bridge/gap measure-hardening architecture.
+F7 recurrence endpoint/sign risks are substantially hardened.
+Endpoint-local bridge outputs are class-routed into F8/F6/F9.
 ```
 
 ---
 
-## F8.12. Extraction status
+## F8.11. Extraction status
 
 ```text
-Status: extracted draft.
-Risk: YELLOW/ORANGE.
-Next recommended extraction: F4 local descent theorem or F5 separated-equal/midpoint theorem.
+Status: bridge/gap class routing mostly hardened.
+Risk: YELLOW, with one RED inherited dependency: F10/F11 weighted-core termination.
+Next recommended extraction: explicit M_BG -> M_NW^* subrank convention, then F10/F11 weighted-core audit.
 ```
