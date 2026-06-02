@@ -11,9 +11,9 @@ A65  H1 long-blocker uncrossing
 A66  H1 crossing cases
 A67  H2 long-blocker uncrossing, corrected by analytic_f7_h1_h2_sign_audit.md
 A68  recurrence status after atom insertion
-A69  pair-difference recurrence
+A69  pair-difference recurrence, corrected by analytic_f7_pair_difference_endpoint_audit.md
 A70  singleton-prefix recurrence
-A71  cyclic-cut recurrence
+A71  cyclic-cut recurrence, audited by analytic_f7_cyclic_cut_midpoint_characteristic_audit.md
 A95  external collision hardening
 A96  recurrence bounded-blocker hardening
 A99  recurrence span-convention audit
@@ -29,7 +29,7 @@ F10 weighted normal form and cut-swap theorem
 F11 weighted cut-selection theorem
 ```
 
-This is an extracted draft, not the final manuscript version. The remaining risks are endpoint, cyclic, weighted-exit, and long-blocker measure audits.
+This is an extracted draft, not the final manuscript version. The recurrence-source class routing is now substantially hardened; remaining risks are final manuscript expansion, augmented-span verification at F9 level, and exits to F6/F8/F10/F11.
 
 ---
 
@@ -265,11 +265,12 @@ For H2, use the corrected `U^- / u_*` convention. Non-crossing pullbacks produce
 
 This is the extracted content of A65--A67 plus `analytic_f7_h1_h2_sign_audit.md`, using the augmented span convention of A99. ∎
 
-### Audit flags
+### Audit status
 
 ```text
-The H1 sign table and H2 U^- / u_* convention are now recorded in analytic_f7_h1_h2_sign_audit.md.
-The final manuscript must still spell out both orientations and cross-reference A67 corrected formulas.
+H1 sign table and H2 U^- / u_* convention are recorded in analytic_f7_h1_h2_sign_audit.md.
+A67 has been patched to use the corrected H2 convention.
+Final manuscript still needs a polished orientation-by-orientation writeup.
 ```
 
 ---
@@ -277,6 +278,18 @@ The final manuscript must still spell out both orientations and cross-reference 
 ## F7.6. Pair-difference recurrence
 
 Pair-difference recurrence arises when a moved pair or pair-corrected prefix creates a new forbidden hit.
+
+The pair-difference endpoint table is audited in:
+
+```text
+docs/analytic_f7_pair_difference_endpoint_audit.md
+```
+
+A69 has been patched to use the same corrected endpoint convention:
+
+```text
+U=U^-u_*.
+```
 
 ## Lemma F7.5: pair-difference recurrence routes to descent or bridge/equal classes
 
@@ -294,12 +307,14 @@ collapse.
 
 ### Extracted proof
 
-Apply A5 at the recurrent hit. If the nearest blocker is bounded, Lemma F7.1 gives strict descent. If the blocker is non-crossing but long, the pullback remains in the pair-difference window and gives a smaller pair-difference prefix or zero-composite branch. If the blocker crosses the local boundary, F6/F8 classify it as external bridge, equal/signed interval, or cyclic recurrence. Endpoint cases reduce to singleton-prefix recurrence or collapse. ∎
+Apply A5 at the recurrent hit. If the nearest blocker is bounded, Lemma F7.1 gives strict descent. If the blocker is non-crossing but long, the pullback remains in the pair-difference window and gives a smaller pair-difference prefix or zero-composite branch. If the blocker crosses the local boundary, F6/F8 classify it as external bridge, equal/signed interval, or cyclic recurrence. Endpoint cases are handled by the explicit table in `analytic_f7_pair_difference_endpoint_audit.md`; they reduce to zero-atom contradiction, proper zero-composite descent, pair-neighborhood zero-composite, signed/equal bridge branch, singleton/scalar-prefix recurrence, or F6/F8/F9 routing. ∎
 
-### Audit flags
+### Audit status
 
 ```text
-A69 endpoint and crossing cases must be expanded in the appendix.
+A69 endpoint and crossing cases are expanded in analytic_f7_pair_difference_endpoint_audit.md.
+A69 has been patched to use the corrected U^- / u_* convention.
+Final manuscript still needs the table inlined or cited explicitly.
 ```
 
 ---
@@ -343,11 +358,11 @@ Apply A5 at the singleton/prefix hit. A left blocker inside the active prefix gi
 
 In the atom case `x+q=f`, the endpoint audit shows that the only empty-suffix cases become zero-atom contradictions, while the remaining cases route to bridge zero-composite, pair-difference prefix descent, pair-difference boundary, or signed bridge composite. ∎
 
-### Audit flags
+### Audit status
 
 ```text
-A70 atom-singleton endpoint cases are now expanded in analytic_f7_singleton_endpoint_audit.md.
-The final manuscript should inline that table or cite it explicitly.
+A70 atom-singleton endpoint cases are expanded in analytic_f7_singleton_endpoint_audit.md.
+Final manuscript should inline that table or cite it explicitly.
 ```
 
 ---
@@ -370,6 +385,35 @@ sigma-S_c+S_i
 
 for wrapped prefix endpoints.
 
+The cyclic midpoint characteristic audit is recorded in:
+
+```text
+docs/analytic_f7_cyclic_cut_midpoint_characteristic_audit.md
+```
+
+The special equations:
+
+```text
+S_alpha=2f,
+S_beta=2f-sigma
+```
+
+are additive midpoint-boundary equations:
+
+```text
+2f=S_alpha+S_0,
+2f=S_beta+S_t.
+```
+
+No division by 3 occurs. In characteristic 3, these become:
+
+```text
+S_alpha=-f,
+S_beta=-f-sigma,
+```
+
+but remain the same midpoint-boundary class.
+
 ## Lemma F7.7: cyclic-cut recurrence routes to known classes
 
 Every cyclic-cut recurrence routes to one of:
@@ -386,13 +430,14 @@ collapse.
 
 ### Extracted proof
 
-Use the cyclic endpoint formulas. A recurrent wrapped endpoint either gives an earlier forbidden hit under the original basepoint, a symmetric endpoint equation producing midpoint boundary, or a wrapping interval equation. Non-wrapping equations are zero-composite/equal-interval branches. Wrapping equations split into suffix and prefix bridges handled by F6/F8. Endpoint cases reduce to singleton-prefix or pair-difference recurrence. ∎
+Use the cyclic endpoint formulas. A recurrent wrapped endpoint either gives an earlier forbidden hit under the original basepoint, a symmetric endpoint equation producing midpoint boundary, or a wrapping interval equation. Non-wrapping equations are zero-composite/equal-interval branches. Wrapping equations split into suffix and prefix bridges handled by F6/F8. Endpoint cases reduce to singleton-prefix or pair-difference recurrence. The characteristic-sensitive midpoint cases are additive and route to A55 midpoint machinery by `analytic_f7_cyclic_cut_midpoint_characteristic_audit.md`. ∎
 
-### Audit flags
+### Audit status
 
 ```text
-A71 special midpoint equations and p=3 behavior require audit.
-No division by 3 should occur.
+A71 special midpoint equations and p=3 behavior are audited in analytic_f7_cyclic_cut_midpoint_characteristic_audit.md.
+No division by 3 occurs in the cyclic midpoint routing.
+Final manuscript still needs exact F6/F8 cross-references for wrapping bridge exits.
 ```
 
 ---
@@ -444,11 +489,12 @@ The termination statement belongs to F9.
 Before final manuscript status:
 
 ```text
-R1. H1/H2 blocker equations must be written in final manuscript form using the corrected H2 convention.
-R2. Pair-difference recurrence endpoint cases require explicit table.
-R3. Cyclic-cut midpoint equations require characteristic audit.
-R4. Each recurrence source must use the augmented span convention from A99.
-R5. Exits to F6/F8/F10/F11 must be cross-referenced exactly.
+R1. H1/H2 blocker equations must be written in polished final form using the corrected H2 convention.
+R2. Pair-difference recurrence endpoint table must be inlined or cited explicitly.
+R3. Singleton-prefix atom endpoint table must be inlined or cited explicitly.
+R4. Cyclic-cut midpoint characteristic audit must be cited explicitly.
+R5. Each recurrence source must use the augmented span convention from A99.
+R6. Exits to F6/F8/F10/F11 must be cross-referenced exactly.
 ```
 
 Resolved or reduced in this extraction phase:
@@ -456,6 +502,8 @@ Resolved or reduced in this extraction phase:
 ```text
 A70 atom-singleton endpoint table -> analytic_f7_singleton_endpoint_audit.md.
 H1/H2 sign audit and H2 correction -> analytic_f7_h1_h2_sign_audit.md and corrected A67.
+A69 pair-difference endpoint table -> analytic_f7_pair_difference_endpoint_audit.md and corrected A69.
+A71 cyclic midpoint characteristic audit -> analytic_f7_cyclic_cut_midpoint_characteristic_audit.md.
 ```
 
 ---
@@ -463,7 +511,7 @@ H1/H2 sign audit and H2 correction -> analytic_f7_h1_h2_sign_audit.md and correc
 ## F7.12. Extraction status
 
 ```text
-Status: extracted draft with H2 convention corrected.
-Risk: ORANGE trending YELLOW, pending pair-difference endpoint table and cyclic-cut characteristic audit.
-Next recommended extraction: pair-difference recurrence endpoint table or cyclic-cut midpoint audit.
+Status: recurrence-source class routing extracted and audited.
+Risk: YELLOW, pending final manuscript hardening, augmented-span verification, and F6/F8/F10/F11 exit cross-references.
+Next recommended extraction: F8 bridge/gap descent hardening or F9 final measure audit.
 ```
