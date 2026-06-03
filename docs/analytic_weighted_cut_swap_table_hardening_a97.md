@@ -12,38 +12,40 @@ U4. Cut-swap displayed collision table.
 U5. Bridge/gap measure inequalities.
 ```
 
-A94 addressed U1.  A95 addressed U2.  A96 addressed U3.  A97 addresses U4 by hardening the A60 weighted cut-swap displayed collision table.
+A94 addressed U1. A95 addressed U2. A96 addressed U3. A97 addresses U4 by hardening the A60 weighted cut-swap displayed collision table.
 
-The goal is to make explicit the collision equations for the weighted cut-swap
-
-```text
-A P R C -> A R P C
-```
-
-where `B=P R` is a proper cut of the weighted middle block in a genuine weighted core
+This patched version incorporates:
 
 ```text
-A + 2B + C = 0.
+docs/analytic_a97_signed_boundary_weighted_return_audit.md
 ```
+
+The main correction is that the A97.8 signed boundary equation simplifies exactly to an equal-tail relation:
+
+```text
+R_k^+ = P_j^+.
+```
+
+Thus an isolated signed-boundary collision is non-weighted. A genuine same-length weighted return can only arise from persistent signed-boundary rigidity across cuts, which is the A90--A94 weak-to-pattern-rigid branch.
 
 ---
 
 ## 1. Standing weighted core
 
-Let the original displayed segment be
+Let the original displayed segment be:
 
 ```text
 X A P R C Y
 ```
 
-where
+where:
 
 ```text
 B=P R,
 P,R nonempty.
 ```
 
-Write block sums
+Write block sums:
 
 ```text
 a=sum(A),
@@ -53,25 +55,25 @@ c=sum(C),
 b=p+r.
 ```
 
-The genuine weighted core is
+The genuine weighted core is:
 
 ```text
 a+2b+c=0,
 ```
 
-or
+or equivalently:
 
 ```text
 a+2p+2r+c=0.
 ```
 
-The cut-swap is
+The cut-swap is:
 
 ```text
 X A P R C Y -> X A R P C Y.
 ```
 
-Let
+Let:
 
 ```text
 x=sum(X).
@@ -85,7 +87,7 @@ sum(A P R C)=sum(A R P C)=a+p+r+c.
 
 ---
 
-## 2. Original displayed endpoint families
+## 2. Endpoint families
 
 In the original order `A P R C`, displayed internal endpoint families are:
 
@@ -96,340 +98,171 @@ R_k:         x + a + p + R_k,
 C_l:         x + a + p + r + C_l.
 ```
 
-Here `A_i`, `P_j`, `R_k`, and `C_l` denote nonempty prefixes of the corresponding blocks unless an endpoint case is explicitly included.
-
----
-
-## 3. Transformed displayed endpoint families
-
 In the transformed order `A R P C`, displayed endpoint families are:
 
 ```text
 A_i:         x + A_i,                       unchanged
 R_k':        x + a + R_k,
 P_j':        x + a + r + P_j,
-C_l':        x + a + r + p + C_l,           same as x+a+p+r+C_l
+C_l':        x + a + r + p + C_l,           same as x+a+p+r+C_l.
 ```
 
-Thus the `A` and `C` endpoint families are unchanged as sets of field values relative to `x`, while the internal `P` and `R` families move.
-
-Only collisions involving a moved `R_k'` or moved `P_j'` need to be displayed.  Collisions involving external endpoints are handled by A95.
+Only collisions involving a moved `R_k'` or moved `P_j'` need to be displayed. Collisions entirely within `A`, `P`, `R`, or `C` are inherited from the original Graham-valid ordering.
 
 ---
 
-## 4. Collision families to check
+## 3. Direct displayed collision table
 
-Displayed collisions in the transformed window can occur between:
+| Collision | Equation | Tail form | Class |
+|---|---|---|---|
+| `R_k' = A_i` | `a+R_k-A_i=0` | `A_i^+ + R_k=0` | zero-composite |
+| `R_k' = C_l'` | `R_k=p+r+C_l` | `P+R_k^+ + C_l=0` | zero-composite |
+| `R_k' = P_j'` | `R_k-r-P_j=0` | `P_j+R_k^+=0` | two-piece zero |
+| `P_j' = A_i` | `a+r+P_j-A_i=0` | `A_i^+ + R + P_j=0` | zero-composite |
+| `P_j' = C_l'` | `P_j=p+C_l` | `P_j^+ + C_l=0` | two-piece zero |
+| `P_j' = R_k'` | same as `R_k'=P_j'` | `P_j+R_k^+=0` | two-piece zero |
 
-```text
-R_k' and A_i,
-R_k' and original/unchanged C_l,
-R_k' and transformed P_j',
-P_j' and A_i,
-P_j' and unchanged C_l,
-P_j' and transformed R_k'.
-```
-
-The pair `R_k'` with `P_j'` is symmetric with `P_j'` with `R_k'`.
-
-Collisions entirely within `A`, entirely within `P`, entirely within `R`, or entirely within `C` are inherited from the original Graham-valid ordering and are not new.
+Endpoint cases route to zero-collapse, lower-piece zero-composite, or boundary branches. No direct displayed collision with `A` or `C` produces a genuine weighted core.
 
 ---
 
-# 5. R-family collisions
+## 4. Pullback comparisons with old moved-family positions
 
-## Lemma A97.1: collision `R_k' = A_i`
-
-If
-
-```text
-x+a+R_k = x+A_i,
-```
-
-then
-
-```text
-a+R_k-A_i=0.
-```
-
-Equivalently, writing `A=A_i A^+` when `A_i` is a prefix of `A`,
-
-```text
-A^+ + R_k = 0.
-```
-
-if `A_i` is internal to `A` and `a-A_i=sum(A^+)`.
-
-### Classification
-
-This is a two-piece zero-composite supported on a tail of `A` and a prefix of `R`.  If `A_i=0` or `A_i=a` endpoint conventions are used, it becomes either:
-
-```text
-A+R_k=0,
-R_k=0,
-or tail(A)+R_k=0.
-```
-
-These route to zero-composite or zero-collapse machinery.
-
-### Proof
-
-Subtract `x`.  Then move `A_i` to the left and decompose `a-A_i` as the tail of `A`. ∎
-
----
-
-## Lemma A97.2: collision `R_k' = C_l'`
-
-If
-
-```text
-x+a+R_k = x+a+p+r+C_l,
-```
-
-then
-
-```text
-R_k=p+r+C_l.
-```
-
-Thus
-
-```text
-(p+r-R_k)+C_l=0.
-```
-
-Since `p+r-R_k` is `P` plus the tail of `R` after `R_k`, this is
-
-```text
-P + R^+_k + C_l = 0.
-```
-
-where `R=R_k R^+_k`.
-
-### Classification
-
-This is a two-piece or three-piece zero-composite involving `P`, a tail of `R`, and a prefix of `C`.
-
-Endpoint cases:
-
-```text
-R_k=r       -> P + C_l = 0;
-C_l=c       -> P + R^+_k + C = 0;
-R_k=r,C_l=c -> P+C=0.
-```
-
-These route to zero-composite surgery or A56 adjacent-pair tests.
-
-### Proof
-
-Subtract the two endpoint expressions and decompose `r-R_k` as the tail of `R`. ∎
-
----
-
-## Lemma A97.3: collision `R_k' = P_j'`
-
-If
-
-```text
-x+a+R_k = x+a+r+P_j,
-```
-
-then
-
-```text
-R_k-r-P_j=0.
-```
-
-Equivalently,
-
-```text
-R^+_k + P_j = 0
-```
-
-with a sign convention, since `r-R_k=sum(R^+_k)`.
-
-More explicitly:
-
-```text
-P_j + R^+_k = 0.
-```
-
-### Classification
-
-This is a two-piece zero-composite across the cut boundary between `R` and `P` in the transformed order.  If one piece is empty, it is zero-collapse; if both are nonempty, it is controlled by zero-composite surgery.
-
-### Proof
-
-The equation gives `R_k-r=P_j`.  Since `R_k-r=-R^+_k`, this gives `P_j+R^+_k=0`. ∎
-
----
-
-# 6. P-family collisions
-
-## Lemma A97.4: collision `P_j' = A_i`
-
-If
-
-```text
-x+a+r+P_j = x+A_i,
-```
-
-then
-
-```text
-a+r+P_j-A_i=0.
-```
-
-Writing `a-A_i=sum(A^+_i)`, this becomes
-
-```text
-A^+_i + R + P_j = 0.
-```
-
-### Classification
-
-This is a two-piece or three-piece zero-composite involving a tail of `A`, all of `R`, and a prefix of `P`.
-
-Endpoint cases route to:
-
-```text
-A+R+P_j=0,
-R+P_j=0,
-A^+_i+R+P=0,
-```
-
-all zero-composite or adjacent-pair branches.
-
-### Proof
-
-Subtract `x`, move `A_i`, and decompose `a-A_i`. ∎
-
----
-
-## Lemma A97.5: collision `P_j' = C_l'`
-
-If
-
-```text
-x+a+r+P_j = x+a+r+p+C_l,
-```
-
-then
-
-```text
-P_j=p+C_l.
-```
-
-Thus
-
-```text
-(p-P_j)+C_l=0.
-```
-
-Writing `P=P_j P^+_j`, this is
-
-```text
-P^+_j + C_l = 0.
-```
-
-### Classification
-
-This is a two-piece zero-composite involving a tail of `P` and a prefix of `C`.
-
-Endpoint cases:
-
-```text
-P_j=p       -> C_l=0, zero collapse;
-C_l=c       -> P^+_j + C=0;
-P_j=p,C_l=c -> C=0, zero collapse if C nonempty.
-```
-
-### Proof
-
-Subtract the endpoint expressions and decompose `p-P_j` as the tail of `P`. ∎
-
----
-
-## Lemma A97.6: collision `P_j' = R_k'`
-
-This is the same as Lemma A97.3.  It gives
-
-```text
-P_j + R^+_k = 0.
-```
-
-### Classification
-
-Two-piece zero-composite or zero-collapse.
-
----
-
-# 7. Collision with original positions of moved families
-
-The transformed moved families may also collide with old endpoint values that are not in the displayed transformed family but are present elsewhere in the original proof bookkeeping.
+The transformed moved families may also be compared with old endpoint values that occur in proof pullbacks.
 
 The two important comparisons are:
 
 ```text
-x+a+R_k  vs old x+a+P_j,
-x+a+r+P_j vs old x+a+p+R_k.
+x+a+R_k       vs old x+a+P_j,
+x+a+r+P_j    vs old x+a+p+R_k.
 ```
 
-These are not collisions inside the final transformed ordering unless the old endpoint value is also present as an unchanged endpoint.  However, they occur in pullback calculations.
+These are not necessarily collisions inside the final transformed ordering unless the old endpoint value is also present as an unchanged endpoint. They appear in signed-boundary and self-return calculations.
 
 ---
 
-## Lemma A97.7: moved R against old P gives signed pair-difference
+## Lemma A97.7: moved `R` against old `P` gives equal-prefix relation
 
-If
+If:
 
 ```text
 x+a+R_k = x+a+P_j,
 ```
 
-then
+then:
 
 ```text
-R_k-P_j=0.
+R_k=P_j.
 ```
 
-This is an equal-prefix relation between `R` and `P`.
+This is an equal-prefix relation between prefixes of `R` and `P`.
 
-### Classification
+Classification:
 
-If the prefixes are disjoint, it is separated-equal inside `B`.  If adjacent or overlapping under a cut convention, it routes to midpoint/equal interval or zero-composite.
+```text
+equal interval,
+separated-equal inside B,
+midpoint/equal interval after uncrossing,
+zero-composite if adjacent/overlapping degenerates.
+```
+
+It is non-weighted.
 
 ---
 
-## Lemma A97.8: moved P against old R gives signed pair-difference
+## Lemma A97.8: moved `P` against old `R` gives equal-tail relation
 
-If
+If:
 
 ```text
 x+a+r+P_j = x+a+p+R_k,
 ```
 
-then
+then:
 
 ```text
 r+P_j-p-R_k=0.
 ```
 
-Equivalently,
+Write:
 
 ```text
-R^+_k + P_j = P^+_j + R_k
+P=P_j P_j^+,
+R=R_k R_k^+.
 ```
 
-depending on tail decomposition.
+Thus:
+
+```text
+p=P_j+P_j^+,
+r=R_k+R_k^+.
+```
+
+Substitute into the signed boundary equation:
+
+```text
+(R_k+R_k^+) + P_j - (P_j+P_j^+) - R_k = 0.
+```
+
+Cancelling equal terms gives:
+
+```text
+R_k^+ - P_j^+ = 0,
+```
+
+hence:
+
+```text
+R_k^+ = P_j^+.
+```
 
 ### Classification
 
-This is a signed interval relation across the cut.  It routes to equal/signed interval machinery, transported-prefix tests, or weighted-core return if the coefficient-2 pattern survives.
+This is an equal-tail relation between a suffix of `R` and a suffix of `P`.
+
+It routes to:
+
+```text
+EQUAL_INTERVAL,
+SEPARATED_EQUAL,
+ZERO_COLLAPSE,
+PROPER_SUBINTERVAL,
+BRIDGE_GAP if separated by a nonempty gap,
+F5/F8/F9 machinery.
+```
+
+A single A97.8 equation is therefore non-weighted. It does not by itself produce a genuine weighted-core return.
+
+A genuine same-length weighted return can only arise if compatible equal-prefix/equal-tail relations persist across cuts, producing weak cut-rigidity. That persistent branch is handled by:
+
+```text
+A90--A94 weak-to-pattern-rigid reduction,
+A89 strong exact self-return impossibility.
+```
+
+### Endpoint cases
+
+If `P_j=P`, then `P_j^+=empty` and the equation gives:
+
+```text
+R_k^+=0.
+```
+
+If `R_k^+` is nonempty, this is a zero-sum suffix of `R`; if it is empty, the comparison is the full-boundary tautology.
+
+If `R_k=R`, then `R_k^+=empty` and the equation gives:
+
+```text
+P_j^+=0.
+```
+
+If `P_j^+` is nonempty, this is a zero-sum suffix of `P`; if empty, the comparison is again full-boundary tautology.
+
+If both tails are nonempty, `R_k^+=P_j^+` is a proper equal-tail relation supported strictly inside `B`.
 
 ---
 
-# 8. Forbidden-hit equations for the cut-swap
+## 5. Forbidden-hit equations for the cut-swap
 
 If the transformed ordering is Graham-valid but recurrent, the new forbidden hit must occur in a moved family:
 
@@ -440,15 +273,11 @@ H_P(j): x+a+r+P_j=f.
 
 The unchanged `A` and `C` families cannot create new forbidden hits unless they already hit `f` before the move.
 
----
-
 ## Lemma A97.9: cut-swap recurrence is moved-prefix recurrence
 
 Every new forbidden hit from the cut-swap is a moved-prefix hit of type `H_R` or `H_P`.
 
-### Classification
-
-Apply A5 at the hit.  The blocker pullback is then handled by:
+Classification:
 
 ```text
 A64 bounded-blocker theorem;
@@ -458,31 +287,33 @@ A71 cyclic recurrence if the cut is interpreted cyclically;
 A95 external collision if the blocker is external.
 ```
 
+Proof: only `R_k'` and `P_j'` moved. Therefore only those endpoint families can newly hit `f`. ∎
+
+---
+
+## 6. Weighted-core return equations
+
+A displayed collision table can return to a weighted relation only if the collision equation contains a surviving coefficient-2 structure after zero-composite, equal-tail, and transported-prefix tests fail.
+
+The direct displayed collisions A97.1--A97.6 produce zero-composite branches. A97.7 produces equal-prefix branches. A97.8 produces equal-tail branches.
+
+Therefore an isolated displayed collision does not create a new weighted core. Weighted return means a persistent rigidity pattern across cuts, not a single displayed equation.
+
+---
+
+## Lemma A97.10: weighted return requires persistent signed-boundary rigidity
+
+A genuine same-length weighted-core return after cut-swap can only occur if signed-boundary equal-prefix/equal-tail relations persist across proper cuts in a way that prevents all cut-swaps from producing success, collapse, smaller middle, or non-weighted descent.
+
+That is precisely the weak cut-rigid branch treated by A90--A94, with final contradiction supplied by A89 if the return becomes pattern-rigid/strong exact.
+
 ### Proof
 
-Only `R_k'` and `P_j'` moved.  Therefore only those endpoint families can newly hit `f`. ∎
+Direct transformed-family collisions are zero-composite by Section 3. Pullback comparison A97.7 is equal-prefix. Pullback comparison A97.8 is equal-tail. Each isolated relation is non-weighted. A weighted same-middle return must therefore preserve a coherent doubled-middle pattern across the cut rather than arise from one displayed collision. This is the definition of the weak cut-rigid return branch. ∎
 
 ---
 
-# 9. Weighted-core return equations
-
-A displayed collision table can return to a weighted relation only if the collision equation contains a surviving coefficient-2 structure after zero-composite and transported-prefix tests fail.
-
-The possible source is a signed relation comparing moved and old cut-boundary pieces, such as Lemma A97.8.
-
----
-
-## Lemma A97.10: displayed cut-swap collisions produce weighted return only through signed boundary relations
-
-The direct displayed collisions of transformed families with `A` or `C` endpoints produce zero-composite branches.  A genuine weighted-core return can only arise from signed boundary relations comparing moved `P` and `R` data, after A56 easy reductions fail.
-
-### Proof
-
-Lemmas A97.1--A97.6 produce equations with all coefficients `+1` after tail decomposition; these are zero-composites.  Coefficient-2 behavior can only appear when comparing old and new positions of cut pieces, where one side contains `P` or `R` in both the moved and original representation.  Those are signed boundary relations of Lemmas A97.7--A97.8. ∎
-
----
-
-## 10. Displayed collision table summary
+## 7. Displayed collision table summary
 
 | Collision | Equation | Class |
 |---|---|---|
@@ -492,13 +323,14 @@ Lemmas A97.1--A97.6 produce equations with all coefficients `+1` after tail deco
 | `P_j' = A_i` | `A_i^+ + R + P_j = 0` | zero-composite |
 | `P_j' = C_l'` | `P_j^+ + C_l = 0` | two-piece zero |
 | `P_j' = R_k'` | `P_j + R_k^+ = 0` | two-piece zero |
-| moved `R` vs old `P` | `R_k=P_j` | equal interval / separated-equal |
-| moved `P` vs old `R` | signed cut-boundary relation | signed interval / possible weighted return |
+| moved `R` vs old `P` | `R_k=P_j` | equal prefix / separated-equal |
+| moved `P` vs old `R` | `R_k^+=P_j^+` | equal tail / separated-equal |
 | moved family hits `f` | `x+a+R_k=f` or `x+a+r+P_j=f` | recurrence |
+| persistent cut rigidity | all cuts fail to descend | A90--A94 / A89 |
 
 ---
 
-## 11. Endpoint and empty-block cases
+## 8. Endpoint and empty-block cases
 
 The cut requires:
 
@@ -506,19 +338,14 @@ The cut requires:
 P,R nonempty.
 ```
 
-Prefixes such as `P_j`, `R_k`, `A_i`, `C_l` may be:
-
-```text
-proper nonempty prefixes in displayed collision tables;
-full prefixes when endpoint cases are included;
-empty only if boundary endpoint comparisons are explicitly added.
-```
+Prefixes such as `P_j`, `R_k`, `A_i`, `C_l` may be proper nonempty prefixes, full prefixes, or empty only if boundary endpoint comparisons are explicitly added.
 
 Endpoint cases route as follows:
 
 ```text
 empty prefix causing equation 0=atom/block sum -> zero collapse or boundary branch;
 full prefix causing tail empty -> lower-piece zero-composite;
+full-boundary tautology -> no nontrivial obstruction;
 A or C empty -> endpoint weighted case, handled by A80/A81 or A56.
 ```
 
@@ -526,37 +353,38 @@ No endpoint case creates a new transition type.
 
 ---
 
-## 12. Hardened A60 theorem
+## 9. Hardened A60 theorem
 
 ## Theorem A97.11: weighted cut-swap displayed collisions are classified
 
-For the weighted cut-swap
+For the weighted cut-swap:
 
 ```text
 A P R C -> A R P C,
 ```
 
-with `P,R` nonempty, every displayed collision in the transformed window is one of:
+with `P,R` nonempty, every displayed collision or pullback comparison in the transformed window is one of:
 
 ```text
 1. zero-composite;
 2. two-piece zero;
-3. equal/separated interval;
-4. signed interval / transported-prefix candidate;
-5. weighted-core return through signed boundary relation;
+3. equal-prefix/equal-tail interval;
+4. separated-equal / bridge-gap;
+5. signed interval / transported-prefix candidate;
 6. forbidden recurrence;
-7. endpoint zero-collapse.
+7. endpoint zero-collapse;
+8. persistent cut-rigid weighted-return branch A90--A94/A89.
 ```
 
 External collisions are not part of the displayed table and are handled by A95.
 
 ### Proof
 
-The transformed moved endpoint families are `R_k'` and `P_j'`.  Collisions involving these families with displayed `A`, `C`, and each other are Lemmas A97.1--A97.6.  Pullback comparisons with old moved-family positions are Lemmas A97.7--A97.8.  New forbidden hits are Lemma A97.9.  Weighted returns are restricted by Lemma A97.10.  Endpoint cases are Section 11. ∎
+The transformed moved endpoint families are `R_k'` and `P_j'`. Collisions involving these families with displayed `A`, `C`, and each other are Section 3. Pullback comparisons with old moved-family positions are A97.7--A97.8. New forbidden hits are A97.9. Persistent same-middle weighted returns are restricted by A97.10. Endpoint cases are Section 8. ∎
 
 ---
 
-## 13. Consequence for weighted proof
+## 10. Consequence for weighted proof
 
 A97 hardens U4 at the displayed-table level:
 
@@ -564,49 +392,28 @@ A97 hardens U4 at the displayed-table level:
 A60 cut-swap displayed collisions introduce no new obstruction species.
 ```
 
-The only weighted-return channel is the signed boundary channel already isolated in A79--A94.
-
----
-
-## 14. Remaining hardening item
-
-Only one of the A93 hardening items remains:
+The previous phrase:
 
 ```text
-U5. A74--A77 bridge/gap measure inequalities.
+weighted-core return through signed boundary relation
 ```
 
-Also still needed:
+should now be read as:
 
 ```text
-span convention audit across recurrence sources;
-final proof extraction.
+persistent signed-boundary rigidity across cuts,
+not an isolated A97.8 equation.
 ```
 
----
-
-## 15. Target A98
-
-A98 should harden A74--A77:
+An isolated A97.8 equation is the non-weighted equal-tail relation:
 
 ```text
-bridge/gap measure inequalities.
-```
-
-Required output:
-
-```text
-1. define bridge span, gap length, and support size consistently;
-2. prove proper overlap decreases span;
-3. prove proper containment decreases support/span;
-4. prove equal-span separated bridge returns reduce gap or enter recurrence;
-5. prove gap-preserving recurrence reduces to rigid separated self-return;
-6. prove rigid separated self-return routes to direct exchange/recurrence without preserving the same measure.
+R_k^+ = P_j^+.
 ```
 
 ---
 
-## Current status after A97
+## 11. Current status after A97 patch
 
 Proved/recorded here:
 
@@ -614,16 +421,18 @@ Proved/recorded here:
 1. displayed endpoint families for A P R C -> A R P C;
 2. all moved-family collision equations;
 3. zero-composite classification for direct displayed collisions;
-4. signed boundary channel for possible weighted return;
-5. cut-swap recurrence equations;
-6. endpoint/empty-block handling;
-7. hardened A60 displayed collision theorem.
+4. A97.7 equal-prefix relation;
+5. A97.8 equal-tail relation R_k^+=P_j^+;
+6. cut-swap recurrence equations;
+7. endpoint/empty-block handling;
+8. persistent signed-boundary weighted return reduced to A90--A94/A89.
 ```
 
 Still open:
 
 ```text
-1. A74--A77 bridge/gap inequality hardening;
-2. recurrence span convention audit;
-3. final extraction.
+1. A56 transported-prefix/tail exhaustiveness;
+2. persistent cut-rigidity formalization in final F11;
+3. W-to-NW exit decrease/no-reentry table;
+4. final mutual-induction implementation in F9/F11.
 ```
