@@ -2,7 +2,7 @@
 
 This file continues the final-proof extraction phase begun with F11.
 
-F10 supplies the weighted local input used by F11.  It extracts the weighted normal-form reductions and the fixed proper cut-swap table from the A-notes, mainly:
+F10 supplies the weighted local input used by F11. It extracts the weighted normal-form reductions and the fixed proper cut-swap table from the A-notes, mainly:
 
 ```text
 A56  weighted normal forms and transported-prefix tests
@@ -12,13 +12,28 @@ A95  external collision hardening
 A97  weighted cut-swap displayed collision table hardening
 ```
 
-This file is an extracted draft, not yet the final manuscript version.  The remaining risks are sign/endpoint audit and normal-form exhaustiveness.
+Recent audit checkpoints:
+
+```text
+docs/analytic_a56_transported_prefix_tail_exhaustiveness_audit.md
+docs/analytic_a97_signed_boundary_weighted_return_audit.md
+docs/analytic_weighted_cut_swap_table_hardening_a97.md
+docs/analytic_f9_f11_mutual_induction_convention.md
+```
+
+This file is an extracted draft, not yet the final manuscript version. The old broad risks “transported-prefix exhaustiveness” and “signed-boundary weighted return” are now narrowed:
+
+```text
+transported-prefix/tail requires a containing-block certificate;
+isolated A97 signed-boundary equations are non-weighted equal-prefix/equal-tail exits;
+only persistent signed-boundary rigidity across cuts remains a weighted-return issue.
+```
 
 ---
 
 ## F10.0. Scope
 
-F10 does not prove weighted cut-selection.  That is F11.
+F10 does not prove weighted cut-selection. That is F11.
 
 F10 proves the following local statement:
 
@@ -33,13 +48,13 @@ Thus, once a cut is chosen, there is no new obstruction species outside the fina
 
 ## F10.1. Weighted relation and easy reductions
 
-Let the displayed segment be
+Let the displayed segment be:
 
 ```text
 X A B C Y
 ```
 
-with block sums
+with block sums:
 
 ```text
 a=sum(A),
@@ -47,7 +62,7 @@ b=sum(B),
 c=sum(C).
 ```
 
-A weighted relation is
+A weighted relation is:
 
 ```text
 a+2b+c=0.
@@ -60,7 +75,7 @@ b=0,
 a+b=0,
 b+c=0,
 a=c,
-transported-prefix/tail rewrite applies.
+transported-prefix/tail rewrite applies with a containing-block certificate.
 ```
 
 The relation is genuine if none of these reductions holds.
@@ -69,7 +84,7 @@ The relation is genuine if none of these reductions holds.
 
 ## Lemma F10.1: easy weighted reductions exit to non-weighted classes
 
-If a weighted relation
+If a weighted relation:
 
 ```text
 A+2B+C=0
@@ -82,45 +97,54 @@ zero collapse,
 two-piece zero-composite,
 equal interval,
 midpoint/adjacent-equal branch,
-transported-prefix normal form.
+transported-prefix/tail non-weighted normal form.
 ```
 
 ### Extracted proof
 
 If `B=0`, then the nonempty middle block is a zero interval, or the endpoint-empty case collapses immediately.
 
-If `A+B=0`, then the adjacent block `A B` is a zero interval or zero-composite branch.  Similarly, `B+C=0` gives a right adjacent zero branch.
+If `A+B=0`, then the adjacent block `A B` is a zero interval or zero-composite branch. Similarly, `B+C=0` gives a right adjacent zero branch.
 
-If `A=C`, then the outer blocks have equal sum.  If they are adjacent through zero gap after contraction, the branch is midpoint/adjacent-equal; if separated, it is an equal-interval or separated-equal branch.
+If `A=C`, then the outer blocks have equal sum. If they are adjacent through zero gap after contraction, the branch is midpoint/adjacent-equal; if separated, it is an equal-interval or separated-equal branch.
 
-If a transported-prefix/tail rewrite applies, the apparent coefficient-2 structure is rewritten as a zero-composite or ordinary signed-interval relation using the containing block.  This is the A56 transported-prefix normalization.
-
-Each output is non-weighted and exits to F4--F9. ∎
-
-### Audit flags
+If a transported-prefix/tail rewrite applies, then there is a containing-block certificate of one of the forms:
 
 ```text
-A56 transported-prefix exhaustiveness remains a key audit item.
-The final manuscript should state the transported-prefix/tail hypotheses explicitly.
+D = B A,
+D = B C,
+D = A B,
+D = C B,
+```
+
+where `D` is a known transported/containing block from the local move and the complementary piece occurs with coefficient `+1` in the displayed relation. Then one copy of `B` is absorbed into `D`, rewriting the apparent coefficient-2 relation as a non-weighted zero-composite/equal/signed relation.
+
+Each output is non-weighted and exits to F4--F9 under the F9/F11 mutual-induction interface. ∎
+
+### Audit status
+
+```text
+A56 transported-prefix/tail exhaustiveness is clarified in analytic_a56_transported_prefix_tail_exhaustiveness_audit.md.
+Final manuscript must include the containing-block certificate criterion, not a bare transported-prefix Boolean.
 ```
 
 ---
 
 ## F10.2. Nested zero-composite representation
 
-A genuine weighted relation satisfies
+A genuine weighted relation satisfies:
 
 ```text
 a+2b+c=0.
 ```
 
-Since
+Since:
 
 ```text
 sum(A B C)=a+b+c,
 ```
 
-the weighted relation can be rewritten as
+the weighted relation can be rewritten as:
 
 ```text
 sum(A B C)+b=0.
@@ -132,13 +156,13 @@ Thus the whole displayed block plus the middle block forms a nested zero-composi
 
 ## Lemma F10.2: weighted core is a nested zero-composite
 
-Every weighted relation
+Every weighted relation:
 
 ```text
 A+2B+C=0
 ```
 
-is equivalent to
+is equivalent to:
 
 ```text
 ABC+B=0.
@@ -146,30 +170,30 @@ ABC+B=0.
 
 ### Proof
 
-The sum of `ABC` is `a+b+c`.  Adding `b` gives `a+2b+c`, which is zero by hypothesis. ∎
+The sum of `ABC` is `a+b+c`. Adding `b` gives `a+2b+c`, which is zero by hypothesis. ∎
 
 ### Use
 
-This identity explains why weighted cores are connected to zero-composite machinery, but it does not by itself eliminate the weighted core.  Static cuts of `B` are insufficient; the proof uses the dynamic cut-swap below.
+This identity explains why weighted cores are connected to zero-composite machinery, but it does not by itself eliminate the weighted core. Static cuts of `B` are insufficient; the proof uses the dynamic cut-swap below.
 
 ---
 
 ## F10.3. Proper cut-swap setup
 
-Assume the weighted core is genuine and
+Assume the weighted core is genuine and:
 
 ```text
 |B|>=2.
 ```
 
-Choose a proper cut
+Choose a proper cut:
 
 ```text
 B=P R,
 P,R nonempty.
 ```
 
-Write
+Write:
 
 ```text
 p=sum(P),
@@ -177,7 +201,7 @@ r=sum(R),
 b=p+r.
 ```
 
-The fixed cut-swap is
+The fixed cut-swap is:
 
 ```text
 X A P R C Y -> X A R P C Y.
@@ -207,7 +231,7 @@ P_j':  x+a+r+P_j,
 C_l':  x+a+r+p+C_l,            unchanged as C-family endpoint values.
 ```
 
-Only the `R_k'` and `P_j'` families are moved.  New displayed collisions must involve at least one moved family.
+Only the `R_k'` and `P_j'` families are moved. New displayed collisions must involve at least one moved family.
 
 ---
 
@@ -215,7 +239,7 @@ Only the `R_k'` and `P_j'` families are moved.  New displayed collisions must in
 
 ## Lemma F10.3: displayed collisions of the fixed cut-swap are classified
 
-For the fixed cut-swap
+For the fixed cut-swap:
 
 ```text
 A P R C -> A R P C,
@@ -226,11 +250,12 @@ every displayed collision in the transformed window is one of:
 ```text
 zero-composite,
 two-piece zero,
-equal/separated interval,
+equal-prefix/equal-tail interval,
+separated-equal / bridge-gap,
 signed interval / transported-prefix candidate,
-weighted-core return through signed boundary relation,
 forbidden recurrence,
-endpoint zero-collapse.
+endpoint zero-collapse,
+persistent cut-rigid weighted-return branch.
 ```
 
 External collisions are handled separately by F6.
@@ -252,14 +277,31 @@ P_j' = R_k'   -> P_j + R_k^+ = 0.
 
 These are zero-composite or two-piece zero branches, with endpoint cases becoming zero-collapse or lower-piece zero-composite branches.
 
-Comparisons of moved endpoint values with old moved-family positions give signed boundary relations:
+Comparisons of moved endpoint values with old moved-family positions give boundary relations:
 
 ```text
-R_k = P_j,
-r+P_j-p-R_k=0.
+moved R against old P:  R_k = P_j,
+moved P against old R:  r + P_j - p - R_k = 0.
 ```
 
-These are equal/signed interval relations.  If all easy reductions fail and a coefficient-2 pattern survives, the branch may return to weighted-core form.  This is the only displayed weighted-return channel.
+Using:
+
+```text
+P = P_j P_j^+,
+R = R_k R_k^+,
+p = P_j + P_j^+,
+r = R_k + R_k^+,
+```
+
+the second relation simplifies to:
+
+```text
+R_k^+ = P_j^+.
+```
+
+Thus isolated signed-boundary comparisons are equal-prefix/equal-tail non-weighted relations. They route to equal-interval, separated-equal, bridge-gap, zero-collapse, or F5/F8/F9 machinery.
+
+A genuine same-middle weighted return can only come from persistent equal-prefix/equal-tail rigidity across cuts, i.e. the weak cut-rigid branch treated by F11/A90--A94/A89.
 
 If the transformed ordering is Graham-valid but recurrent, the new forbidden hit must occur in a moved family:
 
@@ -272,11 +314,12 @@ These are recurrence branches routed by F7.
 
 Thus every displayed collision or recurrence is classified. ∎
 
-### Audit flags
+### Audit status
 
 ```text
-Endpoint/full-prefix cases should be included in an appendix table.
-Signs in the moved-P versus old-R relation must be checked line by line.
+A97 signed-boundary algebra is audited in analytic_a97_signed_boundary_weighted_return_audit.md.
+Endpoint/full-prefix cases are tabulated in analytic_weighted_cut_swap_table_hardening_a97.md.
+Only persistent signed-boundary rigidity across cuts remains a weighted-return issue.
 ```
 
 ---
@@ -303,7 +346,7 @@ collapse/minimality contradiction.
 
 ### Proof
 
-The cut-swap is a local replacement of the window `W=A P R C` by `W'=A R P C` inside `X W Y`, preserving the window total.  Therefore A95/F6 applies to any collision with an endpoint in `X`, `Y`, or a wrapped external family. ∎
+The cut-swap is a local replacement of the window `W=A P R C` by `W'=A R P C` inside `X W Y`, preserving the window total. Therefore A95/F6 applies to any collision with an endpoint in `X`, `Y`, or a wrapped external family. ∎
 
 ---
 
@@ -311,19 +354,19 @@ The cut-swap is a local replacement of the window `W=A P R C` by `W'=A R P C` in
 
 ## Theorem F10.5: fixed weighted cut-swap theorem
 
-Let
+Let:
 
 ```text
 A+2B+C=0
 ```
 
-be a genuine weighted core with `|B|>=2`, and choose a proper cut
+be a genuine weighted core with `|B|>=2`, and choose a proper cut:
 
 ```text
 B=P R.
 ```
 
-The cut-swap
+The cut-swap:
 
 ```text
 A P R C -> A R P C
@@ -336,7 +379,7 @@ has exactly the following outcomes:
 2. displayed collision routed by Lemma F10.3;
 3. external collision routed by Lemma F10.4;
 4. forbidden recurrence routed by F7;
-5. weighted-core return through a signed boundary relation.
+5. persistent cut-rigid weighted-return branch.
 ```
 
 No new obstruction class appears.
@@ -347,11 +390,11 @@ After the cut-swap, the transformed ordering is either Graham-valid and avoids `
 
 If it is Graham-valid and avoids `f`, this is success.
 
-If it is non-Graham, the collision is either displayed or external.  Displayed collisions are Lemma F10.3; external collisions are Lemma F10.4.
+If it is non-Graham, the collision is either displayed or external. Displayed collisions are Lemma F10.3; external collisions are Lemma F10.4.
 
 If it is Graham-valid but recurrent, new forbidden hits occur only in moved endpoint families and route by F7.
 
-The only weighted-core return channel is the signed boundary channel isolated in Lemma F10.3. ∎
+Isolated boundary relations are equal-prefix/equal-tail non-weighted exits. The only remaining same-middle weighted continuation is persistent cut-rigidity across proper cuts, handled by F11. ∎
 
 ---
 
@@ -361,13 +404,13 @@ F10 gives F11 the following exact input:
 
 ```text
 For any chosen proper cut B=P R,
-the cut-swap is controlled unless it returns to weighted core through the signed boundary channel.
+the cut-swap is controlled unless all relevant cuts persist in a weak cut-rigid weighted-return pattern.
 ```
 
 F11 then handles the selection/termination problem:
 
 ```text
-either some cut exits or descends,
+either some cut exits or descends under the mutual-induction interface,
 or all cuts are weakly cut-rigid,
 and weak cut-rigidity reduces to pattern-rigidity or routed descent.
 ```
@@ -379,11 +422,19 @@ and weak cut-rigidity reduces to pattern-rigidity or routed descent.
 Before final manuscript status:
 
 ```text
-R1. Expand transported-prefix/tail normal-form hypotheses from A56.
-R2. Verify endpoint cases in the collision table.
-R3. Verify sign conventions in signed boundary relations.
-R4. Ensure every recurrence call points to the extracted F7 recurrence theorem.
-R5. Ensure every external collision call points to extracted F6.
+R1. Include the A56 containing-block certificate criterion in final normal-form statement.
+R2. Ensure every recurrence call points to the extracted F7 recurrence theorem.
+R3. Ensure every external collision call points to extracted F6.
+R4. Ensure every non-weighted exit from F10 is included in the W-to-NW exit decrease/no-reentry table.
+R5. Delegate persistent cut-rigidity exactly to F11/A90--A94/A89.
+```
+
+Resolved or reduced:
+
+```text
+A56 transported-prefix/tail exhaustiveness -> analytic_a56_transported_prefix_tail_exhaustiveness_audit.md.
+A97 signed-boundary algebra -> analytic_a97_signed_boundary_weighted_return_audit.md.
+A97 endpoint/full-prefix table -> analytic_weighted_cut_swap_table_hardening_a97.md.
 ```
 
 ---
@@ -391,7 +442,8 @@ R5. Ensure every external collision call points to extracted F6.
 ## F10.10. Extraction status
 
 ```text
-Status: extracted draft.
-Risk: ORANGE.
-Next recommended extraction: F6 external collision theorem or F7 recurrence routing theorem.
+Status: extracted draft patched with A56/A97 audit status.
+Risk: YELLOW/ORANGE.
+Main remaining dependency: W-to-NW exit decrease/no-reentry table and F11 weak cut-rigidity closure.
+Next recommended extraction: docs/analytic_weighted_to_nonweighted_exit_decrease_table.md.
 ```
