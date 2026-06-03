@@ -1018,11 +1018,15 @@ proof-level existence theorem.
 Next experimental targets:
 
 ```text
-1. Characterize the STRUCTURE of fully blocked valid orderings:
-   what distinguishes them from native/good orderings?
-2. Investigate whether a canonical "good" ordering can always be
-   constructed from any valid ordering via local surgery.
-3. Attempt a small-set (|S| ≤ 20) existence proof using empirical patterns.
+1. PROOF APPROACH A (counting argument): show that full blockage
+   requires ≥ n+1 distinct obstructions, impossible due to
+   algebraic constraints on crossing intervals.
+2. PROOF APPROACH B (canonical ordering): construct a specific
+   valid ordering C of S that guarantees unblocked cuts.
+   Candidates: lexicographically minimal, "prefix-minimal" crossing.
+3. PROOF APPROACH C (induction): use the native deletion ordering
+   from S∪{y} when valid; when invalid, construct an alternative
+   via local surgery on the witness ordering.
 ```
 
 ---

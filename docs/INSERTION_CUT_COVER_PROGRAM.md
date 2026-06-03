@@ -327,6 +327,88 @@ This is the needed existence statement for the insertion cut-cover proof strateg
 
 In a minimal counterexample `A` (where `A` itself is NOT sequenceable), there is no "native ordering" to inherit. The proof must construct a good ordering of `A\{x}` without a known valid ordering of `A`. The empirical data supports existence but does not prove it.
 
+### Structural characterization (2026-06-03)
+
+Analysis of individual examples (p=19,23; various B,x) reveals the crossing-interval structure distinguishing good orderings from fully blocked ones.
+
+#### Blocking conditions
+
+For a valid ordering C with partial sums s_0=0, s_1,...,s_n, insertion of y is blocked at cut i iff:
+
+```text
+cut 0:  ∃ j≥1 with s_j = 0  (zero partial sum)
+cut i≥1:  (s_i + y ∈ {s_1,...,s_i})  (endpoint)
+       OR ∃ k≤i<j with s_j-s_k = -y  (crossing interval)
+```
+
+Fully blocked = every cut satisfies at least one condition.
+
+#### Why native orderings are never fully blocked
+
+The native ordering (delete y from a witness ordering of A∪{y}) avoids full blockage through **coverage gaps**: the first few and/or last few cuts lie outside all crossing intervals. These terminal cuts also avoid endpoint obstructions because the witness ordering's structure doesn't create s_i + y = s_k for those positions.
+
+Specifically, a crossing interval (k,j) covers cuts k..j-1. If the maximum crossing-interval right endpoint max_j < n, then cuts (max_j)...n are uncovered (suffix gap). Similarly, if min_k > 1, cuts 1..(min_k-1) are uncovered (prefix gap).
+
+#### How fully blocked orderings work
+
+Two empirically observed strategies:
+
+```text
+1. Long interval (~13% of cases): s_n - s_1 = -y
+   Creates crossing interval (1,n) covering all internal cuts.
+   Requires endpoint at cut n and zero_partial or endpoint at cut 0.
+
+2. Interval stacking (~87% of cases):
+   Multiple crossing intervals whose union covers all cuts,
+   plus endpoint obstructions at remaining positions.
+```
+
+Strategy 2 is more common and requires more structure: several pairs (k,j) with s_j-s_k = -y whose intervals overlap to cover every internal cut.
+
+### Constructive algorithm proposal
+
+The empirical evidence suggests the following constructive algorithm always works:
+
+```text
+Input: sequenceable S, element y not in S
+Output: valid ordering C of S with at least one unblocked cut for y
+
+1. Let C be any Graham-valid ordering of S (exists by sequenceability).
+2. Compute blocked cuts Block(C,y).
+3. If Block(C,y) ≠ {0,...,|S|}, return C.
+4. Otherwise, apply local surgery to C:
+   a. Find a cut i with minimal blocking multiplicity.
+   b. Identify the obstruction(s) responsible:
+      - If a crossing interval (k,j) covers i, try swapping elements
+        near k or j to break the pair s_j-s_k = -y.
+      - If an endpoint obstruction at i, try moving a nearby element.
+   c. Verify the new ordering is still valid and has fewer blocked cuts.
+   d. Return to step 2.
+```
+
+The descent measure M(C,y) = |Block(C,y)| would strictly decrease, guaranteeing termination.
+
+### Path to an existence theorem
+
+Three approaches worth pursuing:
+
+```text
+A. Counting argument: show that if all n+1 cuts are blocked,
+   there must be at least n+1 distinct obstructions, which is
+   impossible because crossing intervals have an algebraic
+   structure constraining their number and arrangement.
+
+B. Canonical ordering: construct C as a specific rearrangement
+   of any valid ordering of S that guarantees unblocked cuts.
+   Candidates: lexicographically minimal, sum-ordered, or
+   "prefix-minimal crossing" ordering.
+
+C. Induction on |S|: prove that |Block(C,y)| < |S|+1 for the
+   ordering C obtained by deleting y from a valid ordering of S∪{y}
+   (when that deletion is valid). The hard case is when deletion
+   is invalid, requiring a different construction.
+```
+
 ## 12. Current status
 
 This program is not yet a proof. It is the independent analytic route most aligned with the computational certificate data.
