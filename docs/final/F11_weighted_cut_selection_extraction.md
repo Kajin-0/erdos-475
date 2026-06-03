@@ -1,10 +1,18 @@
 # F11 weighted cut-selection and termination extraction
 
-This file begins the final-proof extraction phase recommended in A100.
+This file continues the final-proof extraction phase.
 
-F11 is the highest-risk extracted lemma because it closes the weighted obstruction branch.  The purpose of this file is to convert the A-note proof program into a compact final-proof lemma, while preserving every dependency and every remaining audit flag.
+F11 is the highest-risk extracted lemma because it closes the weighted obstruction branch. The purpose of this file is to convert the A-note proof program into a compact final-proof lemma, while preserving every dependency and remaining audit flag.
 
-This is not yet the final publishable proof.  It is the first extracted draft of the weighted-core theorem.
+This is not yet the final publishable proof.
+
+Recent weighted checkpoints:
+
+```text
+docs/analytic_f10_f11_weighted_core_closure_checkpoint.md
+docs/analytic_f9_f11_mutual_induction_convention.md
+docs/analytic_weighted_atom_middle_a81_sign_audit.md
+```
 
 ---
 
@@ -18,7 +26,7 @@ A58  nested zero-composite rewrite
 A60  original fixed cut-swap table
 A79  weighted cut-selection refinement
 A80  atom-middle weighted core
-A81  endpoint-rigid atom-middle trap
+A81  endpoint-rigid atom-middle trap, patched by analytic_weighted_atom_middle_a81_sign_audit.md
 A89  strong exact internal cyclic self-return hardening
 A90  weak cut-rigid to pattern-rigid diagnostic
 A91  first-changed-endpoint lemma
@@ -32,7 +40,7 @@ A98  bridge/gap measure hardening
 A99  recurrence span-convention audit
 ```
 
-F11 exits into the following later final lemmas:
+F11 exits into the following final lemmas:
 
 ```text
 F6  external collision theorem
@@ -41,6 +49,16 @@ F8  bridge/gap descent theorem
 F9  non-weighted termination theorem
 F10 weighted normal form and fixed cut-swap theorem
 ```
+
+Important interface condition:
+
+```text
+Any F11 exit to non-weighted machinery must satisfy the mutual-induction convention in
+
+docs/analytic_f9_f11_mutual_induction_convention.md
+```
+
+In particular, it is not enough to say simply “handled by F9.” The exit must either lower `M_NW^*` relative to the non-weighted parent that entered the weighted branch, or carry a no-reentry certificate excluding a later same-or-larger weighted return.
 
 ---
 
@@ -81,32 +99,34 @@ These hypotheses are inherited from A56.
 The weighted measure is
 
 ```text
-M_W=(|B|, M_NW^*)
+M_W=(|B|, M_NW^*, w_subrank)
 ```
 
-with lexicographic order, where `M_NW^*` is the non-weighted global measure used in F9/A78.
+with lexicographic order, where `M_NW^*` is the non-weighted global measure used in F9 and `w_subrank` is a finite local weighted subrank.
 
 ---
 
-## F11.2. Statement of weighted cut-selection theorem
+## F11.2. Weighted theorem statement, anti-circular form
 
-## Theorem F11.1: weighted core termination theorem
+## Theorem F11.1: weighted core controlled-exit theorem
 
-Assume the weighted normal-form lemmas A56, the fixed cut-swap table A97, the recurrence and external-collision routing lemmas A95--A99, and the non-weighted termination theorem F9.
+Assume the weighted normal-form lemmas A56, the fixed cut-swap table A97, the recurrence and external-collision routing lemmas A95--A99, the atom-middle sign audit, and the F9/F11 mutual-induction convention.
 
-Then no genuine weighted core can generate an infinite non-descending obstruction path.
-
-Equivalently, every genuine weighted core either:
+Starting from a genuine weighted core entered from a non-weighted parent state `NW_0`, every weighted branch either:
 
 ```text
-1. exits by an A56 easy reduction;
-2. exits to a non-weighted obstruction handled by F9;
+1. exits by an A56 easy reduction with a non-weighted state NW_1 satisfying the mutual-induction decrease condition;
+2. exits to a non-weighted obstruction NW_1 with M_NW^*(NW_1)<M_NW^*(NW_0), or with a formal no-reentry certificate;
 3. collapses;
 4. succeeds;
 5. or returns to a genuine weighted core with strictly smaller middle length |B|.
 ```
 
-Therefore weighted obstruction paths terminate by induction on `|B|`.
+Therefore weighted obstruction paths terminate by induction on `|B|`, provided all W-to-NW exits are certified under the mutual-induction interface.
+
+### Status
+
+This is stronger and safer than the older statement “exits to non-weighted obstruction handled by F9.” The remaining work is to audit each W-to-NW exit and prove the required decrease or no-reentry certificate.
 
 ---
 
@@ -124,13 +144,13 @@ Write
 B=q
 ```
 
-where `q` is a single atom.  The weighted relation is
+where `q` is a single atom. The weighted relation is
 
 ```text
 a+2q+c=0.
 ```
 
-Since there is no nonempty proper cut of `B`, the cut-swap method cannot apply.  A80--A81 handle this case.
+Since there is no nonempty proper cut of `B`, the cut-swap method cannot apply. A80--A81 handle this case.
 
 ## Lemma F11.2: atom-middle weighted cores exit to non-weighted machinery
 
@@ -145,10 +165,11 @@ routes to one of:
 ```text
 1. A56 easy reduction;
 2. zero collapse;
-3. pair-difference boundary;
-4. equal/signed interval;
-5. midpoint or singleton recurrence;
-6. non-weighted obstruction handled by F9.
+3. two-atom zero-composite;
+4. pair-difference boundary;
+5. equal/signed interval;
+6. midpoint or singleton recurrence;
+7. non-weighted obstruction handled by the F9 side of the mutual induction.
 ```
 
 ### Extracted proof
@@ -177,49 +198,46 @@ q-gamma+P=0,
 P=0,
 ```
 
-where `P` is a local prefix or tail.  These are pair-difference, zero-composite, equal/signed interval, or zero-collapse branches.  If the transformed ordering is Graham-valid but recurrent, A5 produces singleton-prefix or pair-difference recurrence, routed by F7.
+where `P` is a local prefix or tail. These are pair-difference, zero-composite, equal/signed interval, or zero-collapse branches. If the transformed ordering is Graham-valid but recurrent, A5 produces singleton-prefix or pair-difference recurrence, routed by F7.
 
-The only remaining rigid atom-middle case is the endpoint-rigid trap.  Writing
+The only remaining rigid atom-middle case is the endpoint-rigid trap. Writing
 
 ```text
 A=A^- alpha,
 C=gamma C^+,
 ```
 
-the canonical endpoint-trap equations are
+the four endpoint sign patterns are:
 
 ```text
-q-alpha=a,
-gamma-q=c.
+(+,+):  a = q-alpha,     c = gamma-q    -> alpha-gamma=2q;
+(+,-):  a = q-alpha,     c = q-gamma    -> alpha+gamma=4q;
+(-,+):  a = alpha-q,     c = gamma-q    -> alpha+gamma=0;
+(-,-):  a = alpha-q,     c = q-gamma    -> alpha-gamma=-2q.
 ```
 
-Substitution into
+Thus the apparent weighted obstruction compresses to a bounded boundary relation on:
 
 ```text
-a+2q+c=0
+alpha,q,gamma
 ```
 
-gives
+or to the two-atom zero relation:
 
 ```text
-alpha-gamma=2q.
+alpha+gamma=0.
 ```
 
-Thus the apparent weighted obstruction compresses to a boundary triple relation on
+Endpoint-empty cases `A=empty` or `C=empty` similarly reduce to adjacent atom-difference, zero-composite, midpoint, or singleton recurrence classes.
+
+Therefore the atom-middle case cannot remain as a genuine weighted obstruction. ∎
+
+### Audit status
 
 ```text
-alpha,q,gamma.
-```
-
-The sign-reversed and mixed sign endpoint conventions similarly compress to bounded boundary-atom relations.  These are non-weighted branches, handled by F9 after routing through F4--F8.
-
-Thus the atom-middle case cannot remain as a genuine weighted obstruction. ∎
-
-### Audit flags
-
-```text
-A81 sign-pattern algebra must be checked line by line.
-Endpoint-empty cases A=empty or C=empty must be explicitly included in the final manuscript.
+A81 sign-pattern algebra has been audited in analytic_weighted_atom_middle_a81_sign_audit.md.
+Endpoint-empty cases are explicitly included there and in the patched A81 note.
+Remaining requirement: W-to-NW exits from atom-middle must satisfy the mutual-induction decrease/no-reentry interface.
 ```
 
 ---
@@ -278,7 +296,7 @@ P_j':  x+a+r+P_j,
 C_l':  x+a+r+p+C_l.
 ```
 
-A97 compares all moved families against displayed families.  Direct moved-family collisions yield zero-composite or equal/signed interval equations, for example:
+A97 compares all moved families against displayed families. Direct moved-family collisions yield zero-composite or equal/signed interval equations, for example:
 
 ```text
 R_k'=A_i     -> A_i^+ + R_k=0,
@@ -295,20 +313,20 @@ x+a+R_k=f,
 x+a+r+P_j=f.
 ```
 
-These are recurrence branches routed by F7.  External collisions are routed by F6.  The only possible weighted-core return comes from signed boundary relations comparing old and new cut-boundary data. ∎
+These are recurrence branches routed by F7. External collisions are routed by F6. The only possible weighted-core return comes from signed boundary relations comparing old and new cut-boundary data. ∎
 
-### Audit flags
+### Audit status
 
 ```text
-A97 endpoint/full-prefix cases must be included in appendix collision table.
-The signed boundary channel must be explicitly tied to A56 normal forms.
+A97 endpoint/full-prefix cases are tabulated in analytic_weighted_cut_swap_table_hardening_a97.md.
+The signed boundary channel remains a major weighted-return audit.
 ```
 
 ---
 
 ## F11.5. Smaller weighted return
 
-Suppose the cut-swap returns to a genuine weighted core.  If the new doubled middle block is contained in either `P` or `R`, then its length is strictly smaller than `|B|`.
+Suppose the cut-swap returns to a genuine weighted core. If the new doubled middle block is contained in either `P` or `R`, then its length is strictly smaller than `|B|`.
 
 ## Lemma F11.4: side-contained weighted returns descend
 
@@ -320,7 +338,7 @@ If a weighted return after the cut `B=P R` has doubled middle contained in `P` o
 
 ### Proof
 
-Both `P` and `R` are nonempty proper subblocks of `B`, so
+Both `P` and `R` are nonempty proper subblocks of `B`, so:
 
 ```text
 |P|<|B|,
@@ -345,15 +363,15 @@ A79--A82 show that weak cut-rigidity forces returned middles to cross every inte
 
 ## F11.7. Pattern-rigidity reduction
 
-A90--A94 refine weak cut-rigidity.  Weak cut-rigidity alone does not imply that the internal endpoint set of `B` is preserved.  The proof therefore uses the state-machine and first-changed-endpoint machinery.
+A90--A94 refine weak cut-rigidity. Weak cut-rigidity alone does not imply that the internal endpoint set of `B` is preserved. The proof therefore uses the state-machine and first-changed-endpoint machinery.
 
 ## Lemma F11.6: weak cut-rigid return is pattern-rigid or routed
 
-Assume the A92 finite return-path model and the A94 strict progress lemma.  A weak cut-rigid weighted self-return either:
+Assume the A92 finite return-path model and the A94 strict progress lemma. A weak cut-rigid weighted self-return either:
 
 ```text
 1. is pattern-rigid;
-2. produces a non-weighted obstruction handled by F9;
+2. produces a non-weighted obstruction satisfying the mutual-induction exit condition;
 3. produces an A56 easy reduction;
 4. returns to a smaller weighted middle;
 5. collapses;
@@ -372,27 +390,25 @@ boundary endpoints,
 endpoint labels.
 ```
 
-Changes of middle support are containment/overlap/disjointness cases and route to smaller middle, bridge/equal interval, or external-collision machinery.  Changes of outer blocks subtract two weighted equations and expose a non-weighted zero/equal relation.  Changes of boundary endpoints expose A56 transported-prefix or adjacent zero/equal relations.
+Changes of middle support are containment/overlap/disjointness cases and route to smaller middle, bridge/equal interval, or external-collision machinery. Changes of outer blocks subtract two weighted equations and expose a non-weighted zero/equal relation. Changes of boundary endpoints expose A56 transported-prefix or adjacent zero/equal relations.
 
-If the internal endpoint set changes, take the first changed endpoint along the finite return path.  A91 shows it creates a routed obstruction, smaller weighted middle, recurrence, external collision, or unobstructed progress.  A94 rules out unobstructed first changes in a minimal non-descending self-return.  Therefore endpoint-set changes are routed or descending.
+If the internal endpoint set changes, take the first changed endpoint along the finite return path. A91 shows it creates a routed obstruction, smaller weighted middle, recurrence, external collision, or unobstructed progress. A94 rules out unobstructed first changes in a minimal non-descending self-return. Therefore endpoint-set changes are routed or descending.
 
 If endpoint values are preserved but labels change, subtracting the two interval representations gives a zero/equal/pair-difference or recurrence branch.
 
 Thus any non-pattern return is routed or descending. ∎
 
-### Audit flags
+### Audit status
 
 ```text
-This is the highest-risk extraction step.
-The final manuscript must define pattern-rigid precisely and avoid informal “invisible self-return” language.
-A94's remove-change/undo minimality argument must be written as a formal minimal-path lemma.
+This remains high-risk but no longer broad: the final manuscript must write the A92 finite return-path model and A94 minimal-path lemma cleanly.
 ```
 
 ---
 
 ## F11.8. Pattern-rigid impossibility
 
-Pattern-rigid return preserves the same middle support, boundary endpoints, and internal endpoint set of `B`.  It is therefore strong enough for the A89 internal cyclic self-return argument.
+Pattern-rigid return preserves the same middle support, boundary endpoints, and internal endpoint set of `B`. It is therefore strong enough for the A89 internal cyclic self-return argument.
 
 ## Lemma F11.7: pattern-rigid self-return is impossible
 
@@ -400,34 +416,27 @@ A genuine weighted core cannot have a pattern-rigid self-return at a proper cut 
 
 ### Proof
 
-Pattern-rigidity implies strong exact internal cyclic self-return in the sense of A89.  For a cut after internal partial sum `T_k`, strong exactness gives
+Pattern-rigidity implies strong exact internal cyclic self-return in the sense of A89. For a cut after internal partial sum `T_k`, strong exactness gives:
 
 ```text
 E_B - T_k = E_B.
 ```
 
-If `T_k=0`, then `B` has an internal zero-prefix, a contradiction to Graham-validity.  If `T_k != 0`, the nonzero translation by `-T_k` preserves `E_B`.  Since the additive group of `F_p` has prime order, this forces
+If `T_k=0`, then `B` has an internal zero-prefix, a contradiction to Graham-validity. If `T_k != 0`, the nonzero translation by `-T_k` preserves `E_B`. Since the additive group of `F_p` has prime order, this forces:
 
 ```text
 E_B=F_p.
 ```
 
-Then `|E_B|=p`, so `|B|=p-1`.  Since the full ordering is a subset of `F_p^*`, no atoms remain outside `B`, so `A=C=empty`.  The weighted relation becomes
+Then `|E_B|=p`, so `|B|=p-1`. Since the full ordering is a subset of `F_p^*`, no atoms remain outside `B`, so `A=C=empty`. The weighted relation becomes:
 
 ```text
 2b=0.
 ```
 
-For odd `p`, this gives `b=0`, hence `B` is a zero-sum block.  That contradicts the genuine weighted-core assumption.
+For odd `p`, this gives `b=0`, hence `B` is a zero-sum block. That contradicts the genuine weighted-core assumption.
 
 Thus pattern-rigid self-return is impossible. ∎
-
-### Audit flags
-
-```text
-The final proof must state p odd here.
-The p=2 case is handled separately in F13/A86.
-```
 
 ---
 
@@ -439,23 +448,23 @@ Any sequence of weighted-core returns with strictly decreasing middle length ter
 
 ### Proof
 
-The middle length `|B|` is a positive integer.  A strictly decreasing sequence of positive integers is finite. ∎
+The middle length `|B|` is a positive integer. A strictly decreasing sequence of positive integers is finite. ∎
 
 ---
 
-## F11.10. Proof of Theorem F11.1
+## F11.10. Proof of Theorem F11.1, controlled-exit form
 
-Let a genuine weighted core be given.
+Let a genuine weighted core be given from a non-weighted parent state `NW_0`.
 
-If `|B|=1`, Lemma F11.2 routes it out of the genuine weighted class.
+If `|B|=1`, Lemma F11.2 routes it out of the genuine weighted class. The resulting non-weighted branch must satisfy the mutual-induction exit condition.
 
-If `|B|>=2`, choose a proper cut `B=P R`.  By Lemma F11.3, the cut-swap either succeeds, collapses, exits to non-weighted machinery, enters recurrence/external collision machinery, or returns to a weighted core.
+If `|B|>=2`, choose a proper cut `B=P R`. By Lemma F11.3, the cut-swap either succeeds, collapses, exits to non-weighted machinery, enters recurrence/external collision machinery, or returns to a weighted core.
 
 If it returns to a weighted core with smaller middle, Lemma F11.8 applies by induction.
 
-If no cut gives smaller middle or routed exit, the core is weakly cut-rigid.  By Lemma F11.6, the weakly cut-rigid return is either pattern-rigid or routed/descending.  Pattern-rigid return is impossible by Lemma F11.7.  Routed/descending alternatives terminate by F9, F6--F8, A56, or weighted induction.
+If no cut gives smaller middle or controlled routed exit, the core is weakly cut-rigid. By Lemma F11.6, the weakly cut-rigid return is either pattern-rigid or routed/descending. Pattern-rigid return is impossible by Lemma F11.7. Routed/descending alternatives must satisfy the mutual-induction exit condition, terminate by A56, or descend in weighted middle length.
 
-Therefore every weighted core path exits, collapses, succeeds, or descends in `|B|`.  No infinite non-descending weighted path exists. ∎
+Therefore every weighted core path exits, collapses, succeeds, or descends in `|B|`, provided the W-to-NW exits are certified relative to the entering non-weighted parent. ∎
 
 ---
 
@@ -464,11 +473,20 @@ Therefore every weighted core path exits, collapses, succeeds, or descends in `|
 Before this lemma can be treated as final, the following must be audited.
 
 ```text
-R1. A81 sign-pattern algebra for atom-middle endpoint traps.
-R2. A97 endpoint/full-prefix cases in the cut-swap table.
-R3. A90--A94 pattern-rigidity reduction, especially the minimal self-return path argument.
-R4. Explicit exits from weighted branches to final lemmas F6--F9.
-R5. Odd-characteristic assumptions wherever division by 2 is used.
+R1. F9/F11 mutual-induction interface must be implemented in final F9 and F11 statements.
+R2. A56 transported-prefix/tail exhaustiveness must be audited.
+R3. A97 signed boundary weighted-return channel must be audited.
+R4. W-to-NW exit decrease/no-reentry table must be built relative to the weighted entry state.
+R5. A90--A94 pattern-rigidity reduction must be written in final formal minimal-path language.
+R6. Odd-characteristic assumptions must be stated wherever division by 2 is used.
+```
+
+Resolved or reduced:
+
+```text
+A81 atom-middle sign-pattern algebra -> analytic_weighted_atom_middle_a81_sign_audit.md and patched A81.
+A97 displayed cut-swap collision table -> analytic_weighted_cut_swap_table_hardening_a97.md, except signed boundary channel.
+F7/F8/F9 local class routing significantly hardened.
 ```
 
 ---
@@ -476,7 +494,8 @@ R5. Odd-characteristic assumptions wherever division by 2 is used.
 ## F11.12. Current extraction status
 
 ```text
-Status: extracted draft, not final.
-Risk: RED -> ORANGE if R1--R5 are resolved.
-Next recommended extraction: F10 weighted normal form and cut-swap theorem, or harden R3 directly.
+Status: extracted draft updated to controlled-exit form.
+Risk: RED/ORANGE.
+Main blocker: W-to-NW exits must satisfy the mutual-induction condition.
+Next recommended extraction: A97 signed-boundary channel audit or A56 transported-prefix/tail exhaustiveness audit.
 ```
