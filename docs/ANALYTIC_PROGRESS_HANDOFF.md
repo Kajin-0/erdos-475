@@ -1066,6 +1066,75 @@ Insertion cut-cover route:          YELLOW; three necessary conditions identifie
 
 ---
 
+### 2026-06-03: surgery simulation — 99.2% of fully blocked orderings surgically repairable, 100% existence confirmed
+
+Key files:
+
+```text
+scripts/surgery_simulation.py (new — exhaustive surgery on small-k fully blocked)
+scripts/surgery_simulation_large_k.py (new — perturbation-search + surgery for large k)
+scripts/analyze_surgery_mechanism.py (new — surgery mechanism analysis)
+logs/surgery_results.jsonl (2861 surgery records, k=7)
+logs/surgery_results_500.jsonl (7114 records, k=7)
+logs/surgery_large_k.jsonl (1859 records, k=20..24)
+```
+
+What worked:
+
+```text
+1. Surgery simulation: 99.9% overall success rate breaking full blockage.
+   Small k (k=7): 9,975/9,975 (100%)
+   Large k (k=20..24): 1,845/1,859 (99.2%)
+   Surgically rigid (14 cases): 14/14 have OTHER valid orderings with unblocked cuts.
+   Overall existence empirically: 100%.
+
+2. Most reliable surgery operations:
+   - block_reverse: 95.6% (large k) / 94.3% (small k)
+   - element_move: 92.7% (large k) / 72.3% (small k)
+   - adjacent_swap: 85.6% (large k) / 74.4% (small k)
+
+3. Average best reduction = 2.18 (large k), meaning surgeries
+   create meaningful gaps beyond just breaking the minimum.
+
+4. block_reverse is the most promising candidate for a constructive
+   proof — reversing a short block (len 2-4) near a zero partial
+   sum or edge crossing most reliably disrupts the three necessary
+   conditions simultaneously.
+```
+
+What was corrected:
+
+```text
+Earlier analysis used random sampling which could only find fully
+blocked orderings for small sets (k ≤ 7). The perturbation-search
+approach in surgery_simulation_large_k.py finds fully blocked
+orderings for k up to 24, matching the verified domain frontier.
+```
+
+Remaining blocker:
+
+```text
+The existence theorem is empirically confirmed at 100% but still
+needs a constructive proof. The surgery data strongly suggests:
+  - Reversing a short block containing a zero-partial-sum position
+    breaks condition (a) while preserving validity.
+  - Moving the first or last element breaks the edge crossing while
+    preserving validity.
+A lemma establishing that at least one such operation always works
+would complete the proof.
+```
+
+Next action:
+
+```text
+1. Prove the block_reverse lemma: if C is fully blocked with zero
+   partial sum at position j₀, then reversing C[j₀-1:j₀+1] (len 2-3)
+   preserves Graham validity and breaks the zero partial sum.
+2. Prove the element_move lemma: moving the first element to position
+   2 breaks the prefix crossing (1,j) while preserving validity.
+3. Combine to establish the constructive existence theorem.
+```
+
 ### 2026-06-03: insertion cut-cover structural characterization, three necessary conditions for full blockage
 
 Key files:
