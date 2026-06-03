@@ -12,6 +12,7 @@ Recent weighted checkpoints:
 docs/analytic_f10_f11_weighted_core_closure_checkpoint.md
 docs/analytic_f9_f11_mutual_induction_convention.md
 docs/analytic_weighted_atom_middle_a81_sign_audit.md
+docs/analytic_a97_signed_boundary_weighted_return_audit.md
 ```
 
 ---
@@ -35,7 +36,7 @@ A93  state-machine coverage
 A94  strict progress lemma
 A95  external collision hardening
 A96  bounded-blocker recurrence hardening
-A97  weighted cut-swap displayed collision table hardening
+A97  weighted cut-swap displayed collision table hardening, patched by analytic_a97_signed_boundary_weighted_return_audit.md
 A98  bridge/gap measure hardening
 A99  recurrence span-convention audit
 ```
@@ -64,13 +65,13 @@ In particular, it is not enough to say simply “handled by F9.” The exit must
 
 ## F11.1. Weighted core setup
 
-Let the active displayed segment of a Graham-valid ordering be
+Let the active displayed segment of a Graham-valid ordering be:
 
 ```text
 X A B C Y
 ```
 
-with block sums
+with block sums:
 
 ```text
 a=sum(A),
@@ -78,7 +79,7 @@ b=sum(B),
 c=sum(C).
 ```
 
-A weighted core is a relation
+A weighted core is a relation:
 
 ```text
 a+2b+c=0.
@@ -96,7 +97,7 @@ no transported-prefix/tail rewrite applies.
 
 These hypotheses are inherited from A56.
 
-The weighted measure is
+The weighted measure is:
 
 ```text
 M_W=(|B|, M_NW^*, w_subrank)
@@ -110,7 +111,7 @@ with lexicographic order, where `M_NW^*` is the non-weighted global measure used
 
 ## Theorem F11.1: weighted core controlled-exit theorem
 
-Assume the weighted normal-form lemmas A56, the fixed cut-swap table A97, the recurrence and external-collision routing lemmas A95--A99, the atom-middle sign audit, and the F9/F11 mutual-induction convention.
+Assume the weighted normal-form lemmas A56, the fixed cut-swap table A97, the recurrence and external-collision routing lemmas A95--A99, the atom-middle sign audit, the signed-boundary audit, and the F9/F11 mutual-induction convention.
 
 Starting from a genuine weighted core entered from a non-weighted parent state `NW_0`, every weighted branch either:
 
@@ -132,19 +133,19 @@ This is stronger and safer than the older statement “exits to non-weighted obs
 
 ## F11.3. Atom-middle base case
 
-The base case is
+The base case is:
 
 ```text
 |B|=1.
 ```
 
-Write
+Write:
 
 ```text
 B=q
 ```
 
-where `q` is a single atom. The weighted relation is
+where `q` is a single atom. The weighted relation is:
 
 ```text
 a+2q+c=0.
@@ -154,7 +155,7 @@ Since there is no nonempty proper cut of `B`, the cut-swap method cannot apply. 
 
 ## Lemma F11.2: atom-middle weighted cores exit to non-weighted machinery
 
-Every genuine atom-middle weighted core
+Every genuine atom-middle weighted core:
 
 ```text
 A+2q+C=0
@@ -176,19 +177,19 @@ routes to one of:
 
 Attempt adjacent swaps of `q` with the nearest atom on the right and on the left, when those atoms exist.
 
-The right swap has local form
+The right swap has local form:
 
 ```text
 A q gamma C^+ -> A gamma q C^+.
 ```
 
-The left swap has local form
+The left swap has local form:
 
 ```text
 A^- alpha q C -> A^- q alpha C.
 ```
 
-Displayed collisions from either adjacent swap produce atom-difference equations of the form
+Displayed collisions from either adjacent swap produce atom-difference equations of the form:
 
 ```text
 q-alpha+P=0,
@@ -200,7 +201,7 @@ P=0,
 
 where `P` is a local prefix or tail. These are pair-difference, zero-composite, equal/signed interval, or zero-collapse branches. If the transformed ordering is Graham-valid but recurrent, A5 produces singleton-prefix or pair-difference recurrence, routed by F7.
 
-The only remaining rigid atom-middle case is the endpoint-rigid trap. Writing
+The only remaining rigid atom-middle case is the endpoint-rigid trap. Writing:
 
 ```text
 A=A^- alpha,
@@ -244,20 +245,20 @@ Remaining requirement: W-to-NW exits from atom-middle must satisfy the mutual-in
 
 ## F11.4. Proper-middle cut-swap
 
-Assume now
+Assume now:
 
 ```text
 |B|>=2.
 ```
 
-Choose a proper cut
+Choose a proper cut:
 
 ```text
 B=P R,
 P,R nonempty.
 ```
 
-The weighted cut-swap is
+The weighted cut-swap is:
 
 ```text
 A P R C -> A R P C.
@@ -265,7 +266,7 @@ A P R C -> A R P C.
 
 A97 hardens the displayed collision table for this move.
 
-## Lemma F11.3: fixed cut-swap exits unless it returns to weighted core
+## Lemma F11.3: fixed cut-swap exits unless it enters persistent rigidity
 
 For any proper cut `B=P R`, the cut-swap produces one of:
 
@@ -274,20 +275,21 @@ For any proper cut `B=P R`, the cut-swap produces one of:
 2. displayed collision routed to zero-composite/equal/signed interval/pair-difference;
 3. external collision routed by F6/A95;
 4. recurrence routed by F7/A96/A99;
-5. weighted-core return through a signed boundary relation.
+5. isolated signed-boundary equal-tail/equal-prefix relation routed to non-weighted machinery;
+6. persistent signed-boundary rigidity across cuts, hence weak cut-rigidity.
 ```
 
 No other obstruction species is produced.
 
 ### Extracted proof
 
-The transformed endpoint families in
+The transformed endpoint families in:
 
 ```text
 A R P C
 ```
 
-are
+are:
 
 ```text
 A_i:   x+A_i,
@@ -313,13 +315,23 @@ x+a+R_k=f,
 x+a+r+P_j=f.
 ```
 
-These are recurrence branches routed by F7. External collisions are routed by F6. The only possible weighted-core return comes from signed boundary relations comparing old and new cut-boundary data. ∎
+These are recurrence branches routed by F7. External collisions are routed by F6.
+
+The old/new cut-boundary comparisons are now classified more sharply:
+
+```text
+moved R vs old P -> R_k=P_j, equal-prefix relation;
+moved P vs old R -> R_k^+=P_j^+, equal-tail relation.
+```
+
+Thus an isolated signed-boundary equation is non-weighted. A same-length weighted return can only come from persistent signed-boundary rigidity across cuts. ∎
 
 ### Audit status
 
 ```text
 A97 endpoint/full-prefix cases are tabulated in analytic_weighted_cut_swap_table_hardening_a97.md.
-The signed boundary channel remains a major weighted-return audit.
+A97 signed-boundary algebra is audited in analytic_a97_signed_boundary_weighted_return_audit.md.
+The remaining weighted issue is persistent signed-boundary rigidity, not an isolated A97.8 equation.
 ```
 
 ---
@@ -330,7 +342,7 @@ Suppose the cut-swap returns to a genuine weighted core. If the new doubled midd
 
 ## Lemma F11.4: side-contained weighted returns descend
 
-If a weighted return after the cut `B=P R` has doubled middle contained in `P` or contained in `R`, then
+If a weighted return after the cut `B=P R` has doubled middle contained in `P` or contained in `R`, then:
 
 ```text
 |B_new|<|B|.
@@ -351,13 +363,15 @@ Any middle contained in one side has length strictly less than `|B|`. ∎
 
 ## F11.6. Weak cut-rigidity
 
-If no cut produces success, collapse, non-weighted exit, or smaller middle, the core is weakly cut-rigid.
+If no cut produces success, collapse, controlled non-weighted exit, or smaller middle, the core is weakly cut-rigid.
 
 ## Definition F11.5: weak cut-rigid weighted core
 
-A genuine weighted core with `|B|>=2` is weakly cut-rigid if for every proper cut `B=P R`, the cut-swap return, when it returns to weighted core, has doubled middle length at least `|B|` and no routed exit has terminated the branch.
+A genuine weighted core with `|B|>=2` is weakly cut-rigid if for every proper cut `B=P R`, the cut-swap return, when it returns to weighted core, has doubled middle length at least `|B|` and no routed exit has terminated or satisfied the mutual-induction decrease condition.
 
 A79--A82 show that weak cut-rigidity forces returned middles to cross every internal cut of `B`, hence to contain all of `B`, unless the branch routes out.
+
+Persistent signed-boundary equal-prefix/equal-tail relations across all cuts are part of this weak cut-rigid branch.
 
 ---
 
@@ -401,7 +415,7 @@ Thus any non-pattern return is routed or descending. ∎
 ### Audit status
 
 ```text
-This remains high-risk but no longer broad: the final manuscript must write the A92 finite return-path model and A94 minimal-path lemma cleanly.
+This remains high-risk but localized: the final manuscript must write the A92 finite return-path model and A94 minimal-path lemma cleanly.
 ```
 
 ---
@@ -458,7 +472,7 @@ Let a genuine weighted core be given from a non-weighted parent state `NW_0`.
 
 If `|B|=1`, Lemma F11.2 routes it out of the genuine weighted class. The resulting non-weighted branch must satisfy the mutual-induction exit condition.
 
-If `|B|>=2`, choose a proper cut `B=P R`. By Lemma F11.3, the cut-swap either succeeds, collapses, exits to non-weighted machinery, enters recurrence/external collision machinery, or returns to a weighted core.
+If `|B|>=2`, choose a proper cut `B=P R`. By Lemma F11.3, the cut-swap either succeeds, collapses, exits to non-weighted machinery, enters recurrence/external collision machinery, or enters persistent cut-rigidity. Isolated signed-boundary equations are equal-prefix/equal-tail non-weighted exits.
 
 If it returns to a weighted core with smaller middle, Lemma F11.8 applies by induction.
 
@@ -475,17 +489,17 @@ Before this lemma can be treated as final, the following must be audited.
 ```text
 R1. F9/F11 mutual-induction interface must be implemented in final F9 and F11 statements.
 R2. A56 transported-prefix/tail exhaustiveness must be audited.
-R3. A97 signed boundary weighted-return channel must be audited.
-R4. W-to-NW exit decrease/no-reentry table must be built relative to the weighted entry state.
-R5. A90--A94 pattern-rigidity reduction must be written in final formal minimal-path language.
-R6. Odd-characteristic assumptions must be stated wherever division by 2 is used.
+R3. W-to-NW exit decrease/no-reentry table must be built relative to the weighted entry state.
+R4. A90--A94 pattern-rigidity reduction must be written in final formal minimal-path language.
+R5. Odd-characteristic assumptions must be stated wherever division by 2 is used.
 ```
 
 Resolved or reduced:
 
 ```text
 A81 atom-middle sign-pattern algebra -> analytic_weighted_atom_middle_a81_sign_audit.md and patched A81.
-A97 displayed cut-swap collision table -> analytic_weighted_cut_swap_table_hardening_a97.md, except signed boundary channel.
+A97 displayed cut-swap collision table -> analytic_weighted_cut_swap_table_hardening_a97.md.
+A97 signed-boundary algebra -> analytic_a97_signed_boundary_weighted_return_audit.md and patched A97.
 F7/F8/F9 local class routing significantly hardened.
 ```
 
@@ -494,8 +508,8 @@ F7/F8/F9 local class routing significantly hardened.
 ## F11.12. Current extraction status
 
 ```text
-Status: extracted draft updated to controlled-exit form.
-Risk: RED/ORANGE.
+Status: extracted draft updated to controlled-exit form and signed-boundary refinement.
+Risk: ORANGE.
 Main blocker: W-to-NW exits must satisfy the mutual-induction condition.
-Next recommended extraction: A97 signed-boundary channel audit or A56 transported-prefix/tail exhaustiveness audit.
+Next recommended extraction: A56 transported-prefix/tail exhaustiveness audit or W-to-NW exit decrease table.
 ```
