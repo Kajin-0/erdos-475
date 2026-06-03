@@ -11,8 +11,10 @@ Recent weighted checkpoints:
 ```text
 docs/analytic_f10_f11_weighted_core_closure_checkpoint.md
 docs/analytic_f9_f11_mutual_induction_convention.md
+docs/analytic_weighted_to_nonweighted_exit_decrease_table.md
 docs/analytic_weighted_atom_middle_a81_sign_audit.md
 docs/analytic_a97_signed_boundary_weighted_return_audit.md
+docs/analytic_a56_transported_prefix_tail_exhaustiveness_audit.md
 ```
 
 ---
@@ -22,7 +24,7 @@ docs/analytic_a97_signed_boundary_weighted_return_audit.md
 F11 depends on the following hardened A-notes.
 
 ```text
-A56  weighted normal forms and transported-prefix reductions
+A56  weighted normal forms and transported-prefix reductions, audited by analytic_a56_transported_prefix_tail_exhaustiveness_audit.md
 A58  nested zero-composite rewrite
 A60  original fixed cut-swap table
 A79  weighted cut-selection refinement
@@ -59,6 +61,14 @@ Any F11 exit to non-weighted machinery must satisfy the mutual-induction convent
 docs/analytic_f9_f11_mutual_induction_convention.md
 ```
 
+The first W-to-NW edge table is now drafted in:
+
+```text
+docs/analytic_weighted_to_nonweighted_exit_decrease_table.md
+```
+
+That table is not final. It distinguishes local decrease relative to the weighted window from the stronger required decrease relative to the non-weighted parent `NW_0` that invoked the weighted branch.
+
 In particular, it is not enough to say simply “handled by F9.” The exit must either lower `M_NW^*` relative to the non-weighted parent that entered the weighted branch, or carry a no-reentry certificate excluding a later same-or-larger weighted return.
 
 ---
@@ -92,10 +102,10 @@ b != 0,
 a+b != 0,
 b+c != 0,
 a != c,
-no transported-prefix/tail rewrite applies.
+no transported-prefix/tail rewrite applies with a containing-block certificate.
 ```
 
-These hypotheses are inherited from A56.
+These hypotheses are inherited from A56 and the transported-prefix/tail audit.
 
 The weighted measure is:
 
@@ -111,7 +121,7 @@ with lexicographic order, where `M_NW^*` is the non-weighted global measure used
 
 ## Theorem F11.1: weighted core controlled-exit theorem
 
-Assume the weighted normal-form lemmas A56, the fixed cut-swap table A97, the recurrence and external-collision routing lemmas A95--A99, the atom-middle sign audit, the signed-boundary audit, and the F9/F11 mutual-induction convention.
+Assume the weighted normal-form lemmas A56, the fixed cut-swap table A97, the recurrence and external-collision routing lemmas A95--A99, the atom-middle sign audit, the signed-boundary audit, the W-to-NW exit table, and the F9/F11 mutual-induction convention.
 
 Starting from a genuine weighted core entered from a non-weighted parent state `NW_0`, every weighted branch either:
 
@@ -127,7 +137,7 @@ Therefore weighted obstruction paths terminate by induction on `|B|`, provided a
 
 ### Status
 
-This is stronger and safer than the older statement “exits to non-weighted obstruction handled by F9.” The remaining work is to audit each W-to-NW exit and prove the required decrease or no-reentry certificate.
+This is stronger and safer than the older statement “exits to non-weighted obstruction handled by F9.” The first W-to-NW table now exists, but it is not final: several rows are only `CONDITIONAL`, `ROUTED`, or `OPEN` until parent-support annotations and no-reentry certificates are supplied.
 
 ---
 
@@ -238,7 +248,8 @@ Therefore the atom-middle case cannot remain as a genuine weighted obstruction. 
 ```text
 A81 sign-pattern algebra has been audited in analytic_weighted_atom_middle_a81_sign_audit.md.
 Endpoint-empty cases are explicitly included there and in the patched A81 note.
-Remaining requirement: W-to-NW exits from atom-middle must satisfy the mutual-induction decrease/no-reentry interface.
+The W-to-NW table lists atom-middle exits and marks which rows are closed, conditional, or routed.
+Remaining requirement: parent-measure certification for nonterminal atom-middle W-to-NW exits.
 ```
 
 ---
@@ -331,6 +342,7 @@ Thus an isolated signed-boundary equation is non-weighted. A same-length weighte
 ```text
 A97 endpoint/full-prefix cases are tabulated in analytic_weighted_cut_swap_table_hardening_a97.md.
 A97 signed-boundary algebra is audited in analytic_a97_signed_boundary_weighted_return_audit.md.
+The W-to-NW table lists direct displayed collisions, isolated equal-prefix/equal-tail exits, recurrence exits, and external exits.
 The remaining weighted issue is persistent signed-boundary rigidity, not an isolated A97.8 equation.
 ```
 
@@ -488,18 +500,19 @@ Before this lemma can be treated as final, the following must be audited.
 
 ```text
 R1. F9/F11 mutual-induction interface must be implemented in final F9 and F11 statements.
-R2. A56 transported-prefix/tail exhaustiveness must be audited.
-R3. W-to-NW exit decrease/no-reentry table must be built relative to the weighted entry state.
-R4. A90--A94 pattern-rigidity reduction must be written in final formal minimal-path language.
-R5. Odd-characteristic assumptions must be stated wherever division by 2 is used.
+R2. W-to-NW exit table must be refined with parent-support intervals and final decrease/no-reentry certificates.
+R3. A90--A94 pattern-rigidity reduction must be written in final formal minimal-path language.
+R4. Odd-characteristic assumptions must be stated wherever division by 2 is used.
 ```
 
 Resolved or reduced:
 
 ```text
+A56 transported-prefix/tail exhaustiveness -> analytic_a56_transported_prefix_tail_exhaustiveness_audit.md.
 A81 atom-middle sign-pattern algebra -> analytic_weighted_atom_middle_a81_sign_audit.md and patched A81.
 A97 displayed cut-swap collision table -> analytic_weighted_cut_swap_table_hardening_a97.md.
 A97 signed-boundary algebra -> analytic_a97_signed_boundary_weighted_return_audit.md and patched A97.
+First W-to-NW exit table -> analytic_weighted_to_nonweighted_exit_decrease_table.md.
 F7/F8/F9 local class routing significantly hardened.
 ```
 
@@ -508,8 +521,8 @@ F7/F8/F9 local class routing significantly hardened.
 ## F11.12. Current extraction status
 
 ```text
-Status: extracted draft updated to controlled-exit form and signed-boundary refinement.
+Status: extracted draft updated to cite the first W-to-NW exit table.
 Risk: ORANGE.
-Main blocker: W-to-NW exits must satisfy the mutual-induction condition.
-Next recommended extraction: A56 transported-prefix/tail exhaustiveness audit or W-to-NW exit decrease table.
+Main blocker: W-to-NW exits need parent-support annotations and final decrease/no-reentry certificates.
+Next recommended extraction: refine analytic_weighted_to_nonweighted_exit_decrease_table.md with parent intervals, or formalize A90--A94 minimal-path reduction.
 ```
