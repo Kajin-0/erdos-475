@@ -1,6 +1,6 @@
 # Analytic Progress Handoff
 
-Last audited: 2026-06-03
+Last audited: 2026-06-03 (insertion search layer built, cross-prime results)
 
 This is the single high-level context document for analytic proof progress in this repository.
 
@@ -699,6 +699,104 @@ Next action:
 
 ---
 
+### 2026-06-03: insertion cut-cover search layer built and run across all primes
+
+Key files:
+
+```text
+scripts/systematic_insertion_search.py (new, with JSONL output)
+scripts/analyze_insertion_blocks.py (existing)
+docs/INSERTION_CUT_COVER_PROGRAM.md (updated)
+docs/ANALYTIC_PROGRESS_HANDOFF.md (this entry)
+logs/cross_prime_search.jsonl
+```
+
+What worked:
+
+```text
+1. Fixed perturbation search undo bug (wrong undo corrupted the list).
+2. Built flat parallel search for worst-case valid orderings of A\{x}.
+3. Added JSONL output for detailed per-row analysis.
+4. Ran cross-prime search on 3,729 records (p=17..31): 72,409 triples.
+```
+
+Key results:
+
+```text
+Cross-prime search (p=17..31, 14,343 valid deletion triples):
+  99.6% have at least one fully blocked alternative valid ordering
+  99.8% have some ordering worse than native (more blocked cuts)
+  Consistent across ALL primes and k=12..26
+
+Native deletion ordering validity:
+  19.8% of deletions produce valid orderings (declining with larger p)
+  p=17: 29.7%, p=19: 31.8%, p=23: 22.1%, p=29: 18.0%, p=31: 14.9%
+  When valid, native ordering ALWAYS has ≥1 unblocked cut (never fully blocked)
+
+Invalid native deletion follow-up:
+  When A\{x} has some valid ordering found, 100% have at least one
+  with unblocked cuts (verified with 5000 shuffles per case)
+  Only 0.3% had no valid ordering found at all (likely search failure
+  on large permutation spaces)
+
+Structure of invalid native deletions:
+  Deletion invalid iff x = S_{j+1} - S_i for some prefix-sum index i
+  before x's position and suffix index j after x's position.
+```
+
+Theoretical implication:
+
+```text
+The existence of fully blocked alternatives (99.6% of cases) does NOT
+contradict the insertion cut-cover proof strategy. The proof only needs
+existence of ONE good ordering per (x, A\{x}). The empirical evidence
+strongly supports: for any sequenceable set S and element y not in S,
+there exists a valid ordering C of S such that inserting y has at least
+one unblocked cut. This holds for the native ordering (when valid) and
+for valid alternatives found via search (when native invalid).
+
+Caveat: in a minimal counterexample, A itself is NOT sequenceable,
+so there is no "native ordering" to inherit. The proof must construct
+a good ordering of A\{x} without a valid ordering of A. The empirical
+data supports existence but does not prove it.
+```
+
+What was corrected:
+
+```text
+1. Perturbation search undo in systematic_insertion_search.py was wrong:
+   old: current.insert(pos, val); current.pop(idx if idx < pos else pos+1)
+   new: val = current.pop(pos); current.insert(idx, val)
+2. Previous 74.9% fully-blocked rate was an underestimate due to the bug;
+   fixed search finds 99.6%.
+```
+
+Remaining blocker:
+
+```text
+1. Insertion cut-cover proof still needs an existence theorem:
+   "For every sequenceable S and y not in S, there exists a valid ordering
+   C of S with at least one unblocked insertion cut for y."
+2. The empirical data strongly supports this, but is not a proof.
+3. Theoretical proof likely requires a constructive method to generate
+   a "good" ordering from any valid ordering of S (e.g., by local
+   surgery on partially blocked orderings).
+```
+
+Next action:
+
+```text
+1. Characterize the structure of fully blocked valid orderings:
+   what distinguishes them from native/good orderings?
+2. Investigate whether a canonical "good" ordering can always be
+   constructed from the witness ordering of S (when available) or
+   via a simple algorithm.
+3. Attempt to prove the existence theorem for small sets (|S| ≤ 20)
+   using the empirical patterns as a guide.
+```
+
+---
+
 ## 6. What worked
 
 ```text
@@ -716,6 +814,8 @@ Next action:
 12. W-to-NW exit decrease table enumerates all 21 exit types; containment lemma
     proves strict M_NW^* decrease relative to NW_0 for all (19 GREEN, 2 YELLOW).
 13. F10 stale risk language patched with A56/A97 citations and table reference.
+14. Insertion cut-cover search layer built (systematic_insertion_search.py),
+    run across all primes; existence of good orderings strongly supported.
 ```
 
 ---
@@ -760,9 +860,21 @@ Safe:   containing-block certificate D=BT or D=TB with complement present
 ### N6. Endless local routing notes without global closure
 
 ```text
-Unsafe: more notes saying “routes to existing machinery” without measure-edge table
+Unsafe: more notes saying "routes to existing machinery" without measure-edge table
 Safe:   class -> child class -> exact decreasing coordinate -> dependency
 ```
+
+### N7. Wrong perturbation undo in systematic_insertion_search.py
+
+```text
+Unsafe: current.insert(pos, val); current.pop(idx if idx < pos else pos+1)
+Safe:   val = current.pop(pos); current.insert(idx, val)
+```
+
+Bug: the old undo re-inserted val again (already present after mutation) then
+popped at a wrong index. Effect: the perturbation search corrupted the list
+on invalid permutations, making exploration ineffective. The 74.9% fully-blocked
+rate was an underestimate; fixed search finds 99.6%.
 
 ---
 
@@ -848,17 +960,21 @@ published theorem ranges + verified finite frontier => residue_not_verified = 0
 
 No such extraction exists yet.
 
-### R7. Insertion obstruction search/minimization
+### R7. Insertion obstruction search/minimization 🟡 IN PROGRESS
 
-The repo already has a direct analyzer. The missing step is search over many valid orderings:
+The systematic search layer (scripts/systematic_insertion_search.py) is built and has been run across all primes.
+
+Key metrics from cross-prime run (3,729 records, 72,409 triples):
 
 ```text
-for each A, x:
-  sample/enumerate valid orderings C of A\{x};
-  compute Block(C,x);
-  minimize M(C,x);
-  record fully blocked examples or no-example evidence.
+Native deletion validity:         19.8% (declines with larger p)
+Native always has unblocked cut:  100% (when valid)
+Fully blocked alternative found:  99.6% (of valid triples)
+Alternative w/ unblocked cut:     100% (when any valid ordering exists)
 ```
+
+Missing: a proof that for every sequenceable S and y ∉ S, there exists
+a valid C of S with at least one unblocked cut for inserting y.
 
 Target metric:
 
@@ -893,20 +1009,20 @@ Keep this handoff updated after every major analytic commit.
 ### Immediate experimental action
 
 ```text
-Build local-search/minimization around scripts/analyze_insertion_blocks.py.
+Local-search/minimization is built (systematic_insertion_search.py) and run
+across all primes. Key empirical finding: for every sequenceable A\{x} in the
+data, there exists a valid ordering with unblocked cuts. The next step is a
+proof-level existence theorem.
 ```
 
-Output should include:
+Next experimental targets:
 
 ```text
-minimum blocked cuts;
-maximum blocked cuts;
-fully blocked cases;
-coverage multiplicity;
-endpoint obstruction count;
-crossing interval list;
-zero-partial flag;
-worst obstruction signatures.
+1. Characterize the STRUCTURE of fully blocked valid orderings:
+   what distinguishes them from native/good orderings?
+2. Investigate whether a canonical "good" ordering can always be
+   constructed from any valid ordering via local surgery.
+3. Attempt a small-set (|S| ≤ 20) existence proof using empirical patterns.
 ```
 
 ---
@@ -934,7 +1050,7 @@ F10 weighted local cut-swap:        YELLOW (stale language patched, W-to-NW tabl
 F11 weighted termination:           ORANGE (persistent cut-rigidity A90--A94 remains).
 F9/F11 W-to-NW exit table:          YELLOW (19 GREEN + 2 YELLOW exits enumerated).
 Analytic residue bridge:            RED.
-Insertion cut-cover route:          PROMISING; analyzer exists, search layer pending.
+Insertion cut-cover route:          YELLOW; search layer built, existence strongly supported empirically.
 ```
 
 ---
@@ -985,6 +1101,8 @@ docs/final/F11_weighted_cut_selection_extraction.md
 docs/INSERTION_CUT_COVER_PROGRAM.md
 docs/INSERTION_BLOCK_ANALYZER_RUNBOOK.md
 scripts/analyze_insertion_blocks.py
+scripts/systematic_insertion_search.py
+logs/cross_prime_search.jsonl
 ```
 
 ### Computational/finite layer

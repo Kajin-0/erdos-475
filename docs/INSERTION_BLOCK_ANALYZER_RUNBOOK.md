@@ -45,7 +45,7 @@ means at least one insertion cut produces a Graham-valid ordering after insertin
 unblocked_count = 0
 ```
 
-means the chosen ordering `C` is fully blocked for that particular `x`.  This does not prove a counterexample, because a different valid ordering of `A\{x}` may have an unblocked cut.
+means the chosen ordering `C` is fully blocked for that particular `x`. This does not prove a counterexample, because a different valid ordering of `A\{x}` may have an unblocked cut.
 
 ## 2. Witness JSONL deletion mode
 
@@ -55,7 +55,7 @@ Use this mode on minimal witness files with rows of the form:
 {"p":29,"B":[1,2,5],"final_order":[...]}
 ```
 
-For each row, the script deletes each element `x` from `final_order`.  If the remaining order is still Graham-valid, it analyzes insertion of `x` back into that deletion order.
+For each row, the script deletes each element `x` from `final_order`. If the remaining order is still Graham-valid, it analyzes insertion of `x` back into that deletion order.
 
 Example:
 
@@ -89,7 +89,7 @@ fully_blocked_valid_deletions
 
 If this is zero across many witnesses, the insertion strategy has strong empirical support: deleting an element from known witnesses often leaves a valid ordering with at least one way to reinsert the element.
 
-If this is nonzero, those cases are valuable.  They are not failures.  They are model obstruction cases for the analytic proof.
+If this is nonzero, those cases are valuable. They are not failures. They are model obstruction cases for the analytic proof.
 
 For each fully blocked case, inspect:
 
@@ -141,7 +141,7 @@ PY
 
 ## 5. Proof relevance
 
-The analytic target is not merely to find one good insertion for one known witness.  The target is stronger:
+The analytic target is not merely to find one good insertion for one known witness. The target is stronger:
 
 ```text
 In every minimal counterexample A, there exists x in A and a valid ordering C
@@ -150,21 +150,29 @@ of A\{x} with at least one unblocked insertion cut.
 
 The analyzer helps identify which obstruction patterns actually occur in finite data and which local surgery moves are likely to be useful.
 
-## 6. Next planned extension
+## 6. Systematic search layer
 
-A later version should search over multiple valid orderings of `A\{x}` and minimize:
+A parallel search script is now available:
 
-```text
-M(C,x) = (
-  |Block(C,x)|,
-  total_blocking_multiplicity,
-  crossing_interval_count,
-  total_crossing_length,
-  endpoint_obstruction_count
-).
+```bash
+python scripts/systematic_insertion_search.py certificates/minimal_witnesses.jsonl [limit] [workers] [jsonl-out]
 ```
 
-That would directly test the descent-measure strategy described in:
+It searches over many valid orderings of `A\{x}` to find worst-case (most blocked) alternatives:
+
+- k ≤ 8: exact enumeration
+- 9 ≤ k ≤ 12: random sampling (200K attempts or 500 found)
+- k > 12: perturbation search (50K attempts)
+
+Run across all primes (3,729 records, 72,409 triples) the key finding was:
+
+```text
+Native deletion (when valid) always has unblocked cuts:    100%
+Fully blocked alternative found:                           99.6%
+Valid alternative with unblocked cuts (when any exists):   100%
+```
+
+This strongly supports the insertion cut-cover strategy. See `docs/INSERTION_CUT_COVER_PROGRAM.md` for full analysis.
 
 ```text
 docs/INSERTION_CUT_COVER_PROGRAM.md

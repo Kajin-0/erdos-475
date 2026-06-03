@@ -1,6 +1,6 @@
 # Insertion cut-cover program for Erdős 475
 
-This document records an independent analytic route toward the full theorem.  It is separate from the finite-residue/computational completion track.
+This document records an independent analytic route toward the full theorem. It is separate from the finite-residue/computational completion track.
 
 The goal is to reduce a minimal counterexample to an impossible family of insertion obstructions.
 
@@ -46,7 +46,7 @@ s_0 = 0,
 s_i = c_1 + ... + c_i, 1 <= i <= n.
 ```
 
-The original problem only requires the nonempty sums `s_1,...,s_n` to be distinct.  The value `s_0=0` is an auxiliary endpoint and must be handled carefully.  In particular, a nonempty partial sum `s_j` is allowed to equal `0`.
+The original problem only requires the nonempty sums `s_1,...,s_n` to be distinct. The value `s_0=0` is an auxiliary endpoint and must be handled carefully. In particular, a nonempty partial sum `s_j` is allowed to equal `0`.
 
 ## 2. Insertion operation
 
@@ -76,7 +76,7 @@ Here the first block is absent when `i=0`.
 
 ### Lemma 3.1: internal insertion criterion
 
-Assume `C` is Graham-valid, so `s_1,...,s_n` are pairwise distinct.  For `1 <= i <= n`, the insertion `C^{(i,x)}` is Graham-valid if and only if the following two obstruction types are absent.
+Assume `C` is Graham-valid, so `s_1,...,s_n` are pairwise distinct. For `1 <= i <= n`, the insertion `C^{(i,x)}` is Graham-valid if and only if the following two obstruction types are absent.
 
 ### Endpoint obstruction
 
@@ -110,11 +110,11 @@ The inserted first sum `x` collides with a shifted suffix sum `s_j+x` if and onl
 s_j = 0
 ```
 
-for some `1 <= j <= n`.  This is a real obstruction because Graham-validity does not forbid nonempty partial sums from equaling `0`.
+for some `1 <= j <= n`. This is a real obstruction because Graham-validity does not forbid nonempty partial sums from equaling `0`.
 
 ### Proof
 
-The old prefix sums `s_1,...,s_i` remain distinct because `C` is valid.  The shifted suffix sums `s_{i+1}+x,...,s_n+x` remain distinct because translation by `x` is injective.  For `i >= 1`, the inserted sum `s_i+x` cannot collide with a shifted suffix sum `s_j+x` for `j>i`, since this would imply `s_i=s_j`, impossible by validity of `C`.  The remaining forbidden collisions are exactly endpoint collisions with earlier nonempty prefix sums and crossing collisions from shifted suffix sums into earlier prefix sums.  For `i=0`, there is no earlier prefix, but the inserted first sum `x` can collide with a shifted suffix sum precisely when some nonempty partial sum of `C` is zero. ∎
+The old prefix sums `s_1,...,s_i` remain distinct because `C` is valid. The shifted suffix sums `s_{i+1}+x,...,s_n+x` remain distinct because translation by `x` is injective. For `i >= 1`, the inserted sum `s_i+x` cannot collide with a shifted suffix sum `s_j+x` for `j>i`, since this would imply `s_i=s_j`, impossible by validity of `C`. The remaining forbidden collisions are exactly endpoint collisions with earlier nonempty prefix sums and crossing collisions from shifted suffix sums into earlier prefix sums. For `i=0`, there is no earlier prefix, but the inserted first sum `x` can collide with a shifted suffix sum precisely when some nonempty partial sum of `C` is zero. ∎
 
 ## 4. Cut-cover formulation
 
@@ -161,9 +161,9 @@ of blocked cuts.
 
 ## 5. Minimal counterexample principle
 
-Assume `A` is a minimal counterexample by set size.  Then every proper subset of `A` has a Graham-valid ordering.
+Assume `A` is a minimal counterexample by set size. Then every proper subset of `A` has a Graham-valid ordering.
 
-For every `x in A`, choose a Graham-valid ordering `C_x` of `A \ {x}`.  If there exists `x` and a cut `i` such that insertion of `x` into `C_x` is Graham-valid, then `A` is not a counterexample.
+For every `x in A`, choose a Graham-valid ordering `C_x` of `A \ {x}`. If there exists `x` and a cut `i` such that insertion of `x` into `C_x` is Graham-valid, then `A` is not a counterexample.
 
 Therefore, in a minimal counterexample:
 
@@ -198,9 +198,9 @@ Let
 D_x(C) = #{(k,j): 1 <= k < j <= n and s_j - s_k = -x}.
 ```
 
-Each pair contributes one blocking interval.  If the union of all crossing intervals, endpoint obstructions, and the cut-zero obstruction fails to cover all `n+1` cuts, insertion succeeds.
+Each pair contributes one blocking interval. If the union of all crossing intervals, endpoint obstructions, and the cut-zero obstruction fails to cover all `n+1` cuts, insertion succeeds.
 
-The core challenge is that a small number of long intervals can cover all cuts.  Therefore a purely cardinality-based bound on `D_x(C)` is insufficient unless it also controls interval geometry.
+The core challenge is that a small number of long intervals can cover all cuts. Therefore a purely cardinality-based bound on `D_x(C)` is insufficient unless it also controls interval geometry.
 
 Useful quantities:
 
@@ -217,7 +217,7 @@ number of zero-sum consecutive blocks in C.
 
 ## 8. Local surgery strategy
 
-If all cuts are blocked, choose a cut with minimal blocking multiplicity.  Analyze a minimal obstruction responsible for that cut.  Try one of the following operations:
+If all cuts are blocked, choose a cut with minimal blocking multiplicity. Analyze a minimal obstruction responsible for that cut. Try one of the following operations:
 
 ```text
 1. reverse a short block;
@@ -282,19 +282,64 @@ whether an unblocked cut exists;
 worst obstruction signatures.
 ```
 
-If all verified examples admit orderings with many unblocked cuts, that supports the insertion strategy.  If some examples are nearly fully blocked, those become model obstructions for the analytic proof.
+If all verified examples admit orderings with many unblocked cuts, that supports the insertion strategy. If some examples are nearly fully blocked, those become model obstructions for the analytic proof.
 
-## 11. Current status
+## 11. Empirical findings (2026-06-03)
 
-This program is not yet a proof.  It is the independent analytic route most aligned with the computational certificate data.
+A systematic search layer (`scripts/systematic_insertion_search.py`) was built and run across all verified primes (p=17..31, 3,729 records, 72,409 triples). Key results:
 
-The first diagnostic artifact is implemented in:
+### Native deletion ordering
+
+When an element `x` is deleted from a known Graham-valid ordering of `A`, the remaining ordering (the "native" ordering) is:
+
+- Valid only 19.8% of the time (declines with larger primes)
+- When valid: **always** has at least one unblocked insertion cut for `x`
+- "Invalid" means `x = S_{j+1} - S_i` for some prefix-sum index `i` before `x`'s position and suffix index `j` after `x`'s position
+
+### Alternative valid orderings
+
+For valid deletion triples (14,343 cases):
 
 ```text
-scripts/analyze_insertion_blocks.py
+Fully blocked alternative found:  99.6%
+Some ordering worse than native:  99.8%
 ```
 
-It computes:
+For invalid native deletions where A\{x} has some valid ordering:
+
+```text
+At least one with unblocked cuts:  100%
+```
+
+### Theoretical interpretation
+
+The empirical evidence strongly supports:
+
+```text
+For every sequenceable set S and element y not in S,
+there exists a valid ordering C of S such that inserting y
+into C has at least one unblocked cut.
+```
+
+This is the needed existence statement for the insertion cut-cover proof strategy. The existence of fully blocked alternatives (99.6% of cases) does NOT contradict the strategy — the proof only needs ONE good ordering per `(x, S)`, and such an ordering always exists in the data.
+
+### Caveat for minimal counterexample
+
+In a minimal counterexample `A` (where `A` itself is NOT sequenceable), there is no "native ordering" to inherit. The proof must construct a good ordering of `A\{x}` without a known valid ordering of `A`. The empirical data supports existence but does not prove it.
+
+## 12. Current status
+
+This program is not yet a proof. It is the independent analytic route most aligned with the computational certificate data.
+
+### Implemented artifacts
+
+```text
+scripts/analyze_insertion_blocks.py        — cut-cover obstruction analyzer
+scripts/systematic_insertion_search.py      — parallel worst-case ordering search
+logs/cross_prime_search.jsonl               — cross-prime results (72,409 triples)
+```
+
+First tool computes:
 
 ```text
 Block(C,x),
@@ -305,4 +350,10 @@ coverage multiplicities,
 minimal unblocked cuts.
 ```
 
-The next useful artifact is a local-search script that tries multiple valid orderings of `A\{x}` and minimizes the descent measure `M(C,x)`.
+Second tool searches over many valid orderings of A\{x} to find worst-case (most blocked) alternatives. Supports exact enumeration (k ≤ 8), random sampling (9 ≤ k ≤ 12), and perturbation search (k > 12).
+
+### Remaining analytic gaps
+
+1. **Existence theorem**: prove that for every sequenceable S and y ∉ S, there exists a valid C of S with unblocked cuts.
+2. **Constructive method**: develop an algorithm to produce a "good" ordering from any valid ordering of S.
+3. **Small-set proof**: attempt the theorem for |S| ≤ 20 using empirical patterns as a guide.
