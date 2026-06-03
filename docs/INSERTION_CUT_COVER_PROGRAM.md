@@ -388,25 +388,91 @@ Output: valid ordering C of S with at least one unblocked cut for y
 
 The descent measure M(C,y) = |Block(C,y)| would strictly decrease, guaranteeing termination.
 
-### Path to an existence theorem
+### Structural characterization of full blockage (2026-06-03)
 
-Three approaches worth pursuing:
+Deep empirical analysis (775 fully blocked orderings, 1004 good
+orderings across p=17..31) reveals precise necessary conditions
+for full blockage:
+
+**Theorem (necessary conditions).** If a valid ordering C of S is
+fully blocked for inserting y, then ALL of the following hold:
+
+1. **Zero partial sum**: some nonempty partial sum s_j = 0.
+   (Otherwise cut 0 is unblocked — it has no endpoint mechanism.)
+   Empirical: 775/775 (100%).
+
+2. **Prefix crossing (1, j)**: there exists j > 1 with s_j - c₁ = -y.
+   (Otherwise cut 1 is unblocked — its endpoint condition requires
+   c₁ + y = c₁ ⇒ y=0, impossible.)
+   Empirical: 775/775 (100%). Equivalent to first_cross_k = 1.
+
+3. **Suffix crossing (k, n)**: there exists k < n with s_n - s_k = -y.
+   (Cut n is blocked iff the endpoint condition s_n + y = s_k holds
+   for some k < n, which immediately gives (k, n) ∈ crossing.)
+   Empirical: 775/775 (100%). Equivalent to last_cross_j = n.
+
+4. **No gap**: prefix_gap = 0 and suffix_gap = 0. The crossing
+   intervals must cover cuts 1..n-1 with no uncovered prefix or
+   suffix. Empirical: 775/775 (100%).
+
+**Corollary.** If any valid ordering C of S violates at least one
+of conditions (1)-(3), then C has at least one unblocked cut.
+
+Therefore the existence theorem reduces to: **For every sequenceable
+S and y ∉ S, there exists a valid ordering C of S violating at least
+one of the three necessary conditions** (zero partial sum, prefix
+crossing, or suffix crossing).
+
+### Good orderings: empirical structure
+
+Among 1004 good orderings found by random search:
+
+- 470 (47%) have cut 0 unblocked (no zero partial sum)
+- 470 (47%) have cut n unblocked (no suffix endpoint collision)
+- 148 (15%) have an internal cut unblocked (both ends blocked but
+  a gap in crossing coverage)
+- Of 105 paired comparisons (same S, y has both good and fully
+  blocked orderings): 82/105 (78%) have larger total gap in the
+  good ordering
+
+The most common good pattern: an endpoint (cut 0 or cut n) is
+unblocked, accounting for 94% of good cases.
+
+### Path to an existence theorem (revised)
+
+Three approaches, revised based on structural findings:
 
 ```text
-A. Counting argument: show that if all n+1 cuts are blocked,
-   there must be at least n+1 distinct obstructions, which is
-   impossible because crossing intervals have an algebraic
-   structure constraining their number and arrangement.
+A. Avoid zero partial sums: Prove that for every sequenceable S,
+   there exists a valid ordering C with no nonempty partial sum
+   equal to 0. If sum(S) ≠ 0 mod p, this may be provable via
+   rearrangement. This would violate condition (1).
 
-B. Canonical ordering: construct C as a specific rearrangement
-   of any valid ordering of S that guarantees unblocked cuts.
-   Candidates: lexicographically minimal, sum-ordered, or
-   "prefix-minimal crossing" ordering.
+B. Construct ordering with prefix or suffix gap: Given any valid
+   ordering C that IS fully blocked, perform local surgery near
+   the zero partial sum position or edge crossing to produce a
+   new valid ordering C' with a gap. The surgery must preserve
+   Graham validity while breaking full blockage.
 
-C. Induction on |S|: prove that |Block(C,y)| < |S|+1 for the
-   ordering C obtained by deleting y from a valid ordering of S∪{y}
-   (when that deletion is valid). The hard case is when deletion
-   is invalid, requiring a different construction.
+C. Three-condition avoidance: Show constructively that for every
+   sequenceable S and y ∉ S, at least one of the three necessary
+   conditions can be avoided by some valid ordering. The empirical
+   data shows this is always possible; the proof needs a
+   construction method.
+```
+
+### Empirical methodology
+
+Analysis scripts:
+
+```text
+scripts/analyze_blocking_patterns.py  — structural comparison of
+  good vs fully blocked orderings (prefix/suffix gaps, crossing
+  interval patterns, endpoint distributions)
+scripts/analyze_cut_n.py              — deep analysis of cut-n
+  obstruction mechanism and zero partial sum necessity
+logs/blocking_pattern_analysis.jsonl  — 4220 structural records
+logs/cut_n_analysis.jsonl             — 1779 deep analysis records
 ```
 
 ## 12. Current status
@@ -416,26 +482,57 @@ This program is not yet a proof. It is the independent analytic route most align
 ### Implemented artifacts
 
 ```text
-scripts/analyze_insertion_blocks.py        — cut-cover obstruction analyzer
-scripts/systematic_insertion_search.py      — parallel worst-case ordering search
-logs/cross_prime_search.jsonl               — cross-prime results (72,409 triples)
+scripts/analyze_insertion_blocks.py            — cut-cover obstruction analyzer
+scripts/systematic_insertion_search.py          — parallel worst-case ordering search
+scripts/search_insertion_minima.py              — minimum-blocked-cuts ordering search
+scripts/analyze_blocking_patterns.py            — good vs fully blocked structural comparison
+scripts/analyze_cut_n.py                        — deep cut-n / zero partial sum analysis
+logs/cross_prime_search.jsonl                   — cross-prime results (72,409 triples)
+logs/insertion_minima_results.jsonl             — minima search results
+logs/blocking_pattern_analysis.jsonl            — structural comparison (4220 records)
+logs/cut_n_analysis.jsonl                       — deep analysis (1779 records)
 ```
 
-First tool computes:
+Core tools:
 
 ```text
-Block(C,x),
-endpoint obstructions,
-zero-partial cut-zero obstruction,
-crossing intervals,
-coverage multiplicities,
-minimal unblocked cuts.
+analyze_insertion_blocks.py:
+  Block(C,x), endpoint obstructions, zero-partial cut-zero obstruction,
+  crossing intervals, coverage multiplicities, minimal unblocked cuts.
+
+systematic_insertion_search.py:
+  Searches over many valid orderings of A\{x} to find worst-case (most
+  blocked) alternatives. Supports exact enumeration (k ≤ 8), random
+  sampling (9 ≤ k ≤ 12), and perturbation search (k > 12).
+
+search_insertion_minima.py:
+  Searches for orderings with minimum blocked cuts; records worst>native
+  comparisons and fully-blocked detection.
+
+analyze_blocking_patterns.py:
+  Compares structural features of good (unblocked cuts) vs fully blocked
+  orderings: prefix/suffix gaps, crossing interval counts, endpoint
+  distributions, zero partial sums.
+
+analyze_cut_n.py:
+  Deep analysis of cut-n obstruction mechanism and necessary conditions
+  for full blockage (zero partial sum, prefix crossing, suffix crossing).
 ```
 
-Second tool searches over many valid orderings of A\{x} to find worst-case (most blocked) alternatives. Supports exact enumeration (k ≤ 8), random sampling (9 ≤ k ≤ 12), and perturbation search (k > 12).
+### Key structural findings (2026-06-03)
+
+1. **Three necessary conditions for full blockage**, each proved
+   and empirically confirmed 775/775:
+   - Zero partial sum (blocks cut 0)
+   - Prefix crossing (1, j) with s_j = c₁ - y (blocks cut 1)
+   - Suffix crossing (k, n) with s_n = s_k - y (blocks cut n)
+2. **Good orderings always violate at least one** of these three;
+   94% have an endpoint (cut 0 or cut n) unblocked.
+3. The existence theorem reduces to constructing a valid ordering
+   of S that avoids at least one necessary condition.
 
 ### Remaining analytic gaps
 
-1. **Existence theorem**: prove that for every sequenceable S and y ∉ S, there exists a valid C of S with unblocked cuts.
-2. **Constructive method**: develop an algorithm to produce a "good" ordering from any valid ordering of S.
-3. **Small-set proof**: attempt the theorem for |S| ≤ 20 using empirical patterns as a guide.
+1. **Existence theorem**: prove that for every sequenceable S and y ∉ S, there exists a valid C of S violating at least one of the three necessary conditions (zero partial sum, prefix crossing, suffix crossing).
+2. **Constructive method**: develop a local surgery algorithm that, given a fully blocked ordering C, produces a new valid ordering C' with a gap.
+3. **Small-set proof**: attempt the theorem for |S| ≤ 20 using the structural necessary conditions as a guide.

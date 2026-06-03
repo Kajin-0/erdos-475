@@ -1,6 +1,6 @@
 # Analytic Progress Handoff
 
-Last audited: 2026-06-03 (insertion search layer built, cross-prime results)
+Last audited: 2026-06-03 (insertion search layer built, cross-prime results, three necessary conditions for full blockage identified)
 
 This is the single high-level context document for analytic proof progress in this repository.
 
@@ -1011,22 +1011,29 @@ Keep this handoff updated after every major analytic commit.
 ```text
 Local-search/minimization is built (systematic_insertion_search.py) and run
 across all primes. Key empirical finding: for every sequenceable A\{x} in the
-data, there exists a valid ordering with unblocked cuts. The next step is a
-proof-level existence theorem.
+data, there exists a valid ordering with unblocked cuts. Structural analysis
+(analyze_blocking_patterns.py, analyze_cut_n.py) identifies three necessary
+conditions for full blockage: zero partial sum, prefix crossing, suffix
+crossing. The next step is a proof-level existence theorem that constructs
+a valid ordering avoiding at least one condition.
 ```
 
 Next experimental targets:
 
 ```text
-1. PROOF APPROACH A (counting argument): show that full blockage
-   requires ≥ n+1 distinct obstructions, impossible due to
-   algebraic constraints on crossing intervals.
-2. PROOF APPROACH B (canonical ordering): construct a specific
-   valid ordering C of S that guarantees unblocked cuts.
-   Candidates: lexicographically minimal, "prefix-minimal" crossing.
-3. PROOF APPROACH C (induction): use the native deletion ordering
-   from S∪{y} when valid; when invalid, construct an alternative
-   via local surgery on the witness ordering.
+1. PROOF APPROACH A (zero-sum-free): show that for every sequenceable S ⊂ F_p^*,
+   there exists a valid ordering with no nonempty partial sum equal to 0
+   (unless forced by sum(S) = 0). This would violate necessary condition (a).
+
+2. PROOF APPROACH B (gap construction): given any fully blocked ordering C,
+   perform local surgery (adjacent swap, prefix rotation, block reversal)
+   to produce a valid ordering C' with a prefix or suffix gap. This would
+   violate condition (b) or (c).
+
+3. PROOF APPROACH C (three-condition avoidance): show constructively that
+   for every sequenceable S and y ∉ S, at least one of the three necessary
+   conditions can be avoided. The empirical data shows this is always
+   possible; the proof needs a construction method.
 ```
 
 ---
@@ -1054,7 +1061,78 @@ F10 weighted local cut-swap:        YELLOW (stale language patched, W-to-NW tabl
 F11 weighted termination:           ORANGE (persistent cut-rigidity A90--A94 remains).
 F9/F11 W-to-NW exit table:          YELLOW (19 GREEN + 2 YELLOW exits enumerated).
 Analytic residue bridge:            RED.
-Insertion cut-cover route:          YELLOW; search layer built, existence strongly supported empirically.
+Insertion cut-cover route:          YELLOW; three necessary conditions identified and proved, search/analysis layer built, existence strongly supported empirically, constructive proof still needed.
+```
+
+---
+
+### 2026-06-03: insertion cut-cover structural characterization, three necessary conditions for full blockage
+
+Key files:
+
+```text
+docs/analytic_insertion_existence_proof.md (updated with structural theorems)
+docs/INSERTION_CUT_COVER_PROGRAM.md (updated with structural findings)
+scripts/analyze_blocking_patterns.py (new — good vs fully blocked structural comparison)
+scripts/analyze_cut_n.py (new — deep cut-n / zero partial sum analysis)
+logs/blocking_pattern_analysis.jsonl (4220 structural records)
+logs/cut_n_analysis.jsonl (1779 deep analysis records)
+```
+
+What worked:
+
+```text
+1. Proved and empirically confirmed three NECESSARY CONDITIONS for full blockage:
+   (a) zero partial sum (blocks cut 0) — 775/775 (100%)
+   (b) prefix crossing (1, j) covering cut 1 — 775/775 (100%)
+   (c) suffix crossing (k, n) enabling cut n endpoint — 775/775 (100%)
+
+2. Every fully blocked ordering has zero prefix gap AND zero suffix gap.
+   Good orderings avoid this: 78% have a prefix or suffix gap.
+
+3. The existence theorem now reduces to:
+   "For every sequenceable S and y ∉ S, construct a valid ordering of S
+    violating at least one of the three necessary conditions."
+
+4. Built two new analysis scripts (analyze_blocking_patterns.py,
+   analyze_cut_n.py) extracting structural features.
+
+5. 94% of good orderings have an endpoint (cut 0 or cut n) unblocked,
+   suggesting the easiest route is avoiding zero partial sums or
+   avoiding the suffix endpoint collision.
+```
+
+What was corrected:
+
+```text
+1. Earlier pigeonhole proof approach had two unfilled gaps (|V|=|S| and
+   injectivity of j(a)). The new necessary-conditions approach provides
+   a cleaner target: avoid zero partial sums, prefix crossing, OR suffix
+   crossing, rather than needing a counting argument over first elements.
+```
+
+Remaining blocker:
+
+```text
+1. Still need a constructive proof that for every sequenceable S and y ∉ S,
+   some valid ordering of S violates at least one necessary condition.
+2. The most promising angle: avoiding zero partial sums. If sum(S) ≠ 0 and
+   S is sequenceable, can we always construct a valid ordering with no
+   partial sum equal to 0?
+3. Second angle: local surgery on fully blocked orderings to break the
+   zero partial sum or edge crossing while preserving Graham validity.
+```
+
+Next action:
+
+```text
+1. Investigate the "zero-sum-free sequenceability" question: given a
+   sequenceable set S ⊂ F_p^*, when does there exist a valid ordering
+   with no nonempty partial sum equal to 0?
+2. Build a surgery simulation: given a fully blocked ordering C, try local
+   modifications (swap adjacent elements, reverse a short block, rotate
+   prefix/suffix) and check if the result is valid and has fewer blocked cuts.
+3. Strengthen the proof document with the three-conditions framework.
 ```
 
 ---
