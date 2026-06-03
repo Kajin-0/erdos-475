@@ -425,7 +425,7 @@ Before final manuscript status:
 R1. Include the A56 containing-block certificate criterion in final normal-form statement.
 R2. Ensure every recurrence call points to the extracted F7 recurrence theorem.
 R3. Ensure every external collision call points to extracted F6.
-R4. Ensure every non-weighted exit from F10 is included in the W-to-NW exit decrease/no-reentry table.
+R4. W-to-NW exit decrease table is now created and should be cited in final manuscript.
 R5. Delegate persistent cut-rigidity exactly to F11/A90--A94/A89.
 ```
 
@@ -435,6 +435,8 @@ Resolved or reduced:
 A56 transported-prefix/tail exhaustiveness -> analytic_a56_transported_prefix_tail_exhaustiveness_audit.md.
 A97 signed-boundary algebra -> analytic_a97_signed_boundary_weighted_return_audit.md.
 A97 endpoint/full-prefix table -> analytic_weighted_cut_swap_table_hardening_a97.md.
+W-to-NW exit decrease table -> docs/analytic_weighted_to_nonweighted_exit_decrease_table.md.
+All 19+2 W-to-NW exit types enumerated and decrease certified relative to NW_0.
 ```
 
 ---
@@ -442,8 +444,10 @@ A97 endpoint/full-prefix table -> analytic_weighted_cut_swap_table_hardening_a97
 ## F10.10. Extraction status
 
 ```text
-Status: extracted draft patched with A56/A97 audit status.
+Status: extracted draft patched with A56/A97 audit citations and W-to-NW table reference.
 Risk: YELLOW/ORANGE.
-Main remaining dependency: W-to-NW exit decrease/no-reentry table and F11 weak cut-rigidity closure.
-Next recommended extraction: docs/analytic_weighted_to_nonweighted_exit_decrease_table.md.
+Main remaining dependency: F11 weak cut-rigidity closure (A90--A94/A89 formalization).
+Resolved: W-to-NW exit decrease/no-reentry table exists at
+  docs/analytic_weighted_to_nonweighted_exit_decrease_table.md.
+Next recommended extraction: F11 weak cut-rigidity formalization or F9 edge-by-edge rank table.
 ```

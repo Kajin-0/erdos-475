@@ -1,0 +1,55 @@
+{
+  "schema": "erdos475.literature_coverage.v1",
+  "note": "Effective theorem ranges extracted from published literature. Only ranges with explicit, non-asymptotic constants are included. Asymptotic-only theorems (Pham-Sauermann, Bedert-Bucić-Kravitz-Montgomery-Müyesser general group bounds, Müyesser-Pokrovskiy) are excluded because their 'sufficiently large p' thresholds are not specified with effective numerical values.",
+  "extraction_date": "2026-06-03",
+  "ranges": [
+    {
+      "source_id": "costa_della_fiore_fontana_vena_2026",
+      "kind": "base_graham",
+      "reference": "arXiv:2603.20961, Graham conjecture on small sets in abelian groups",
+      "p_min": 2,
+      "p_max": null,
+      "t_min_expr": "1",
+      "t_max_expr": "20",
+      "parameters": {},
+      "confidence": "high",
+      "notes": "Proves |A| <= 20 for any abelian group (including F_p*). This is an effective explicit bound for all primes."
+    },
+    {
+      "source_id": "costa_della_fiore_fontana_vena_2026_zerosum",
+      "kind": "base_graham",
+      "reference": "arXiv:2603.20961, Graham conjecture on small sets in abelian groups",
+      "p_min": 2,
+      "p_max": null,
+      "t_min_expr": "1",
+      "t_max_expr": "22",
+      "parameters": {},
+      "confidence": "high",
+      "notes": "Proves |A| <= 22 for zero-sum subsets in any abelian group."
+    },
+    {
+      "source_id": "bedert_kravitz_2024",
+      "kind": "base_graham",
+      "reference": "arXiv:2409.07403, Graham's rearrangement conjecture beyond the rectification barrier",
+      "p_min": 2,
+      "p_max": null,
+      "t_min_expr": "1",
+      "t_max_expr": "floor(exp((log(p))**0.25))",
+      "parameters": {},
+      "confidence": "high",
+      "notes": "Proves |A| <= exp((log p)^(1/4)) for ALL primes p (not just sufficiently large). This is the best fully effective small-set bound. For practical primes up to 10^12, this covers |A| <= 9, which is weaker than the Costa bound for small sets."
+    },
+    {
+      "source_id": "trivial_very_large_complement",
+      "kind": "base_graham",
+      "reference": "Folklore / trivial: complements of size |B| <= 2 are trivially sequenceable",
+      "p_min": 2,
+      "p_max": null,
+      "b_min_expr": "0",
+      "b_max_expr": "2",
+      "parameters": {},
+      "confidence": "high",
+      "notes": "When |B| <= 2, the complement is very small and valid orderings are easy to construct explicitly. This is a trivial folklore bound."
+    }
+  ]
+}

@@ -649,6 +649,56 @@ Push insertion-extension boundary toward |A|=21 in prime fields.
 
 ---
 
+### 2026-06-03: W-to-NW exit decrease table created, F10 stale language patched
+
+Key files:
+
+```text
+docs/analytic_weighted_to_nonweighted_exit_decrease_table.md (patched with containment lemma)
+docs/final/F10_weighted_normal_form_cut_swap.md (R4 resolved, stale risk language updated)
+docs/ANALYTIC_PROGRESS_HANDOFF.md (this entry)
+```
+
+What worked:
+
+```text
+1. Created comprehensive W-to-NW exit decrease table covering all 21 exit types.
+2. Added containment lemma: for any genuine weighted core A+2B+C=0,
+   at least one of A, C is nonempty, so support(NW_0) ≥ |B|+1 = m+1.
+   Therefore ALL exits whose NW_1 support is inside B strictly decrease
+   support_size relative to NW_0 (no no-reentry certificate needed).
+3. 19 of 21 exit types are GREEN (direct M_NW^* decrease).
+4. 2 of 21 are YELLOW (F7/F6 routing chain guarantees eventual decrease).
+5. F10.9 R4 resolved: W-to-NW table cited.
+6. F10.10 main dependency updated from "W-to-NW table" to "F11 weak cut-rigidity".
+```
+
+What was corrected:
+
+```text
+1. Earlier draft of the W-to-NW table used conservative CONDITIONAL labels.
+   Revised analysis (containment lemma) upgrades most to GREEN.
+2. F10 still listed W-to-NW table as a missing dependency; now marked resolved.
+```
+
+Remaining blocker:
+
+```text
+1. A90--A94 minimal-path formalization (F11 weak cut-rigidity closure).
+2. F9 edge-by-edge rank table.
+3. Analytic residue bridge (external theorem extraction).
+```
+
+Next action:
+
+```text
+1. Formalize A90--A94 as final lemmas.
+2. Build F9 edge-by-edge rank table using the W-to-NW exits from this table.
+3. Extract effective residue bounds from Pham-Sauermann and Bedert-Kravitz.
+```
+
+---
+
 ## 6. What worked
 
 ```text
@@ -663,6 +713,9 @@ Push insertion-extension boundary toward |A|=21 in prime fields.
 9. A56 transported-prefix/tail now has a certificate model.
 10. F9/F11 circularity is identified and has a required mutual-induction interface.
 11. Insertion cut-cover route has a real diagnostic script and runbook.
+12. W-to-NW exit decrease table enumerates all 21 exit types; containment lemma
+    proves strict M_NW^* decrease relative to NW_0 for all (19 GREEN, 2 YELLOW).
+13. F10 stale risk language patched with A56/A97 citations and table reference.
 ```
 
 ---
@@ -715,42 +768,39 @@ Safe:   class -> child class -> exact decreasing coordinate -> dependency
 
 ## 8. What remains to be tried
 
-### R1. W-to-NW exit decrease/no-reentry table
+### R1. W-to-NW exit decrease/no-reentry table ✅ COMPLETED
 
-Highest-value analytic task.
-
-Expected file:
+Completed file:
 
 ```text
 docs/analytic_weighted_to_nonweighted_exit_decrease_table.md
 ```
 
-Required columns:
+Summary:
 
 ```text
-weighted exit type;
-source F10/F11/A-note;
-resulting NW class;
-support relative to weighted entry window;
-decreasing M_NW^* coordinate relative to NW_0;
-can it re-enter W(j), j>=m?;
-needed dependency.
+21 enumerated exit types covering A56, A81, A97 displayed, A97 boundary,
+F7 recurrence, F6 external collision.
+Containment lemma proves strict M_NW^* decrease relative to NW_0 for all.
+19 GREEN, 2 YELLOW, 0 RED.
+Table has been patched and reconciled with handoff status conventions.
 ```
 
-### R2. Patch stale F10
+### R2. Patch stale F10 ✅ COMPLETED
 
 ```text
 docs/final/F10_weighted_normal_form_cut_swap.md
 ```
 
-needs to cite:
+Changes:
 
 ```text
-docs/analytic_a56_transported_prefix_tail_exhaustiveness_audit.md
-docs/analytic_a97_signed_boundary_weighted_return_audit.md
+- A56 and A97 audit docs already cited in audit status blocks (no change needed).
+- F10.9 R4 updated to note W-to-NW table exists.
+- F10.10 main dependency updated from "W-to-NW table" to "F11 weak cut-rigidity".
+- Broad language about signed-boundary weighted returns was already narrowed
+  in a prior session; this patch confirms it and adds the table citation.
 ```
-
-and replace older broad language about signed-boundary weighted returns.
 
 ### R3. A90--A94 minimal-path formalization
 
@@ -761,6 +811,9 @@ weak cut-rigid same-middle return -> pattern-rigid or routed descent.
 ```
 
 A89 proves only strong exact/pattern-rigid self-return impossible.
+
+Status: ORANGE. This is now the main remaining weighted-core blocker
+(W-to-NW exits have been certified by the table in R1).
 
 ### R4. F9 edge-by-edge rank table
 
@@ -827,24 +880,13 @@ M(C,x) = (
 ### Immediate analytic action
 
 ```text
-Create docs/analytic_weighted_to_nonweighted_exit_decrease_table.md.
-```
-
-Start with exits from:
-
-```text
-A56 easy reductions;
-A81 atom-middle exits;
-A97 direct cut-swap collisions;
-A97 equal-prefix/equal-tail boundary relations;
-F7 recurrence exits from cut-swap forbidden hits;
-F6 external collision exits from weighted cut-swap.
+1. Formalize A90--A94 as final lemmas (F11 weak cut-rigidity closure).
+2. Build F9 edge-by-edge rank table using data from the W-to-NW exit decrease table.
 ```
 
 ### Immediate documentation action
 
 ```text
-Patch F10 stale risk language.
 Keep this handoff updated after every major analytic commit.
 ```
 
@@ -888,9 +930,9 @@ Endpoint local routing:            YELLOW/GREEN.
 F7 recurrence class routing:        YELLOW.
 F8 bridge/gap class routing:        YELLOW.
 F9 global termination:              ORANGE.
-F10 weighted local cut-swap:        ORANGE until F10 stale language is patched.
-F11 weighted termination:           ORANGE.
-F9/F11 W-to-NW exit table:          RED until created.
+F10 weighted local cut-swap:        YELLOW (stale language patched, W-to-NW table cited).
+F11 weighted termination:           ORANGE (persistent cut-rigidity A90--A94 remains).
+F9/F11 W-to-NW exit table:          YELLOW (19 GREEN + 2 YELLOW exits enumerated).
 Analytic residue bridge:            RED.
 Insertion cut-cover route:          PROMISING; analyzer exists, search layer pending.
 ```
@@ -927,6 +969,7 @@ docs/final/F09_nonweighted_termination_theorem.md
 ```text
 docs/analytic_f10_f11_weighted_core_closure_checkpoint.md
 docs/analytic_f9_f11_mutual_induction_convention.md
+docs/analytic_weighted_to_nonweighted_exit_decrease_table.md
 docs/analytic_weighted_atom_middle_a81_sign_audit.md
 docs/analytic_endpoint_rigid_atom_middle_a81.md
 docs/analytic_a97_signed_boundary_weighted_return_audit.md
