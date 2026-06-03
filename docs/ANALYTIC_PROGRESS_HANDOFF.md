@@ -1,27 +1,79 @@
 # Analytic Progress Handoff
 
-Last updated: 2026-06-03
+Last audited: 2026-06-03
+
+This is the single high-level context document for analytic proof progress in this repository.
 
 Purpose:
 
 ```text
-This is the single high-level handoff document for analytic proof progress.
-It is intended for a new external agent or reviewer who needs to regain context quickly.
-It records what has been tried, what worked, what failed or was corrected, what remains open, and how the repo's analytic work relates to external progress on Graham/Erdős 475.
+Give a new external agent enough context to resume work without chat history.
+Record what worked, what failed, what was corrected, what remains open, and which next steps are highest leverage.
+Separate proof-grade evidence from proof-architecture progress.
 ```
 
 Claim boundary:
 
 ```text
 This document is not a proof of Erdős 475.
-It is a proof-engineering and mathematical-status handoff.
 The finite certificate layer is currently the most independently checkable evidence.
-The analytic layer has meaningful progress but remains incomplete at the global termination/residue-bridge level.
+The analytic layer has made real progress, but global termination and residue inclusion are not closed.
 ```
 
 ---
 
-## 0. Problem context
+## 0. One-page executive dashboard
+
+### Current status
+
+```text
+Finite witness verification:       GREEN for declared domains, subject to artifact availability.
+Endpoint-local analytic routing:   YELLOW/GREEN; mostly class-routed.
+F7 recurrence routing:             YELLOW; endpoint/sign errors corrected, final span table pending.
+F8 bridge/gap routing:             YELLOW; measure embedding clarified, endpoint tables pending.
+F9 non-weighted termination:        ORANGE; edge-by-edge global rank table pending.
+F10/F11 weighted termination:       ORANGE; controlled-exit form exists, W-to-NW exit table pending.
+Analytic residue bridge:            RED; no effective theorem-to-finite-domain extraction yet.
+Insertion cut-cover route:          PROMISING; analyzer exists, local-search/minimization layer pending.
+```
+
+### Main conclusion
+
+```text
+Do not restart endpoint-local case analysis unless a concrete algebraic error is found.
+The current analytic blocker is global termination, especially the F9/F11 mutual-induction interface.
+The highest-value next analytic artifact is:
+
+  docs/analytic_weighted_to_nonweighted_exit_decrease_table.md
+
+The highest-value independent experimental/math artifact is:
+
+  a fully blocked insertion search over many valid orderings C of A\{x}.
+```
+
+### Most important known corrections
+
+```text
+1. Bare Left(T)/Right(T) external labels were unsafe.
+   Use template-aware K+A=0 and B+K=0.
+
+2. H2 and A69 used full U incorrectly.
+   Correct convention: U = U^- u_*; left-blocker pullbacks use U^-.
+
+3. A97 signed-boundary weighted-return channel was overbroad.
+   r + P_j - p - R_k = 0 simplifies to R_k^+ = P_j^+.
+   An isolated A97.8 equation is non-weighted equal-tail machinery.
+
+4. F9/F11 interface was circular if stated as “F9 handles F11 exits” and “F11 handles F9 exits.”
+   It now requires controlled mutual induction.
+
+5. A56 transported-prefix/tail cannot be a bare Boolean.
+   It requires a containing-block certificate D=BT or D=TB with complement present.
+```
+
+---
+
+## 1. Problem context
 
 The prime-field Graham rearrangement conjecture / Erdős 475 asks:
 
@@ -37,7 +89,7 @@ there exists an ordering a_1,...,a_t of A such that the nonempty partial sums
 are pairwise distinct modulo p.
 ```
 
-The repo has two broad proof components:
+The repo has two proof components:
 
 ```text
 1. finite-certificate verification for declared small/complement domains;
@@ -47,109 +99,102 @@ The repo has two broad proof components:
 Current honest status:
 
 ```text
-Finite evidence: strong for declared verified domains.
-Analytic local routing: substantially improved.
-Global analytic termination: not fully proved.
-Analytic residue inclusion: not fully proved.
+The finite layer proves declared finite instances only.
+The analytic layer is not yet a complete theorem proof.
+A full result still needs global termination plus an analytic residue bridge.
 ```
 
 ---
 
-## 1. External mathematical context
+## 2. External mathematical context, verified 2026-06-03
 
-External progress bounds the problem and should prevent the repo from overclaiming.
+External progress bounds the project and prevents overclaiming.
 
 ### Bedert--Kravitz, 2024
-
-Paper:
 
 ```text
 Graham's rearrangement conjecture beyond the rectification barrier
 https://arxiv.org/abs/2409.07403
 ```
 
-Claim from abstract:
+Verified abstract-level claim:
 
 ```text
-Prime-field conjecture proved for |A| ≤ exp((log p)^(1/4)), improving the previous log p / log log p bound.
+Prime-field conjecture proved for |A| ≤ exp((log p)^(1/4)), improving log p / log log p.
 ```
 
 ### Pham--Sauermann, 2026
-
-Paper:
 
 ```text
 On Graham's rearrangement conjecture
 https://arxiv.org/abs/2602.15797
 ```
 
-Claim from abstract:
+Verified abstract-level claim:
 
 ```text
-For any α in (0,1), the conjecture is proved for |S| ≤ p^(1-α) once |S| is sufficiently large relative to α.
-Combined with earlier results, this resolves the prime-field conjecture for all sufficiently large primes p.
+For any α in (0,1), the prime-field conjecture is proved for |S| ≤ p^(1-α)
+when |S| is sufficiently large relative to α.
+Combined with earlier results, this gives a complete resolution for all sufficiently large primes p.
 ```
 
 Repo implication:
 
 ```text
-The prime-field theorem may already be externally resolved asymptotically for all sufficiently large p.
-The repo must therefore either:
-  - extract effective finite residue ranges from the literature, or
-  - produce an independent finite/local structural contribution.
+The repo should not claim a first asymptotic solution.
+The most valuable external-facing goals are:
+  1. extract effective residue bounds; or
+  2. produce an independent finite/local structural theorem.
 ```
 
 ### Costa--Della Fiore--Fontana--Vena, 2026
-
-Paper:
 
 ```text
 Graham conjecture on small sets in abelian groups
 https://arxiv.org/abs/2603.20961
 ```
 
-Claim from abstract:
+Verified abstract-level claim:
 
 ```text
-Sequenceability for subsets of generic abelian groups with |A| ≤ 20.
-For zero-sum subsets, the bound improves to |A| ≤ 22.
+Sequenceability for generic abelian-group subsets with |A| ≤ 20.
+Zero-sum subsets improved to |A| ≤ 22.
 ```
 
 Repo implication:
 
 ```text
-A natural exact small-set target is |A|=21 in prime fields or related insertion-extension variants.
+A natural exact small-set target is |A|=21 in prime fields,
+or a related insertion-extension boundary theorem.
 ```
 
 ### Bedert--Bucić--Kravitz--Montgomery--Müyesser, 2025
-
-Paper:
 
 ```text
 On Graham's rearrangement conjecture over F_2^n
 https://arxiv.org/abs/2508.18254
 ```
 
-Relevant context from abstract:
+Verified abstract-level claim:
 
 ```text
-They prove a broad large-set theorem for general groups and an essentially complete result over F_2^n for sufficiently large sets.
+Large-set theorem for general groups and essentially complete large-set result over F_2^n.
 ```
 
 Repo implication:
 
 ```text
-Large-set asymptotic directions are crowded and technically strong.
-A smaller certificate-friendly obstruction theorem may be the better near-term contribution.
+Large-set asymptotic routes are technically strong and crowded.
+Small obstruction/certificate routes are likely better near-term contributions.
 ```
 
 ---
 
-## 2. Computational layer status
+## 3. Computational layer status
 
-The finite-certificate layer remains the most externally credible part of the repo.
+The finite-certificate layer is the most proof-grade part of the repo.
 
-Current declared finite frontier:
+Declared verified frontier:
 
 ```text
 p = 17, |B| = 3
@@ -166,20 +211,20 @@ Tier 1A: committed / directly repo-checkable artifacts.
 Tier 1B: verified local/external JSONL or summary digest, not necessarily fully committed due to size.
 ```
 
-Known issue to preserve:
+Known preservation rule:
 
 ```text
-p=29 and p=31 are intended to be Tier 1 verified domains.
+p=29 and p=31 are intended Tier 1 verified domains.
 Do not regress docs to older claims that omit p=29/p=31 high-|B| shards.
 ```
 
-Finite verification proves only:
+What finite verification proves:
 
 ```text
 The declared finite instances have valid witness orderings.
 ```
 
-It does not prove:
+What it does not prove:
 
 ```text
 The analytic residue lies inside those finite verified domains.
@@ -188,20 +233,18 @@ The analytic residue lies inside those finite verified domains.
 Remaining finite/computational actions:
 
 ```text
-1. Keep README, VERIFIED_DOMAIN.md, THEOREM_DOMAIN_LEDGER.md, verified_domains.json, proof.tex synchronized.
+1. Synchronize README, VERIFIED_DOMAIN.md, THEOREM_DOMAIN_LEDGER.md, verified_domains.json, proof.tex.
 2. Make strict CI verify all Tier 1A artifacts.
 3. Add retrieval/regeneration instructions for Tier 1B artifacts.
 4. Harden Python witness parsing to reject non-integer JSON values.
-5. Create final residue audit script once analytic theorem ranges are known.
+5. Build final residue audit script after effective external ranges are extracted.
 ```
 
 ---
 
-## 3. Main analytic architecture
+## 4. Main analytic architecture
 
-The analytic route uses an obstruction-state machine.
-
-Core global modules:
+Core modules:
 
 ```text
 F3   obstruction state machine
@@ -216,7 +259,7 @@ F11  weighted cut-selection and termination theorem
 F12  final endpoint-avoidance / assembly target
 ```
 
-Global measure:
+Global non-weighted measure:
 
 ```text
 M_NW^* = (
@@ -233,22 +276,37 @@ M_NW^* = (
 ).
 ```
 
-Current analytic bottleneck:
+Bridge subrank convention:
 
 ```text
-Prove every nonterminal edge in the global obstruction graph strictly decreases M_NW^*,
-or exits to weighted-core machinery that terminates by a non-circular F9/F11 induction.
+bridge_depth_BG = (
+  bridge_cycle_depth,
+  bridge_length,
+  internal_length,
+  bridge_orientation_rank,
+  bridge_endpoint_rank
+).
+```
+
+Main global theorem obligation:
+
+```text
+Every nonterminal obstruction edge must either:
+  1. strictly decrease M_NW^*;
+  2. terminate;
+  3. enter weighted-core machinery under controlled mutual induction;
+  4. or return with a formal no-reentry certificate.
 ```
 
 ---
 
-## 4. High-level timeline of recent analytic progress
+## 5. Deep analytic progress timeline
 
-Dates are session/workflow dates, not publication dates.
+Dates are workflow/session dates.
 
-### 2026-06-03: endpoint-branch local closure work
+### 2026-06-03: endpoint branch locally class-routed
 
-Created/updated endpoint branch notes:
+Key files:
 
 ```text
 docs/analytic_endpoint_branch_status_final.md
@@ -259,28 +317,40 @@ docs/analytic_global_class_graph_measure_checkpoint.md
 What worked:
 
 ```text
-Endpoint-local outputs are now mapped to global classes.
+Endpoint-local outputs are mapped to global classes.
 No known endpoint-local branch remains unclassified.
 ```
 
-What this did not prove:
+Status:
 
 ```text
-Global termination.
-F10/F11 weighted-core termination.
-Analytic residue inclusion.
+YELLOW/GREEN locally.
+Not a global proof.
 ```
 
-### 2026-06-03: external-collision notation correction
-
-Problem found:
+Remaining blocker:
 
 ```text
-Bare labels Left(T), Right(T) were unsafe.
-External collisions must retain the proposed local permutation split.
+Destination classes must terminate globally through F4--F11/F9.
 ```
 
-Correct normal forms:
+---
+
+### 2026-06-03: template-aware external collision correction
+
+Unsafe old form:
+
+```text
+Left(T), Right(T)
+```
+
+Reason unsafe:
+
+```text
+It loses the proposed local permutation split and can misclassify external collisions.
+```
+
+Correct forms:
 
 ```text
 left external collision:  K + A = 0
@@ -295,11 +365,14 @@ docs/analytic_fixed_ordering_formalism_lemma.md
 docs/analytic_f6_edge_compatibility_audit.md
 ```
 
-What worked:
+Status:
 
 ```text
-Template-aware external outputs now embed into F6.
+GREEN for endpoint-specific embedding into F6.
+YELLOW globally because F6 exits still depend on F4/F5/F7/F8/F10/F11/F9.
 ```
+
+---
 
 ### 2026-06-03: F7 recurrence hardening
 
@@ -320,19 +393,23 @@ What worked:
 ```text
 H1 signs audited and internally consistent.
 H2 endpoint convention corrected.
-Pair-difference recurrence endpoint convention corrected.
-Singleton-prefix atom endpoint cases explicitly routed.
+A69 pair-difference endpoint convention corrected.
+Singleton-prefix atom endpoint cases routed.
 Cyclic-cut midpoint characteristic p=3 behavior audited.
 ```
 
-Real corrections found:
+Real corrections:
 
 ```text
-H2: use U = U^- u_* and left-blocker pullbacks use U^-, not full U.
-A69 pair-difference recurrence has the same endpoint-convention issue.
+H2/A67:
+  wrong: ... + U + v_1 = 0
+  right: U = U^- u_* and ... + U^- + v_1 = 0
+
+A69:
+  same U^- / u_* endpoint convention issue in pair-difference recurrence.
 ```
 
-Corrected H2 cases:
+Corrected H2 crossing cases:
 
 ```text
 D1: L + P + q + U^- + v_1 = 0 -> L + q - u_* - V^+ = 0
@@ -340,13 +417,17 @@ D2: R + V^+ + u_* = 0
 D3: V^+ + u_* = 0
 ```
 
-What remains:
+Status:
 
 ```text
-F7 is class-routed, but final F9 must still verify augmented span/measure decreases edge-by-edge.
+YELLOW.
+Recurrence sources are class-routed.
+F9 still must verify augmented span/measure decreases edge-by-edge.
 ```
 
-### 2026-06-03: F8 bridge/gap hardening
+---
+
+### 2026-06-03: F8 bridge/gap measure hardening
 
 Key files:
 
@@ -364,25 +445,25 @@ F8 class routing mostly hardened.
 M_BG bridge_length/internal_length ambiguity removed.
 ```
 
-Bridge local subrank:
+Bridge-to-global embedding:
 
 ```text
-bridge_depth_BG = (
-  bridge_cycle_depth,
-  bridge_length,
-  internal_length,
-  bridge_orientation_rank,
-  bridge_endpoint_rank
-).
+M_BG.enclosing_span       -> M_NW^*.enclosing_span
+M_BG.bridge_gap           -> M_NW^*.gap_length
+M_BG.support_size         -> M_NW^*.support_size
+M_BG.recurrence_depth     -> M_NW^*.recurrence_depth
+M_BG.bridge-local subrank -> M_NW^*.bridge_depth
 ```
 
-Embedding:
+Status:
 
 ```text
-M_BG.bridge_length/internal_length -> M_NW^*.bridge_depth
+YELLOW.
+Measure notation ambiguity resolved.
+Endpoint and direct-exchange tables still needed for final manuscript.
 ```
 
-What remains:
+Remaining blocker:
 
 ```text
 F8 rigid-return endpoint table.
@@ -390,7 +471,9 @@ F5 direct-exchange endpoint table.
 F9 final edge-by-edge rank table.
 ```
 
-### 2026-06-03: F9/F11 circularity identified
+---
+
+### 2026-06-03: F9/F11 circularity found and controlled
 
 Key file:
 
@@ -398,39 +481,40 @@ Key file:
 docs/analytic_f9_f11_mutual_induction_convention.md
 ```
 
-Problem found:
+Problem:
 
 ```text
-F9 delegates weighted exits to F11.
-F11 delegates non-weighted exits back to F9.
+F9 says weighted exits terminate by F11.
+F11 says non-weighted exits terminate by F9.
 ```
 
-This is circular unless written as mutual induction.
-
-Required weighted output rule:
+Required controlled output for:
 
 ```text
 NW_0 -> W(m)
 ```
 
-F11 may only return:
+F11 may return only:
 
 ```text
 SUCCESS;
 CONTRADICTION/COLLAPSE;
 W(m') with m' < m;
 NW_1 with M_NW^*(NW_1) < M_NW^*(NW_0);
-NW_1 with a formal no-reentry certificate excluding W(j), j >= m.
+NW_1 with formal no-reentry certificate excluding W(j), j >= m.
 ```
 
-What remains:
+Status:
 
 ```text
-Build W-to-NW exit decrease/no-reentry table.
-Patch final proof language everywhere to avoid unqualified “handled by F9/F11.”
+ORANGE.
+Wording-level circularity is identified and controlled conceptually.
+The W-to-NW exit table is still missing, so the theorem is not closed.
 ```
 
-### 2026-06-03: F10/F11 weighted-core audits
+---
+
+### 2026-06-03: weighted-core audits A81/A97/A56
 
 Key files:
 
@@ -448,8 +532,9 @@ What worked:
 
 ```text
 A81 atom-middle sign table audited and patched.
-A97 signed-boundary weighted-return channel simplified.
+A97 signed-boundary weighted-return channel simplified and patched.
 A56 transported-prefix/tail exhaustiveness clarified by containing-block certificates.
+F11 updated to controlled-exit form.
 ```
 
 A81 four-row table:
@@ -474,7 +559,7 @@ Interpretation:
 
 ```text
 An isolated A97.8 signed-boundary equation is non-weighted equal-tail/equal-interval machinery.
-A genuine weighted same-length return requires persistent signed-boundary rigidity across cuts.
+A genuine same-length weighted return requires persistent signed-boundary rigidity across cuts.
 ```
 
 A56 certificate condition:
@@ -494,168 +579,180 @@ or D = C B
 
 where `D` is a known transported/containing block from the local move.
 
-What remains:
+Status:
 
 ```text
-W-to-NW exit decrease/no-reentry table.
-A90--A94 minimal-path formalization.
-Final F9/F11 mutual-induction implementation.
+ORANGE.
+A81/A97/A56 local algebra is substantially improved.
+Global weighted closure still depends on W-to-NW decrease/no-reentry and A90--A94 formalization.
+```
+
+Known stale follow-up:
+
+```text
+docs/final/F10_weighted_normal_form_cut_swap.md still contains older broad language about
+transported-prefix exhaustiveness and signed-boundary return.
+Patch F10 to cite A56/A97 audits and downgrade those risks.
 ```
 
 ---
 
-## 5. What worked
+### 2026-06-03: insertion cut-cover route audited
 
-### W1. Finite certificates
+Key files:
 
 ```text
-Witness verification architecture is credible.
-Verifier checks final orderings, not search traces.
-Python and Rust independent checking are the right proof-engineering approach.
+docs/INSERTION_CUT_COVER_PROGRAM.md
+docs/INSERTION_BLOCK_ANALYZER_RUNBOOK.md
+scripts/analyze_insertion_blocks.py
 ```
 
-### W2. Local endpoint routing
+Core insertion obstruction:
 
 ```text
-Endpoint-local branches are now largely classified into global obstruction classes.
+Given x in A and a Graham-valid ordering C of A\{x},
+insert x into one of the cuts of C.
+A minimal counterexample forces every insertion cut to be blocked.
 ```
 
-### W3. Algebraic endpoint corrections
+Cut-cover mechanism:
 
 ```text
-H2 and A69 full-U formulas were unsafe; corrected to U^- / u_*.
-A97 signed-boundary channel simplified to equal-tail R_k^+=P_j^+.
+Endpoint obstruction: s_i + x = s_k for k <= i.
+Crossing obstruction: s_j - s_k = -x, blocking every cut k <= i < j.
+Cut-zero obstruction: cut 0 blocked if some nonempty partial sum of C equals 0.
 ```
 
-### W4. Measure interface clarification
+What already exists:
 
 ```text
-M_BG now embeds into M_NW^* through bridge_depth_BG.
+scripts/analyze_insertion_blocks.py computes Block(C,x), endpoint obstructions,
+zero-partial cut-zero obstruction, crossing intervals, coverage multiplicities,
+and minimal unblocked cuts.
 ```
 
-### W5. Weighted base-case simplification
+Status:
 
 ```text
-Atom-middle |B|=1 does not remain an independent weighted-core obstruction after sign expansion.
+PROMISING / NOT YET RESULT-GRADE.
+The diagnostic analyzer exists.
+The missing experimental layer is local search over many valid orderings of A\{x}
+to minimize the insertion obstruction measure M(C,x).
 ```
 
-### W6. Circularity detection
+Recommended target:
 
 ```text
-F9/F11 dependency is now explicitly recognized as requiring mutual induction.
+Classify fully blocked one-element insertion configurations.
+Push insertion-extension boundary toward |A|=21 in prime fields.
 ```
 
 ---
 
-## 6. What did not work / unsafe routes
+## 6. What worked
+
+```text
+1. Finite witnesses are verified by checking final orderings, not trusting search traces.
+2. Endpoint-local branches are now mostly class-routed.
+3. External collisions now preserve local permutation/provenance data.
+4. H2/A69 endpoint convention errors were found and corrected.
+5. F7 recurrence endpoint/sign branches are much cleaner.
+6. F8 bridge/gap local coordinates are embedded into the global measure.
+7. Atom-middle |B|=1 weighted base case no longer looks like an independent weighted obstruction.
+8. A97 isolated signed-boundary equations are non-weighted equal-tail relations.
+9. A56 transported-prefix/tail now has a certificate model.
+10. F9/F11 circularity is identified and has a required mutual-induction interface.
+11. Insertion cut-cover route has a real diagnostic script and runbook.
+```
+
+---
+
+## 7. What failed, was unsafe, or should not be repeated
 
 ### N1. Bare external labels
 
-Unsafe:
-
 ```text
-Left(T), Right(T)
+Unsafe: Left(T), Right(T)
+Safe:   K + A = 0, B + K = 0, with provenance.
 ```
 
-Reason:
+### N2. Full-U endpoint pullbacks
 
 ```text
-These lose the proposed local permutation split and can misclassify external collisions.
+Unsafe: ... + U + v_1 = 0
+Safe:   U = U^- u_* and ... + U^- + v_1 = 0
 ```
 
-Replacement:
+### N3. A97 signed-boundary as direct weighted return
 
 ```text
-K + A = 0,
-B + K = 0.
+Unsafe: r + P_j - p - R_k = 0 -> weighted return
+Safe:   r + P_j - p - R_k = 0 -> R_k^+ = P_j^+ non-weighted equal-tail
 ```
 
-### N2. Full-U endpoint convention in H2/A69
-
-Unsafe:
+### N4. Unqualified F9/F11 delegation
 
 ```text
-... + U + v_1 = 0
+Unsafe: handled by F9 / handled by F11
+Safe:   handled by mutual induction with explicit decrease or no-reentry condition
 ```
 
-when A5 is applied before the last atom of `U`.
-
-Replacement:
+### N5. Bare transported-prefix Boolean
 
 ```text
-U = U^- u_*,
-... + U^- + v_1 = 0.
+Unsafe: --transported-prefix / --transported-tail with no provenance
+Safe:   containing-block certificate D=BT or D=TB with complement present
 ```
 
-### N3. Treating A97 signed boundary as direct weighted return
-
-Unsafe:
+### N6. Endless local routing notes without global closure
 
 ```text
-r + P_j - p - R_k = 0 -> possible weighted return
-```
-
-Correct simplification:
-
-```text
-R_k^+ = P_j^+.
-```
-
-Thus isolated A97.8 is non-weighted.
-
-### N4. Unqualified “handled by F9/F11”
-
-Unsafe:
-
-```text
-weighted exits handled by F11;
-non-weighted exits handled by F9.
-```
-
-Reason:
-
-```text
-Circular unless a mutual-induction decrease/no-reentry condition is stated.
-```
-
-### N5. Treating transported-prefix/tail as a bare Boolean
-
-Unsafe:
-
-```text
---transported-prefix
---transported-tail
-```
-
-without interval-provenance certificate.
-
-Replacement:
-
-```text
-Containing-block certificate D = BT or D = TB with complement present in relation.
+Unsafe: more notes saying “routes to existing machinery” without measure-edge table
+Safe:   class -> child class -> exact decreasing coordinate -> dependency
 ```
 
 ---
 
-## 7. What remains to be tried
+## 8. What remains to be tried
 
 ### R1. W-to-NW exit decrease/no-reentry table
 
 Highest-value analytic task.
 
-Need table:
+Expected file:
 
 ```text
-weighted exit type -> resulting NW class -> decreasing coordinate relative to NW_0 -> can it re-enter W(j), j>=m?
+docs/analytic_weighted_to_nonweighted_exit_decrease_table.md
 ```
 
-Required by:
+Required columns:
 
 ```text
-docs/analytic_f9_f11_mutual_induction_convention.md
+weighted exit type;
+source F10/F11/A-note;
+resulting NW class;
+support relative to weighted entry window;
+decreasing M_NW^* coordinate relative to NW_0;
+can it re-enter W(j), j>=m?;
+needed dependency.
 ```
 
-### R2. A90--A94 minimal-path formalization
+### R2. Patch stale F10
+
+```text
+docs/final/F10_weighted_normal_form_cut_swap.md
+```
+
+needs to cite:
+
+```text
+docs/analytic_a56_transported_prefix_tail_exhaustiveness_audit.md
+docs/analytic_a97_signed_boundary_weighted_return_audit.md
+```
+
+and replace older broad language about signed-boundary weighted returns.
+
+### R3. A90--A94 minimal-path formalization
 
 Need final proof that:
 
@@ -663,9 +760,9 @@ Need final proof that:
 weak cut-rigid same-middle return -> pattern-rigid or routed descent.
 ```
 
-A89 only proves strong exact/pattern-rigid self-return impossible.
+A89 proves only strong exact/pattern-rigid self-return impossible.
 
-### R3. F9 edge-by-edge rank table
+### R4. F9 edge-by-edge rank table
 
 Need final table:
 
@@ -679,144 +776,123 @@ Do not rely on prose such as:
 routes to existing machinery.
 ```
 
-### R4. F8/F5 endpoint tables
+### R5. F8/F5 endpoint tables
 
-Needed for final manuscript completeness:
+Needed for final manuscript hardening:
 
 ```text
 F8 rigid-return endpoint table.
 F5 direct-exchange endpoint table.
 ```
 
-### R5. Analytic residue bridge
+### R6. Analytic residue bridge
 
-Need exact theorem extraction from external literature:
-
-```text
-published asymptotic/large/small set results
-+ finite verified domain
-=> residue_not_verified = 0
-```
-
-This is still unresolved.
-
-### R6. Insertion obstruction project
-
-External audit recommends pivoting to a smaller, testable problem:
+Need exact extraction from external papers:
 
 ```text
-Classify fully blocked one-element insertion configurations.
+published theorem ranges + verified finite frontier => residue_not_verified = 0
 ```
 
-Problem:
+No such extraction exists yet.
+
+### R7. Insertion obstruction search/minimization
+
+The repo already has a direct analyzer. The missing step is search over many valid orderings:
 
 ```text
-Given x in A and a Graham-valid ordering C of A\{x},
-can every insertion cut for x be blocked?
+for each A, x:
+  sample/enumerate valid orderings C of A\{x};
+  compute Block(C,x);
+  minimize M(C,x);
+  record fully blocked examples or no-example evidence.
 ```
 
-Why useful:
+Target metric:
 
 ```text
-Small, testable, falsifiable, certificate-friendly.
-Could yield a rigorous intermediate theorem even if full analytic closure remains hard.
+M(C,x) = (
+  |Block(C,x)|,
+  total_blocking_multiplicity,
+  crossing_interval_count,
+  total_crossing_length,
+  endpoint_obstruction_count,
+  zero_partial_cut_zero_flag
+).
 ```
-
-Suggested boundary target:
-
-```text
-|A| = 21 in prime fields
-```
-
-because external small-set work reaches |A|<=20 in generic abelian groups and |A|<=22 for zero-sum subsets.
 
 ---
 
-## 8. Recommended next actions
+## 9. Recommended next actions
 
 ### Immediate analytic action
 
 ```text
-Create W-to-NW exit decrease/no-reentry table.
+Create docs/analytic_weighted_to_nonweighted_exit_decrease_table.md.
 ```
 
-Expected file:
+Start with exits from:
 
 ```text
-docs/analytic_weighted_to_nonweighted_exit_decrease_table.md
-```
-
-### Immediate computational/experimental action
-
-```text
-Implement or run fully blocked insertion search.
-```
-
-Expected outputs:
-
-```text
-minimum |Block(C,x)|;
-maximum |Block(C,x)|;
-full-cover examples or no-example certificates;
-coverage multiplicity;
-endpoint obstruction count;
-crossing interval list;
-zero-partial flag.
+A56 easy reductions;
+A81 atom-middle exits;
+A97 direct cut-swap collisions;
+A97 equal-prefix/equal-tail boundary relations;
+F7 recurrence exits from cut-swap forbidden hits;
+F6 external collision exits from weighted cut-swap.
 ```
 
 ### Immediate documentation action
 
 ```text
-Keep this handoff file updated after each major analytic checkpoint.
-Use date-stamped entries.
-Do not let analytic context live only in chat.
+Patch F10 stale risk language.
+Keep this handoff updated after every major analytic commit.
+```
+
+### Immediate experimental action
+
+```text
+Build local-search/minimization around scripts/analyze_insertion_blocks.py.
+```
+
+Output should include:
+
+```text
+minimum blocked cuts;
+maximum blocked cuts;
+fully blocked cases;
+coverage multiplicity;
+endpoint obstruction count;
+crossing interval list;
+zero-partial flag;
+worst obstruction signatures.
 ```
 
 ---
 
-## 9. Suggested status labels
+## 10. Status labels
 
 Use these labels consistently:
 
 ```text
-GREEN  = independently checkable or terminal/finite algebra closed.
+GREEN  = independently checkable, finite, or terminal algebra closed.
 YELLOW = class-routed but dependent on global termination.
-ORANGE = plausible but needs edge-by-edge measure proof.
-RED    = structural theorem blocker or possible circularity.
+ORANGE = plausible but needs edge-by-edge measure proof or mutual-induction table.
+RED    = structural theorem blocker, possible circularity, or missing residue bridge.
 ```
 
 Current labels:
 
 ```text
-Finite witness verification: GREEN for declared Tier 1A/Tier 1B domains, subject to artifact availability.
-Endpoint local routing: YELLOW/GREEN depending on branch.
-F7 recurrence class routing: YELLOW.
-F8 bridge/gap class routing: YELLOW.
-F9 global termination: ORANGE.
-F10/F11 weighted termination: ORANGE, formerly RED before mutual-induction convention.
-F9/F11 W-to-NW exit table: RED until completed.
-Analytic residue bridge: RED.
-Insertion obstruction project: promising, not started or not yet integrated.
-```
-
----
-
-## 10. Single-page summary for a new agent
-
-```text
-Do not restart endpoint-local case analysis unless a concrete algebraic error is found.
-Endpoint-local branches are now mostly class-routed.
-
-The main analytic proof blocker is not local routing.
-It is global termination, especially F9/F11 mutual induction.
-
-The most important next analytic artifact is a W-to-NW exit decrease/no-reentry table.
-
-The best near-term independent mathematical target may be the fully blocked insertion problem.
-
-The finite certificate layer is the strongest proof-grade evidence, but it does not prove residue inclusion.
-
-External results likely solve the prime-field conjecture for sufficiently large primes, so the repo should avoid overclaiming and either extract an effective residue or produce a smaller structural/certificate theorem.
+Finite witness verification:       GREEN, subject to artifact availability.
+Endpoint local routing:            YELLOW/GREEN.
+F7 recurrence class routing:        YELLOW.
+F8 bridge/gap class routing:        YELLOW.
+F9 global termination:              ORANGE.
+F10 weighted local cut-swap:        ORANGE until F10 stale language is patched.
+F11 weighted termination:           ORANGE.
+F9/F11 W-to-NW exit table:          RED until created.
+Analytic residue bridge:            RED.
+Insertion cut-cover route:          PROMISING; analyzer exists, search layer pending.
 ```
 
 ---
@@ -826,8 +902,8 @@ External results likely solve the prime-field conjecture for sufficiently large 
 ### Global checkpoints
 
 ```text
-docs/analytic_global_class_graph_measure_checkpoint.md
 docs/ANALYTIC_PROGRESS_HANDOFF.md
+docs/analytic_global_class_graph_measure_checkpoint.md
 ```
 
 ### Endpoint/F7/F8/F9
@@ -860,6 +936,14 @@ docs/final/F10_weighted_normal_form_cut_swap.md
 docs/final/F11_weighted_cut_selection_extraction.md
 ```
 
+### Insertion cut-cover route
+
+```text
+docs/INSERTION_CUT_COVER_PROGRAM.md
+docs/INSERTION_BLOCK_ANALYZER_RUNBOOK.md
+scripts/analyze_insertion_blocks.py
+```
+
 ### Computational/finite layer
 
 ```text
@@ -875,7 +959,7 @@ MANIFEST.sha256
 
 ## 12. Maintenance rule
 
-After any major analytic commit, append a dated note to this file under Section 4 or Section 7.
+After any major analytic commit, append or update a dated entry in Section 5 or Section 8.
 
 Minimum entry format:
 
@@ -892,3 +976,5 @@ Remaining blocker:
 Next action:
   - ...
 ```
+
+Do not allow analytic context to live only in chat.
