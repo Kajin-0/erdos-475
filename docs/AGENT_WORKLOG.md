@@ -747,6 +747,94 @@ Config available:
 
 ---
 
+## Session: 2026-06-04 — define A92 no-reentry certificate schema
+
+### Current objective
+
+Create a precise schema document (`docs/analytic_a92_no_reentry_certificate_schema.md`) defining the no-reentry certificate required by A92 and the F9/F11 mutual-induction interface: required inputs, certificate object structure, field table, exclusion bases, verification conditions, pseudo-schema, and attachment rules to the A92 graph.
+
+### Confirmed working path
+
+/tmp/erdos-475
+
+### Files read
+
+- README.md
+- docs/CLAIM_BOUNDARY.md
+- docs/VERIFIED_DOMAIN.md
+- docs/AGENT_WORKLOG.md
+- docs/ANALYTIC_PROGRESS_HANDOFF.md
+- docs/analytic_weighted_exit_audit_interface.md
+- docs/analytic_a90_a94_formalization_obligation_ledger.md
+- docs/analytic_a92_finite_return_path_model.md
+- docs/analytic_a92_return_path_graph_schema.md
+- docs/analytic_f9_f11_mutual_induction_convention.md
+- docs/analytic_weighted_to_nonweighted_exit_decrease_table.md
+- docs/final/F09_nonweighted_termination_theorem.md
+- docs/final/F10_weighted_normal_form_cut_swap.md
+- docs/final/F11_weighted_cut_selection_extraction.md
+
+### Filename note
+
+Expected F10 filename `F10_weighted_normal_form_fixed_cut_swap.md` does not exist. Actual: `F10_weighted_normal_form_cut_swap.md`. Expected F11 filename `F11_weighted_cut_selection_termination.md` does not exist. Actual: `F11_weighted_cut_selection_extraction.md`. Previously recorded.
+
+### Files changed
+
+- `docs/analytic_a92_no_reentry_certificate_schema.md` — new file (no-reentry certificate schema with 7 required inputs, 11-field certificate object, 7 exclusion bases with per-base analysis, 7 verification conditions, full pseudo-schema, and A92 graph attachment rules).
+- `docs/AGENT_WORKLOG.md` — added this session entry.
+
+### Commands run
+
+```bash
+python3 scripts/check_claim_boundary_consistency.py
+python3 scripts/check_no_overclaiming.py
+python3 scripts/check_manifest_completeness.py
+python3 scripts/check_sha256_manifest_completeness.py
+bash scripts/make_manifest.sh
+```
+
+### Tests passed
+
+All 4 checks pass (boundary, overclaim, manifest, SHA256 after regeneration)
+
+### Tests failed
+
+None
+
+### Exact failure messages
+
+N/A
+
+### What worked
+
+1. Defined 7 required certificate inputs with definitions, locations, and status (5 DEFINED, 1 PARTIAL, 1 MISSING).
+2. Defined C_no_reentry certificate object with 11 fields, each with meaning, requirement level, status, gap type, and notes.
+3. Defined 7 exclusion bases (support containment, span decrease, middle-length incompatibility, boundary-rank obstruction, type-rank obstruction, recurrence-depth obstruction, routing incompatibility) — each with what it must prove, which M_NW\* coordinate it uses, and current doc status.
+4. Defined 7 verification conditions that a valid certificate must satisfy, including the critical disjunction (if M_NW\* decrease already holds, certificate is optional).
+5. Created a full pseudo-schema with measure coordinates, blocked re-entry types, and source theorem citations.
+6. Defined the attachment protocol linking the certificate to A92 graph edges via identifier consistency checks.
+
+### What did not work
+
+- All 7 exclusion bases are PROPOSED or MISSING — none is PROVED in existing docs.
+- The containment lemma (the strongest candidate) is PARTIAL: it proves support(Wwin) >= m+1 but does not prove support(NW1) subset B for each exit type.
+- "Routing incompatibility" (exclusion base 7) would require a comprehensive class-to-weighted-entry mapping that does not exist.
+- The pseudo-schema's blocked_reentry_types are heuristic — no formal proof that each entry condition is blocked by support_size alone.
+
+### Mathematical direction
+
+no mathematical change — proof-audit documentation only
+
+### Claim boundary
+
+finite-certificate verification and proof-engineering workspace only. No new proof claims. No-reentry certificate not proved, not claimed to exist.
+
+### Next recommended small task
+
+Verify which W-to-NW exit table rows have NW1 support strictly contained within B (the containment lemma precondition). This is the most actionable step toward a concrete no-reentry certificate.
+
+---
+
 ## Session: 2026-06-04 — define A92 return-path graph schema
 
 ### Current objective
