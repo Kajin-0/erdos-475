@@ -3,7 +3,7 @@
 ## Session metadata
 
 - **Branch**: `main`
-- **Starting commit**: `140b06e`
+- **Starting commit**: `140b06e` | **Final commit**: `88928ae`
 - **Date**: 2026-06-04
 - **Current objective**: Make the latest release-hardening state clean, deterministic, and reviewer-safe. Fix make_manifest.sh missing-trusted-file detection, add manifest policy tests, verify deleted logs are unreferenced, tighten policy, improve checker output, update docs, run full STRICT_CERT=1 verification, commit and push.
 
