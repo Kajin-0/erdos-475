@@ -1,5 +1,76 @@
 # Agent Worklog
 
+## Session: 2026-06-04 — analyze W-to-NW support containment for A92 no-reentry certificate
+
+### Current objective
+
+Analyze all 22 W-to-NW exit table rows to determine which have NW1 support strictly contained within B, the precondition for the support-containment no-reentry certificate basis. Classify each row, identify confirmed containment rows, and document the certificate potential for each.
+
+### Confirmed working path
+
+/tmp/erdos-475
+
+### Files read
+
+- docs/AGENT_WORKLOG.md
+- docs/analytic_weighted_to_nonweighted_exit_decrease_table.md
+- docs/final/F11_weighted_cut_selection_extraction.md
+- docs/final/F10_weighted_normal_form_cut_swap.md
+- docs/analytic_a92_no_reentry_certificate_schema.md
+- docs/analytic_a92_return_path_graph_schema.md
+
+### Files changed
+
+- `docs/analytic_a92_support_containment_analysis.md` — new file (22-row analysis table with support-containment classification, detailed per-row reasoning, 4-row summary, and certificate-eligible row identification).
+- `docs/AGENT_WORKLOG.md` — added this session entry.
+
+### Commands run
+
+```bash
+python3 scripts/check_claim_boundary_consistency.py
+python3 scripts/check_no_overclaiming.py
+python3 scripts/check_manifest_completeness.py
+python3 scripts/check_sha256_manifest_completeness.py
+bash scripts/make_manifest.sh
+```
+
+### Tests passed
+
+All 4 checks pass (boundary, overclaim, manifest, SHA256 after regeneration)
+
+### Tests failed
+
+None
+
+### What worked
+
+1. Classified all 22 W-to-NW exit rows by support containment: 3 confirmed YES (E15, E18, E19), 5 conditional (E7/E8/E10/E11/E12), 12 NO (E2-E6, E13, E14, E16, E17, E20-E22), 2 N/A terminal (E1, E9).
+2. E15 (R_k'=P_j', two-piece zero inside B) is the strongest candidate: explicit "inside B" doc statement, support_size(NW1) < m strict.
+3. E18/E19 (equal-prefix/equal-tail) are good candidates but have support_size(NW1) <= m (not strict), needing A89 for same-middle exclusion.
+4. Identified that 12 of 22 rows cannot use support-containment at all and need other exclusion bases or direct M_NW\* decrease.
+5. Per-row detailed reasoning documents exactly which atoms are involved and why containment does or does not apply.
+
+### What did not work
+
+- All 3 confirmed containment rows are YELLOW (not GREEN), meaning earlier-coordinate non-increase is still pending.
+- E15 is GREEN/YELLOW but only "if strict inside B" — the boundary case where equality occurs is still YELLOW.
+- The 5 conditional rows would need per-row case analysis beyond current doc maturity.
+- No-reentry certificates using support containment are still PROPOSED — analysis identifies candidates but does not construct certificates.
+
+### Mathematical direction
+
+no mathematical change — proof-audit documentation only
+
+### Claim boundary
+
+finite-certificate verification and proof-engineering workspace only. No-reentry certificate not proved, not claimed to exist.
+
+### Next recommended small task
+
+Construct concrete no-reentry certificate instances for E15, E18, and E19 using the support-containment basis template. These are the three rows where containment is already documented and the certificate validation path is simplest.
+
+---
+
 ## Session: 2026-06-04 (session 8) — replace vague rank language in F9.10 proof, resolve R5
 
 ### Current objective
