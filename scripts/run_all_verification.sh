@@ -33,6 +33,11 @@ if [[ "$STRICT_CERT" == "1" ]]; then
     exit 2
   fi
 
+  if [[ ! -s "$P29_B8_CERT" ]]; then
+    echo "[verify] strict mode requires nonempty $P29_B8_CERT" >&2
+    exit 2
+  fi
+
   if [[ ! -f MANIFEST.sha256 ]]; then
     echo "[verify] strict mode requires MANIFEST.sha256" >&2
     exit 2
@@ -102,13 +107,7 @@ if [[ ! -s "$CERT_FILE" ]]; then
   exit 2
 fi
 
-if [[ -f "$P29_B8_CERT" ]]; then
-  CERT_ARGS+=("$P29_B8_CERT")
-else
-  echo "[verify] missing optional p29 b8 certificate shard: $P29_B8_CERT" >&2
-  echo "[verify] p29 b8 is declared Tier 1; add this shard or set P29_B8_CERT" >&2
-  exit 2
-fi
+CERT_ARGS+=("$P29_B8_CERT")
 
 echo "[verify] checking minimal witnesses"
 "$PYTHON" scripts/verify_minimal_witnesses.py "${CERT_ARGS[@]}" \

@@ -29,6 +29,14 @@ local_artifacts/raw/
 
 # Research JSONL artifacts (large auto-generated files)
 logs/*.jsonl
+logs/*.log
+logs/*.tmp
+
+# Large raw local artifacts (committed metadata stays in local_artifacts/batch_manifest/)
+local_artifacts/**/*.jsonl
+local_artifacts/**/*.zip
+local_artifacts/**/*.tar
+local_artifacts/**/*.tar.gz
 
 # Temporary files
 *.tmp

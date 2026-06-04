@@ -91,7 +91,8 @@ def check_jsonl(path: Path, strict: bool) -> int:
             if strict:
                 for key in obj:
                     if key in UNTRUSTED_FIELDS:
-                        print(f"WARN {line_id}: strict mode found untrusted field {key!r}")
+                        print(f"ERROR {line_id}: strict mode rejects untrusted field {key!r}")
+                        errors += 1
 
     print(f"schema={path} rows={rows} errors={errors}")
     return errors
