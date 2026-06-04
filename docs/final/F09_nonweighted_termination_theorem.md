@@ -397,7 +397,7 @@ Let an obstruction state be nonterminal and non-weighted. Its class lies in the 
 
 If it is local zero/equal/pair/transported-prefix, Lemma F9.1 applies. If it is separated-equal or midpoint, Lemma F9.2 applies. If it is external collision, Lemma F9.3 applies. If it is recurrence, Lemma F9.4 applies. If it is bridge/gap, Lemma F9.5 applies.
 
-Every output either terminates, strictly decreases one of the coordinates of `M_NW^*`, enters another named class with a lower finite rank/depth tracked by `M_NW^*`, or exits to the weighted branch. Weighted exits terminate by Lemma F9.6.
+Every output either terminates, strictly decreases one of the coordinates of `M_NW^*`, enters another named class with a strictly lower `type_rank` (C10.3 table, F9.2) or `boundary_rank` (C10.5 table, F9.2), or strictly decreases one of the depth coordinates (`recurrence_depth`, `pair_depth`, `separated_depth`, `bridge_depth`) defined in F9.2, or exits to the weighted branch. Weighted exits terminate by Lemma F9.6.
 
 Since `M_NW^*` is lexicographic over nonnegative integers, it admits no infinite strictly decreasing chain. Since finite type/depth returns are included in the measure coordinates and bridge/recurrence ties are broken by F7/F8, no same-measure cycle remains. Therefore no infinite non-weighted obstruction path exists. ∎
 
@@ -491,7 +491,7 @@ R2. ✅ RESOLVED — type_rank and boundary_rank have explicit finite tables (C1
     and bridge_depth are defined as bounded consecutive-return counters in F9.2 above.
 R3. F11 must be hardened, because F9 depends on weighted termination.
 R4. Verify no F4--F8 output class is missing from F9.3.
-R5. Replace "lower finite rank/depth" with explicit rank inequalities in the final manuscript.
+R5. ✅ RESOLVED — "lower finite rank/depth" replaced with explicit type_rank (C10.3), boundary_rank (C10.5), and depth-coordinate references in F9.10 proof paragraph.
 ```
 
 Resolved or reduced:

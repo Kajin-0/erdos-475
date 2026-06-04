@@ -1,5 +1,68 @@
 # Agent Worklog
 
+## Session: 2026-06-04 (session 8) — replace vague rank language in F9.10 proof, resolve R5
+
+### Current objective
+
+Replace "lower finite rank/depth" in F9.10 proof paragraph with explicit references to type_rank table (C10.3), boundary_rank table (C10.5), and depth coordinates defined in F9.2. Mark R5 resolved.
+
+### Confirmed working path
+
+/tmp/erdos-475
+
+### Files read
+
+- README.md
+- docs/CLAIM_BOUNDARY.md
+- docs/VERIFIED_DOMAIN.md
+- docs/AGENT_WORKLOG.md
+- docs/ANALYTIC_PROGRESS_HANDOFF.md
+- docs/final/F09_nonweighted_termination_theorem.md (F9.3, F9.10, F9.12, F9.13, F9.14)
+- docs/source_theorem_ledger.md
+
+### Files changed
+
+- `docs/final/F09_nonweighted_termination_theorem.md` — F9.10 proof paragraph: replaced vague "lower finite rank/depth" with explicit "type_rank (C10.3 table, F9.2)", "boundary_rank (C10.5 table, F9.2)", and depth-coordinate references. F9.13: R5 marked ✅ RESOLVED.
+- `docs/AGENT_WORKLOG.md` — added this session entry.
+
+### Commands run
+
+```bash
+python3 scripts/check_claim_boundary_consistency.py
+python3 scripts/check_no_overclaiming.py
+python3 scripts/check_manifest_completeness.py
+python3 scripts/check_sha256_manifest_completeness.py
+bash scripts/make_manifest.sh
+```
+
+### Tests passed
+
+All 4 checks pass (boundary, overclaim, manifest, SHA256 after regeneration)
+
+### Tests failed
+
+None
+
+### What worked
+
+1. F9.10 proof now cites explicit rank tables instead of vague language.
+2. R5 resolved — last remaining extraction risk with a direct fix, along with R1 and R2.
+3. R3, R4 remain open (theorem dependencies, not documentation fixes).
+
+### Mathematical direction
+
+no mathematical change
+
+### Claim boundary
+
+finite-certificate verification and proof-engineering workspace only. No new proof claims.
+
+### Next recommended small task
+
+1. R4 — F4-F8 output class coverage check against F9.3 class universe.
+
+---
+
 ## Session: 2026-06-04 (session 7) — explicit finite orders for F9 depth/rank coordinates
 
 ### Current objective
