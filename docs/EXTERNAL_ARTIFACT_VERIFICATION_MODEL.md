@@ -101,12 +101,99 @@ This is compact deterministic generation evidence. It is weaker than a directly 
 
 The following labels should be used consistently in documentation.
 
-| Label | Meaning |
-|---|---|
-| `committed_ci_verified` | Raw artifact is in the repository and checked by Python and Rust in CI. |
+| Label                        | Meaning                                                                                        |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| `committed_ci_verified`      | Raw artifact is in the repository and checked by Python and Rust in CI.                        |
 | `external_jsonl_hash_backed` | Raw JSONL exists outside Git and is identified by SHA256, row count, expected count, and size. |
-| `summary_only_digest` | Deterministic generation summary exists with processed, solved, failed, and aggregate SHA256. |
-| `log_only` | Only pass logs or screenshots exist; not enough for durable artifact tracking. |
+| `summary_only_digest`        | Deterministic generation summary exists with processed, solved, failed, and aggregate SHA256.  |
+| `log_only`                   | Only pass logs or screenshots exist; not enough for durable artifact tracking.                 |
+
+## Per-class reproducibility details
+
+### Class: tier_1a_committed_repo_checkable (committed CI-verified)
+
+- **Artifact class**: tier_1a_committed_repo_checkable (also referred to as committed_ci_verified)
+- **Domain p, |B| range**: 17:3, 19:3-5, 23:3-9, 29:3-8, 31:3-6
+- **Expected filename**: `certificates/minimal_witnesses.jsonl` and `certificates/witnesses_p29_b08.jsonl`
+- **Expected byte size**: varies per commit; recorded in MANIFEST.sha256
+- **Expected SHA256**: recorded in MANIFEST.sha256
+- **Expected row count**: 247,416 total (136,375 + 111,041)
+- **Storage location**: committed in Git repository
+- **Local placement path**: same as filename
+- **Exact row-count command**: `wc -l certificates/minimal_witnesses.jsonl certificates/witnesses_p29_b08.jsonl`
+- **Exact hash-check command**: `sha256sum certificates/minimal_witnesses.jsonl certificates/witnesses_p29_b08.jsonl`
+- **Exact Python verifier command**:
+  ```bash
+  python scripts/verify_minimal_witnesses.py \
+    certificates/minimal_witnesses.jsonl \
+    certificates/witnesses_p29_b08.jsonl \
+    --domain 17:3 --domain 19:3-5 --domain 23:3-9 \
+    --domain 29:3-8 --domain 31:3-6 \
+    --require-canonical --require-coverage
+  ```
+- **Exact Rust verifier command**:
+  ```bash
+  cd rust-verifier && cargo run --release -- \
+    ../certificates/minimal_witnesses.jsonl \
+    ../certificates/witnesses_p29_b08.jsonl \
+    --domain 17:3 --domain 19:3-5 --domain 23:3-9 \
+    --domain 29:3-8 --domain 31:3-6 \
+    --require-canonical --require-coverage
+  ```
+- **Full coverage checking**: feasible and required
+- **Row-level verification**: feasible and required
+- **Publication claims may depend on it**: yes, for the committed domain subset
+- **Weaker than committed CI verification**: N/A — this is the committed CI standard
+
+### Class: tier_1b_verified_external_jsonl (external JSONL hash-backed)
+
+- **Artifact class**: tier_1b_verified_external_jsonl
+- **Domain p, |B| range**: 29:9-15, 31:7-16
+- **Expected filename**: varies per domain (see `docs/EXTERNAL_ARTIFACT_LEDGER.md`)
+- **Expected byte size**: recorded in external artifact ledger
+- **Expected SHA256**: recorded in external artifact ledger
+- **Expected row count**: recorded in external artifact ledger
+- **Storage location**: local filesystem or external storage; NOT committed to Git
+- **Local placement path**: `local_artifacts/` directory convention
+- **Exact row-count command**: `wc -l <artifact_path>.jsonl`
+- **Exact hash-check command**: `sha256sum <artifact_path>.jsonl`
+- **Exact Python verifier command**:
+  ```bash
+  python scripts/verify_minimal_witnesses.py \
+    <artifact_path>.jsonl \
+    --domain <p>:<b_min>-<b_max> \
+    --require-canonical --require-coverage
+  ```
+- **Exact Rust verifier command** (if artifact is locally available and Rust toolchain is installed):
+  ```bash
+  cd rust-verifier && cargo run --release -- \
+    ../<artifact_path>.jsonl \
+    --domain <p>:<b_min>-<b_max> \
+    --require-canonical --require-coverage
+  ```
+- **Full coverage checking**: feasible when the artifact is locally available
+- **Row-level verification**: feasible when the artifact is locally available
+- **Publication claims may depend on it**: yes, for the full declared frontier
+- **What remains weaker than committed CI verification**: the artifact is not in Git and cannot be verified by CI without manual artifact placement; hash integrity is recorded but not automatically rechecked by CI
+
+### Class: tier_1b_verified_summary_digest (summary-only deterministic digest)
+
+- **Artifact class**: tier_1b_verified_summary_digest
+- **Domain p, |B|**: 31:17
+- **Expected filename**: `p31_b17_summary_only_pass.txt`
+- **Expected byte size**: small (text summary)
+- **Expected SHA256**: recorded in external artifact ledger
+- **Expected row count**: processed=3,991,995, solved=3,991,995, failed=0
+- **Storage location**: `local_artifacts/summary_only/` or external; NOT committed to Git
+- **Local placement path**: `local_artifacts/summary_only/p31_b17_summary_only_pass.txt`
+- **Exact row-count command**: parsed from summary log (processed line)
+- **Exact hash-check command**: `sha256sum p31_b17_summary_only_pass.txt`
+- **Exact Python verifier command**: not applicable (no raw JSONL); verifier used during generation
+- **Exact Rust verifier command**: not applicable
+- **Full coverage checking**: not feasible from summary alone; deterministic regeneration required
+- **Row-level verification**: not feasible from summary alone
+- **Publication claims may depend on it**: only if the deterministic generation protocol is accepted as sufficient evidence
+- **What remains weaker than committed CI verification**: no committed raw artifact; no independent row-level rechecking without regenerating the entire artifact; relies on generator correctness
 
 ## Promotion rules
 

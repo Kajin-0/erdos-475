@@ -115,6 +115,14 @@ python scripts/check_manifest_completeness.py
 python scripts/check_sha256_manifest_completeness.py
 ```
 
+The SHA256 checker reads `release/manifest_policy.json` and verifies all trusted files, no forbidden files, no excluded paths, and no self-entry.
+
+Required command (regenerate manifest from policy):
+
+```bash
+bash scripts/make_manifest.sh
+```
+
 ## 4d. Overclaim detection
 
 ```text
@@ -180,7 +188,22 @@ STRICT_CERT=1 bash scripts/run_all_verification.sh
 [ ] Certificate claims are described as direct machine-checkable witness verification, not AI-derived mathematical authority.
 ```
 
-## 8. External database-link readiness
+## 8. Makefile targets
+
+```text
+[ ] make verify passes
+[ ] make verify-strict passes
+[ ] make verify-python passes
+[ ] make validate-schema passes
+[ ] make audit-counts passes
+[ ] make check-manifest passes
+[ ] make check-claims passes
+[ ] make test passes
+[ ] make manifest regenerates MANIFEST.sha256 from policy
+[ ] make release-audit passes (full suite)
+```
+
+## 9. External database-link readiness
 
 Before opening an issue or PR in `teorth/erdosproblems`, the recommended minimum is:
 
@@ -188,7 +211,8 @@ Before opening an issue or PR in `teorth/erdosproblems`, the recommended minimum
 [ ] certificates/minimal_witnesses.jsonl exists and is nonempty.
 [ ] Python verifier passes.
 [ ] Rust verifier passes.
-[ ] MANIFEST.sha256 exists and passes.
+[ ] release/manifest_policy.json exists and is valid.
+[ ] MANIFEST.sha256 exists and passes policy coverage check.
 [ ] STRICT_CERT=1 bash scripts/run_all_verification.sh passes.
 [ ] README.md and docs/CLAIM_BOUNDARY.md explicitly say this is not a complete proof.
 ```

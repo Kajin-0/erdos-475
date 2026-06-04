@@ -1,72 +1,21 @@
 #!/usr/bin/env python3
-"""Check MANIFEST.sha256 completeness and consistency.
+"""Check MANIFEST.sha256 against release/manifest_policy.json.
 
-Validates:
-  - MANIFEST.sha256 exists
+Reads the policy file and verifies:
+  - every trusted release file is in the manifest
+  - no forbidden files (never_in_manifest) appear
+  - no excluded-path patterns match manifest entries
   - every referenced file exists
   - no duplicate entries
-  - every trusted release file is included
-  - every included hash matches current content
-  - trusted certificate artifacts are included
-  - trusted scripts are included
-  - trusted docs are included
-  - tests are included
-  - CI workflow is included
-  - MANIFEST.required is included
-  - certificates/verified_domains.json is included
-
-Trusted release files list is maintained at the top of this script.
-
-Usage:
-    check_sha256_manifest_completeness.py [MANIFEST.sha256]
+  - every hash matches current file content
 """
-
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import hashlib
+import json
 from pathlib import Path
-
-TRUSTED_RELEASE_FILES = [
-    "README.md",
-    "MANIFEST.required",
-    ".github/workflows/verify.yml",
-    "certificates/verified_domains.json",
-    "certificates/minimal_witnesses.jsonl",
-    "certificates/witnesses_p29_b08.jsonl",
-    "scripts/run_all_verification.sh",
-    "scripts/verify_minimal_witnesses.py",
-    "scripts/validate_certificate_schema.py",
-    "scripts/audit_canonical_counts.py",
-    "scripts/check_required_artifacts.py",
-    "scripts/check_manifest_completeness.py",
-    "scripts/check_sha256_manifest_completeness.py",
-    "scripts/check_claim_boundary_consistency.py",
-    "scripts/check_no_overclaiming.py",
-    "scripts/ci_classify.sh",
-    "scripts/reduction_residue_audit.py",
-    "scripts/sweep_coverage_sandwich.py",
-    "rust-verifier/Cargo.toml",
-    "rust-verifier/src/main.rs",
-    "tests/__init__.py",
-    "tests/test_verify_minimal_witnesses.py",
-    "tests/test_validate_certificate_schema.py",
-    "tests/test_audit_canonical_counts.py",
-    "docs/CLAIM_BOUNDARY.md",
-    "docs/VERIFIED_DOMAIN.md",
-    "docs/TRUST_MODEL.md",
-    "docs/AI_PROVENANCE.md",
-    "docs/EFFECTIVE_FINITE_COMPLETION_THEOREM.md",
-    "docs/COVERAGE_SANDWICH_LEMMA.md",
-    "docs/SOURCE_EXTRACTION_PRIME_FIELD.md",
-    "docs/EXTERNAL_REVIEW_PACKET.md",
-    "docs/EXTERNAL_ARTIFACT_LEDGER.md",
-    "docs/EXTERNAL_ARTIFACT_VERIFICATION_MODEL.md",
-    "docs/FINITE_FRONTIER_STATUS.md",
-    "docs/RELEASE_AUDIT_REPORT.md",
-    "docs/RELEASE_HARDENING_CHECKLIST.md",
-    "data/literature_coverage.json",
-]
 
 
 def compute_sha256(path: Path) -> str:
@@ -96,18 +45,45 @@ def parse_sha256_manifest(path: Path) -> dict[str, str]:
     return entries
 
 
+def load_policy(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("manifest", nargs="?", default="MANIFEST.sha256")
+    ap.add_argument("--policy", default="release/manifest_policy.json")
     args = ap.parse_args()
 
     manifest = Path(args.manifest)
+    policy_path = Path(args.policy)
+
     if not manifest.exists():
         print(f"ERROR missing manifest: {manifest}")
         return 2
+    if not policy_path.exists():
+        print(f"ERROR missing policy: {policy_path}")
+        return 2
+
+    policy = load_policy(policy_path)
+    trusted = set(policy.get("trusted_release_files", []))
+    never = set(policy.get("never_in_manifest", []))
+    excluded = policy.get("excluded_path_globs", [])
 
     entries = parse_sha256_manifest(manifest)
     failures: list[str] = []
+
+    # Check no never_in_manifest files
+    for filepath in never:
+        if filepath in entries:
+            failures.append(f"forbidden file in manifest: {filepath}")
+
+    # Check no excluded-path patterns match
+    for filepath in entries:
+        for pat in excluded:
+            if fnmatch.fnmatch(filepath, pat):
+                failures.append(f"excluded path in manifest: {filepath} matches {pat!r}")
+                break
 
     # Check every referenced file exists
     for filepath in entries:
@@ -115,14 +91,12 @@ def main() -> int:
             failures.append(f"missing file referenced in manifest: {filepath}")
 
     # Check trusted release files are included
-    for trusted in TRUSTED_RELEASE_FILES:
-        if trusted not in entries:
-            failures.append(f"trusted release file missing from manifest: {trusted}")
+    for trusted_path in sorted(trusted):
+        if trusted_path not in entries:
+            failures.append(f"trusted release file missing from manifest: {trusted_path}")
 
-    # Verify hashes (skip MANIFEST.sha256 — self-referential hash)
+    # Verify hashes
     for filepath, expected_hex in entries.items():
-        if filepath == "MANIFEST.sha256":
-            continue
         fp = Path(filepath)
         if not fp.exists():
             continue
@@ -136,7 +110,7 @@ def main() -> int:
             print(f"  - {f}")
         return 2
 
-    print(f"PASS SHA256 manifest completeness: {len(entries)} entries, {len(TRUSTED_RELEASE_FILES)} trusted files")
+    print(f"PASS SHA256 manifest completeness: {len(trusted)} trusted files, {len(entries)} manifest entries, no self-entry")
     return 0
 
 

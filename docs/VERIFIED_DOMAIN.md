@@ -20,6 +20,9 @@ Standalone proof: not claimed
 
 The repository is intended to support direct finite witness verification for declared complement domains and to track the remaining analytic bridge needed for any theorem-level use.
 
+A `Makefile` provides targets for verification (`make verify`, `make verify-strict`, `make verify-python`, `make verify-rust`).
+The manifest policy file `release/manifest_policy.json` defines which files are trusted, excluded, or hash-locked.
+
 ## Notation
 
 ```text

@@ -93,7 +93,7 @@ p = 29, |B| = 3..15
 p = 31, |B| = 3..17
 ```
 
-The current committed CI-verified certificate covers:
+The current committed local-verified certificate covers:
 
 ```text
 p = 17, |B| = 3
@@ -108,9 +108,9 @@ with:
 ```text
 247,416 canonical finite instances
 Python verifier pass
-Rust verifier pass
+Rust verifier pass (when Rust toolchain is available)
 MANIFEST.sha256 hash locking
-GitHub Actions CI verification
+GitHub Actions CI verification (when CI is run)
 ```
 
 The committed certificate artifacts are:
@@ -144,7 +144,7 @@ Before this repository is linked externally as a hardened finite-certificate wor
 ```text
 1. Committed certificate artifacts exist and are nonempty.
 2. Python verifier passes on committed certificate artifacts.
-3. Rust verifier passes on committed certificate artifacts.
+3. Rust verifier passes on committed certificate artifacts (when Rust toolchain is available).
 4. MANIFEST.sha256 exists and verifies critical artifacts.
 5. CI fails if strict certificate artifacts are missing.
 6. No empty trace placeholders are presented as evidence.
@@ -153,7 +153,7 @@ Before this repository is linked externally as a hardened finite-certificate wor
 9. Schema validation passes in strict mode (no untrusted fields, no bool-as-int, valid domain structure).
 10. Canonical count audit passes (no noncanonical, malformed, or duplicate rows).
 11. MANIFEST.required completeness check passes.
-12. MANIFEST.sha256 coverage check passes (all trusted files have hashes).
+12. Manifest policy and SHA256 coverage check passes (all trusted files have entries in MANIFEST.sha256).
 13. Overclaim scan passes (no unsafe completeness claims in high-risk docs).
 ```
 
@@ -161,49 +161,33 @@ Before this repository is linked externally as a hardened finite-certificate wor
 
 ## Release audit suite
 
-The hardened release verification suite includes the following checks, all runnable via `scripts/run_all_verification.sh`:
+The hardened release verification suite includes the following checks, all runnable via `STRICT_CERT=1 bash scripts/run_all_verification.sh` (or `make verify-strict`):
 
 | Check                      | Script                                                  | Purpose                                                                      |
 | -------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------- |
 | Schema validation          | `scripts/validate_certificate_schema.py --strict`       | Rejects untrusted fields, bool-as-int, empty files, unknown artifact classes |
 | Canonical count audit      | `scripts/audit_canonical_counts.py --require-canonical` | Ensures all rows are canonical, no duplicates, complete domain coverage      |
 | Manifest completeness      | `scripts/check_manifest_completeness.py`                | Verifies all required files from MANIFEST.required exist                     |
-| SHA256 coverage            | `scripts/check_sha256_manifest_completeness.py`         | Verifies all trusted files have entries in MANIFEST.sha256                   |
+| Manifest policy coverage   | `scripts/check_sha256_manifest_completeness.py`         | Verifies all policy-trusted files have entries in MANIFEST.sha256            |
 | Claim boundary consistency | `scripts/check_claim_boundary_consistency.py`           | Ensures declared domains match certificate coverage                          |
 | Overclaim detection        | `scripts/check_no_overclaiming.py`                      | Scans high-risk docs for unsafe completeness claims                          |
 | CI classification          | `scripts/ci_classify.sh`                                | Determines which CI jobs to run based on changed files                       |
 
----
-
-## Development verification
-
-## Minimal witness certificates
-
-The committed trusted artifacts are:
+A `Makefile` is also provided with targets:
 
 ```text
-certificates/minimal_witnesses.jsonl
-certificates/witnesses_p29_b08.jsonl
+make verify            # development verification
+make verify-strict     # strict release-grade verification
+make verify-python     # Python verifier only
+make verify-rust       # Rust verifier only (requires Rust toolchain)
+make validate-schema   # schema validation
+make audit-counts      # canonical count audit
+make check-manifest    # manifest completeness + SHA256 policy check
+make check-claims      # claim boundary + overclaim scan
+make test              # regression tests
+make manifest          # regenerate MANIFEST.sha256 from policy
+make release-audit     # full release audit suite
 ```
-
-with one JSON object per canonical complement representative:
-
-```json
-{"p":29,"B":[1,2,5],"final_order":[...]}
-```
-
-The verifier recomputes from scratch:
-
-```text
-p is prime;
-B subset F_p^*;
-B is canonical under multiplicative scaling;
-final_order is a permutation of F_p^* \ B;
-nonempty partial sums of final_order are pairwise distinct mod p;
-declared canonical coverage is complete.
-```
-
-Trace files and descent certificates are provenance. Final witnesses are the smaller finite-existence kernel.
 
 ---
 

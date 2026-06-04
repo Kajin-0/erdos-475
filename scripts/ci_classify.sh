@@ -7,6 +7,9 @@
 #
 # Exits with docs_only=true if EVERY changed file is a safe low-risk doc
 # that can skip heavy finite-certificate verification.
+#
+# Trusted release files (docs, scripts, certs, tests, CI, policy) are
+# never classified as docs-only.
 
 set -euo pipefail
 

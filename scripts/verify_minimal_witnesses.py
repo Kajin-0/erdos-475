@@ -6,6 +6,7 @@ Certificate JSONL schema:
     {"p": 29, "B": [1,2,5], "final_order": [...]}
 
 The checker recomputes all trusted properties from scratch.
+Uses strict type checking: no bool-as-int, no string coercion, no floats.
 
 One or more JSONL files may be supplied. Duplicate `(p,B)` witnesses are
 rejected across all input files unless `--allow-duplicates` is passed.
@@ -38,6 +39,16 @@ def is_prime(n: int) -> bool:
     return True
 
 
+def is_strict_int(val: Any) -> bool:
+    return isinstance(val, int) and not isinstance(val, bool)
+
+
+def is_strict_int_list(val: Any) -> bool:
+    if not isinstance(val, list):
+        return False
+    return all(is_strict_int(x) for x in val)
+
+
 def parse_domain(text: str) -> tuple[int, range]:
     left, right = text.split(":", 1)
     p = int(left)
@@ -65,25 +76,34 @@ def all_canonical_B(p: int, k: int) -> set[tuple[int, ...]]:
     return out
 
 
-def as_int_list(value: Any, field: str, line_id: str) -> list[int]:
-    if not isinstance(value, list):
-        raise ValueError(f"{line_id}: field {field!r} must be a list")
-    try:
-        return [int(x) for x in value]
-    except (TypeError, ValueError) as exc:
-        raise ValueError(f"{line_id}: field {field!r} contains non-integers") from exc
-
-
 def verify_record(raw: dict[str, Any], line_id: str, require_canonical: bool) -> tuple[int, tuple[int, ...]]:
-    try:
-        p = int(raw["p"])
-    except (KeyError, TypeError, ValueError) as exc:
-        raise ValueError(f"{line_id}: missing/invalid p") from exc
+    p_raw = raw.get("p")
+    if p_raw is None:
+        raise ValueError(f"{line_id}: missing p")
+    if not is_strict_int(p_raw):
+        raise ValueError(f"{line_id}: p must be an integer (not bool, string, or float), got {type(p_raw).__name__}")
+    p = p_raw
+    if p < 2:
+        raise ValueError(f"{line_id}: p={p} must be >= 2")
     if not is_prime(p):
         raise ValueError(f"{line_id}: p={p} is not prime")
 
-    B = tuple(sorted(as_int_list(raw.get("B"), "B", line_id)))
-    order = as_int_list(raw.get("final_order"), "final_order", line_id)
+    B_raw = raw.get("B")
+    if B_raw is None:
+        raise ValueError(f"{line_id}: missing B")
+    if not isinstance(B_raw, list):
+        raise ValueError(f"{line_id}: B must be a list, got {type(B_raw).__name__}")
+    if not is_strict_int_list(B_raw):
+        raise ValueError(f"{line_id}: B must contain only integers (not bools, strings, or floats)")
+    B = tuple(sorted(B_raw))
+
+    order_raw = raw.get("final_order")
+    if order_raw is None:
+        raise ValueError(f"{line_id}: missing final_order")
+    if not isinstance(order_raw, list):
+        raise ValueError(f"{line_id}: final_order must be a list, got {type(order_raw).__name__}")
+    if not is_strict_int_list(order_raw):
+        raise ValueError(f"{line_id}: final_order must contain only integers (not bools, strings, or floats)")
 
     universe = set(range(1, p))
     B_set = set(B)
@@ -96,9 +116,9 @@ def verify_record(raw: dict[str, Any], line_id: str, require_canonical: bool) ->
         raise ValueError(f"{line_id}: B is not canonical under scaling: {B}")
 
     A = universe - B_set
-    if Counter(order) != Counter(A):
-        missing = sorted(A - set(order))
-        extra = sorted(set(order) - A)
+    if Counter(order_raw) != Counter(A):
+        missing = sorted(A - set(order_raw))
+        extra = sorted(set(order_raw) - A)
         raise ValueError(
             f"{line_id}: final_order is not permutation of F_p^*\\B; "
             f"missing={missing} extra={extra}"
@@ -106,7 +126,7 @@ def verify_record(raw: dict[str, Any], line_id: str, require_canonical: bool) ->
 
     partials: list[int] = []
     s = 0
-    for x in order:
+    for x in order_raw:
         s = (s + x) % p
         partials.append(s)
     if len(partials) != len(set(partials)):
@@ -149,6 +169,8 @@ def main() -> int:
                     raw = json.loads(line)
                 except json.JSONDecodeError as exc:
                     raise ValueError(f"{line_id}: invalid JSON: {exc}") from exc
+                if not isinstance(raw, dict):
+                    raise ValueError(f"{line_id}: root JSON value is not an object")
                 key = verify_record(raw, line_id, args.require_canonical)
                 if key in seen and not args.allow_duplicates:
                     raise ValueError(

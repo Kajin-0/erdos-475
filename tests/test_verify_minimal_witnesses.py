@@ -27,7 +27,7 @@ def run_verifier(lines: list[str], extra: list[str] | None = None) -> subprocess
 def test_rejects_non_prime_p():
     r = run_verifier(['{"p": 1, "B": [2], "final_order": [3]}'])
     assert r.returncode != 0
-    assert "not prime" in r.stderr
+    assert "must be >= 2" in r.stderr or "not prime" in r.stderr
 
 
 def test_rejects_duplicates_in_B():
@@ -74,3 +74,51 @@ def test_accepts_valid_witness():
     r = run_verifier(['{"p": 7, "B": [1], "final_order": [2, 3, 5, 4, 6]}'])
     assert r.returncode == 0
     assert "PASS" in r.stdout
+
+
+def test_rejects_p_as_bool():
+    r = run_verifier(['{"p": true, "B": [1], "final_order": [2, 3]}'])
+    assert r.returncode != 0
+    assert "bool" in r.stderr.lower() or "integer" in r.stderr.lower()
+
+
+def test_rejects_b_contains_bool():
+    r = run_verifier(['{"p": 7, "B": [1, true], "final_order": [2, 3, 4, 5, 6]}'])
+    assert r.returncode != 0
+    assert "bool" in r.stderr.lower() or "integer" in r.stderr.lower()
+
+
+def test_rejects_final_order_contains_bool():
+    r = run_verifier(['{"p": 7, "B": [1], "final_order": [2, true, 3, 4, 5, 6]}'])
+    assert r.returncode != 0
+    assert "bool" in r.stderr.lower() or "integer" in r.stderr.lower()
+
+
+def test_rejects_p_as_string():
+    r = run_verifier(['{"p": "17", "B": [1], "final_order": [2, 3]}'])
+    assert r.returncode != 0
+    assert "integer" in r.stderr.lower()
+
+
+def test_rejects_B_contains_string():
+    r = run_verifier(['{"p": 7, "B": ["1", 2], "final_order": [3, 4, 5, 6]}'])
+    assert r.returncode != 0
+    assert "integer" in r.stderr.lower()
+
+
+def test_rejects_final_order_contains_string():
+    r = run_verifier(['{"p": 7, "B": [1], "final_order": ["3", 4, 5, 6, 2]}'])
+    assert r.returncode != 0
+    assert "integer" in r.stderr.lower()
+
+
+def test_rejects_root_array():
+    r = run_verifier(['["not", "an", "object"]'])
+    assert r.returncode != 0
+    assert "object" in r.stderr.lower()
+
+
+def test_rejects_non_int_float():
+    r = run_verifier(['{"p": 7.0, "B": [1], "final_order": [2, 3, 4, 5, 6]}'])
+    assert r.returncode != 0
+    assert "integer" in r.stderr.lower()

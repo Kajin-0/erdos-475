@@ -8,9 +8,9 @@ This is a finite-artifact status document only.
 
 It does not claim a complete proof of Erdős 475. It does not claim that the analytic residue has been fully reduced to the finite domains listed here.
 
-## Committed CI-verified finite certificates
+## Committed local-verified finite certificates
 
-The repository currently has committed JSONL certificates checked by both the Python and Rust verifiers in CI for:
+The repository currently has committed JSONL certificates checked by the Python verifier (and by the Rust verifier when a Rust toolchain is available) for:
 
 ```text
 p = 17, |B| = 3
@@ -73,17 +73,17 @@ Total source-side frontier represented by external artifacts:
 
 ## Status by domain
 
-| Domain | Canonical instances | Status |
-|---:|---:|---|
-| 17:3 | 35 | committed CI verified |
-| 19:3..5 | 694 | committed CI verified |
-| 23:3..9 | 49,913 | committed CI verified |
-| 29:3..7 | 60,118 | committed CI verified |
-| 29:8 | 111,041 | committed CI verified; source artifact also recorded externally |
-| 29:9..15 | 6,676,265 | external JSONL hash-backed evidence |
-| 31:3..6 | 25,615 | committed CI verified |
-| 31:7..16 | 25,303,591 | external JSONL hash-backed evidence |
-| 31:17 | 3,991,995 | summary-only deterministic digest evidence |
+|   Domain | Canonical instances | Status                                                          |
+| -------: | ------------------: | --------------------------------------------------------------- |
+|     17:3 |                  35 | committed CI verified                                           |
+|  19:3..5 |                 694 | committed CI verified                                           |
+|  23:3..9 |              49,913 | committed CI verified                                           |
+|  29:3..7 |              60,118 | committed CI verified                                           |
+|     29:8 |             111,041 | committed CI verified; source artifact also recorded externally |
+| 29:9..15 |           6,676,265 | external JSONL hash-backed evidence                             |
+|  31:3..6 |              25,615 | committed CI verified                                           |
+| 31:7..16 |          25,303,591 | external JSONL hash-backed evidence                             |
+|    31:17 |           3,991,995 | summary-only deterministic digest evidence                      |
 
 ## Interpretation
 

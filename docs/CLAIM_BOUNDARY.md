@@ -82,13 +82,15 @@ Before the repository is linked externally as a hardened finite-certificate work
 
 ```text
 1. certificates/minimal_witnesses.jsonl exists and is nonempty.
-2. Python verifier passes on committed certificate artifacts.
-3. Rust verifier passes on committed certificate artifacts.
-4. MANIFEST.sha256 exists and verifies critical artifacts.
-5. CI fails if strict certificate artifacts are missing.
-6. No empty trace placeholders are presented as evidence.
-7. README.md, docs/VERIFIED_DOMAIN.md, and this file are synchronized.
-8. certificates/verified_domains.json remains the single source of truth for finite-domain audit rules.
+2. certificates/witnesses_p29_b08.jsonl exists and is nonempty.
+3. Python verifier passes on committed certificate artifacts with self-contained strict type checks.
+4. Rust verifier passes on committed certificate artifacts (when Rust toolchain is available).
+5. release/manifest_policy.json exists and defines trusted files.
+6. MANIFEST.sha256 exists and passes policy coverage check (no self-entry, no forbidden files).
+7. CI runs STRICT_CERT=1 as the primary release gate.
+8. No empty trace placeholders are presented as evidence.
+9. README.md, docs/VERIFIED_DOMAIN.md, and this file are synchronized.
+10. certificates/verified_domains.json remains the single source of truth for finite-domain audit rules.
 ```
 
 ## AI disclosure
