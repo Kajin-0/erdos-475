@@ -747,6 +747,94 @@ Config available:
 
 ---
 
+## Session: 2026-06-04 — define A92 return-path graph schema
+
+### Current objective
+
+Create a precise schema document (`docs/analytic_a92_return_path_graph_schema.md`) defining the finite directed graph for the A92 return-path model: vertices, edges, labels, admissibility rules, forbidden transitions, required annotations, and output classification.
+
+### Confirmed working path
+
+/tmp/erdos-475
+
+### Files read
+
+- README.md
+- docs/CLAIM_BOUNDARY.md
+- docs/VERIFIED_DOMAIN.md
+- docs/AGENT_WORKLOG.md
+- docs/ANALYTIC_PROGRESS_HANDOFF.md
+- docs/analytic_weighted_exit_audit_interface.md
+- docs/analytic_a90_a94_formalization_obligation_ledger.md
+- docs/analytic_a92_finite_return_path_model.md
+- docs/analytic_f9_f11_mutual_induction_convention.md
+- docs/analytic_weighted_to_nonweighted_exit_decrease_table.md
+- docs/final/F09_nonweighted_termination_theorem.md
+- docs/final/F10_weighted_normal_form_cut_swap.md
+- docs/final/F11_weighted_cut_selection_extraction.md
+
+### Filename note
+
+Expected F10 filename `F10_weighted_normal_form_fixed_cut_swap.md` does not exist. Actual: `F10_weighted_normal_form_cut_swap.md`. Expected F11 filename `F11_weighted_cut_selection_termination.md` does not exist. Actual: `F11_weighted_cut_selection_extraction.md`. Previously recorded.
+
+### Files changed
+
+- `docs/analytic_a92_return_path_graph_schema.md` — new file (finite directed graph schema G_A92 = (V,E,Lambda) with 6 vertex types, 7 edge types, 14 label fields, vertex/edge count bounds, admissibility rules for each edge type, 4 forbidden transition categories, 6 output classifications including OPEN_PERSISTENT_BRANCH, and a complete pseudo-schema for a return-path certificate).
+- `docs/AGENT_WORKLOG.md` — added this session entry.
+
+### Commands run
+
+```bash
+python3 scripts/check_claim_boundary_consistency.py
+python3 scripts/check_no_overclaiming.py
+python3 scripts/check_manifest_completeness.py
+python3 scripts/check_sha256_manifest_completeness.py
+bash scripts/make_manifest.sh
+```
+
+### Tests passed
+
+All 4 checks pass (boundary, overclaim, manifest, SHA256 after regeneration)
+
+### Tests failed
+
+None
+
+### Exact failure messages
+
+N/A
+
+### What worked
+
+1. Defined G_A92 = (V, E, Lambda) with 6 vertex types (ENTRY, CUT_STATE, WEIGHTED_RETURN, NONWEIGHTED_RETURN, TERMINAL, FORBIDDEN) and 7 edge types (CUT_SWAP, ROUTING, WEIGHTED_DESCENT, NONWEIGHTED_EXIT, NONWEIGHTED_DESCENT, TERMINAL_EXIT, FORBIDDEN_REENTRY).
+2. Defined 14 edge label fields with types and source citations.
+3. Proposed conservative vertex bound: |V| <= 1 + (m-1) + t + n + 2, and edge bound: O(m + p).
+4. Defined per-type admissibility rules with explicit conditions for NONWEIGHTED_EXIT (must satisfy M_NW\* decrease or no-reentry certificate).
+5. Defined 4 forbidden transition categories (same-middle non-pattern return, NW→W(j>=m) without decrease, cyclic same-measure NW path, unlabeled edges).
+6. Defined 6 output classifications including OPEN_PERSISTENT_BRANCH to prevent overclaiming.
+7. Created a complete pseudo-schema with all fields needed for a return-path certificate.
+
+### What did not work
+
+- All graph definitions remain PROPOSED. No vertex set, edge set, or bound has a formal proof.
+- Vertex bound O(m + p) is conservative but relies on the finiteness of the F3 class universe for a fixed p, which is informal.
+- FORBIDDEN_REENTRY edges are a schema marker — there is no proof that such transitions do not occur in actual weighted cores.
+- No-reentry certificate schema is still MISSING (deferred to a later session).
+
+### Mathematical direction
+
+no mathematical change — proof-audit documentation only
+
+### Claim boundary
+
+finite-certificate verification and proof-engineering workspace only. No new proof claims. A92 not proved, not claimed closed.
+
+### Next recommended small task
+
+Formalize the no-reentry certificate schema as a separate document. It is the last foundational missing piece: the vertex/edge graph is now defined, but the mutual-induction interface option 5 (no-reentry certificate) has no schema.
+
+---
+
 ## Session: 2026-06-04 — A92 finite return-path model extraction
 
 ### Current objective
