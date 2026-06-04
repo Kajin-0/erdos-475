@@ -1,6 +1,6 @@
 # Analytic Progress Handoff
 
-Last audited: 2026-06-04 (surgery lemma verified — block_reverse covers 100%, insertion existence theorem proved constructively, status GREEN/YELLOW)
+Last audited: 2026-06-04 (formal algebraic proof of Lemma 5.1 complete — insertion cut-cover route at GREEN, all components closed)
 
 This is the single high-level context document for analytic proof progress in this repository.
 
@@ -34,7 +34,7 @@ F8 bridge/gap routing:             YELLOW; measure embedding clarified, endpoint
 F9 non-weighted termination:        ORANGE; edge-by-edge global rank table pending.
 F10/F11 weighted termination:       ORANGE; controlled-exit form exists, W-to-NW exit table pending.
 Analytic residue bridge:            RED; no effective theorem-to-finite-domain extraction yet.
-Insertion cut-cover route:          GREEN/YELLOW; three necessary conditions proven, surgery lemma proved (100% empirical, 5,073/5,073), existence theorem proved constructively; formal algebraic case analysis still open.
+Insertion cut-cover route:          GREEN; three necessary conditions proven (Thm 2.1-2.3), surgery lemma proved algebraically (Lemma 5.1, five-case analysis + impossibility of all-swaps-fail), existence theorem proved constructively (Thm 5.3); 5,073/5,073 empirical. All components closed.
 ```
 
 ### Main conclusion
@@ -44,7 +44,8 @@ Do not restart endpoint-local case analysis unless a concrete algebraic error is
 The current analytic blocker is global termination, especially the F9/F11 mutual-induction interface.
 Completed analytic artifacts:
   - docs/analytic_weighted_to_nonweighted_exit_decrease_table.md (done)
-  - insertion cut-cover existence theorem (done — GREEN/YELLOW, 5,073/5,073)
+  - insertion cut-cover existence theorem (done — GREEN, 5,073/5,073)
+  - formal algebraic proof of Lemma 5.1 (done — §5, five-case analysis)
 The highest-value next analytic artifact is:
 
   Template T1 external cancellation reduction (a,b,z,J -> z,a,b,J)
@@ -52,8 +53,8 @@ The highest-value next analytic artifact is:
 
 The highest-value independent experimental/math artifact is:
 
-  Formal algebraic proof of Lemma 5.1 (block_reverse preserves validity)
-  See: docs/analytic_insertion_existence_proof.md §Surgery Lemma
+  A90-A94 minimal-path formalization (F11 weak cut-rigidity closure)
+  See: docs/ANALYTIC_PROGRESS_HANDOFF.md §R3
 ```
 
 ### Most important known corrections
@@ -79,6 +80,13 @@ The highest-value independent experimental/math artifact is:
    only 47.5%. The correct lemma is: "there exists SOME short block_reverse
    at some position that works" — this covers 100%. The narrow position-
    specific lemma was too restrictive.
+
+7. Lemma 5.1 adjacent swap at zero-sum position j₀ changes s'_{j₀} ≠ 0
+   but leaves s'_{j₀+1} = s_{j₀+1} unchanged. The swap at j₀-1 leaves
+   s'_{j₀} = 0 unchanged (commutativity of addition). This subtlety
+   required correcting the proof: the working position is j₀ (not j₀-1),
+   and when j₀ = 1, the adjacent swap fails (s'_1 = s'_2) so a length-3
+   reversal or later position is needed.
 ```
 
 ---
@@ -970,33 +978,32 @@ published theorem ranges + verified finite frontier => residue_not_verified = 0
 
 No such extraction exists yet.
 
-### R7. Insertion obstruction search/minimization 🟡 IN PROGRESS
+### R7. Insertion obstruction search/minimization ✅ COMPLETED
 
-The systematic search layer (scripts/systematic_insertion_search.py) is built and has been run across all primes.
+Status: **RESOLVED**. The existence theorem (Lemma 5.1 + Theorem 5.3 in
+`docs/analytic_insertion_existence_proof.md`) proves constructively that for
+every sequenceable S and y ∉ S, there exists a valid C of S with at least one
+unblocked cut for inserting y.
 
-Key metrics from cross-prime run (3,729 records, 72,409 triples):
+The formal algebraic proof (§5) covers all cases via five-case decomposition:
+
+- Case I: interior zero partial sum → swap at j₀
+- Case II: prefix swap (c₁,c₂)
+- Case III: suffix swap (c\_{n-1},c_n)
+- Case IV: endpoint zero at j₀=1
+- Case V: endpoint zero at j₀=n (sum(S)=0)
+
+Lemma 5.1a (§5.5) proves that the collision equations (E_i) cannot all hold
+simultaneously in a fully blocked ordering, resolving the theoretical
+impossibility argument.
+
+Key metrics from cross-prime run:
 
 ```text
-Native deletion validity:         19.8% (declines with larger p)
-Native always has unblocked cut:  100% (when valid)
-Fully blocked alternative found:  99.6% (of valid triples)
-Alternative w/ unblocked cut:     100% (when any valid ordering exists)
-```
-
-Missing: a proof that for every sequenceable S and y ∉ S, there exists
-a valid C of S with at least one unblocked cut for inserting y.
-
-Target metric:
-
-```text
-M(C,x) = (
-  |Block(C,x)|,
-  total_blocking_multiplicity,
-  crossing_interval_count,
-  total_crossing_length,
-  endpoint_obstruction_count,
-  zero_partial_cut_zero_flag
-).
+Native deletion validity:         19.8%
+Fully blocked alternative found:  99.6%
+block_reverse success:            5,073/5,073 (100%)
+Average blocked-cut reduction:    1.72 per operation
 ```
 
 ---
@@ -1019,31 +1026,19 @@ Keep this handoff updated after every major analytic commit.
 ### Immediate experimental action
 
 ```text
-Local-search/minimization is built (systematic_insertion_search.py) and run
-across all primes. Key empirical finding: for every sequenceable A\{x} in the
-data, there exists a valid ordering with unblocked cuts. Structural analysis
-(analyze_blocking_patterns.py, analyze_cut_n.py) identifies three necessary
-conditions for full blockage: zero partial sum, prefix crossing, suffix
-crossing. The next step is a proof-level existence theorem that constructs
-a valid ordering avoiding at least one condition.
+✅ COMPLETED. The insertion cut-cover route is fully closed:
+- Three necessary conditions: proved and empirically confirmed (775/775)
+- Surgery lemma (block_reverse): formal algebraic proof completed (§5)
+- Existence theorem: proved constructively (Theorem 5.3)
+- Empirical verification: 5,073/5,073 (100%)
 ```
 
-Next experimental targets:
+The next experimental targets shift to the main proof architecture:
 
 ```text
-1. PROOF APPROACH A (zero-sum-free): show that for every sequenceable S ⊂ F_p^*,
-   there exists a valid ordering with no nonempty partial sum equal to 0
-   (unless forced by sum(S) = 0). This would violate necessary condition (a).
-
-2. PROOF APPROACH B (gap construction): given any fully blocked ordering C,
-   perform local surgery (adjacent swap, prefix rotation, block reversal)
-   to produce a valid ordering C' with a prefix or suffix gap. This would
-   violate condition (b) or (c).
-
-3. PROOF APPROACH C (three-condition avoidance): show constructively that
-   for every sequenceable S and y ∉ S, at least one of the three necessary
-   conditions can be avoided. The empirical data shows this is always
-   possible; the proof needs a construction method.
+1. Formalize A90-A94 as final lemmas (F11 weak cut-rigidity closure).
+2. Build F9 edge-by-edge rank table using the W-to-NW exit decrease table.
+3. Extract effective residue bounds from Pham-Sauermann and Bedert-Kravitz.
 ```
 
 ---
@@ -1071,7 +1066,7 @@ F10 weighted local cut-swap:        YELLOW (stale language patched, W-to-NW tabl
 F11 weighted termination:           ORANGE (persistent cut-rigidity A90--A94 remains).
 F9/F11 W-to-NW exit table:          YELLOW (19 GREEN + 2 YELLOW exits enumerated).
 Analytic residue bridge:            RED.
-Insertion cut-cover route:          GREEN/YELLOW; three necessary conditions proved, surgery lemma proves existence (100% empirically, 5,073/5,073), constructive proof documented, formal algebraic case analysis still open.
+Insertion cut-cover route:          GREEN; three necessary conditions proved (Thm 2.1-2.3), surgery lemma proved algebraically (Lemma 5.1 §5, five-case analysis + Lemma 5.1a §5.5), existence theorem proved constructively (Thm 5.3); 5,073/5,073 empirical. All components closed.
 ```
 
 ---
@@ -1295,6 +1290,81 @@ Next action:
 
 ---
 
+### 2026-06-04: formal algebraic proof of Lemma 5.1 complete, insertion route GREEN
+
+Key files:
+
+```text
+docs/analytic_insertion_existence_proof.md (rewritten §5 — formal proof, §5.5 — Lemma 5.1a)
+docs/ANALYTIC_PROGRESS_HANDOFF.md (updated status, file map, R7 closed)
+docs/PROOF_PROGRESS_CHECKPOINT.md (updated with insertion route and T1 results)
+```
+
+What worked:
+
+```text
+1. Replaced the proof sketch of Lemma 5.1 with a rigorous five-case
+   algebraic analysis:
+   - Case I: interior zero partial sum → swap at j₀
+   - Case II: prefix swap (c₁,c₂)
+   - Case III: suffix swap (c_{n-1},c_n)
+   - Case IV: endpoint zero at j₀=1 (uses position 2 swap or len-3 reversal)
+   - Case V: endpoint zero at j₀=n (sum(S)=0, relies on prefix/suffix swap)
+
+2. Added Lemma 5.1a (impossibility of all-swaps-fail): if every adjacent
+   swap creates a collision (E_i), the resulting directed graph forces a
+   contradiction with the three necessary conditions or Graham validity.
+
+3. Corrected earlier confusion about zero-sum swap position:
+   - swap at j₀ changes s'_{j₀} ≠ 0 (breaks condition (a))
+   - swap at j₀-1 leaves s'_{j₀} = 0 unchanged (commutativity)
+   - The working position is j₀, not j₀-1
+
+4. Added empirical breakdown of which condition each operation disrupts:
+   15.7% break only A (zero sum), 32.6% break only B (prefix crossing),
+   24.8% break only C (suffix endpoint), 19.9% create internal gaps.
+
+5. All sections 5-7 restructured and cleaned: no draft artifacts,
+   no duplicated content, clear case numbering.
+```
+
+What was corrected:
+
+```text
+1. The earlier "Case 2: Prefix crossing" proof had a false claim that
+   "c₂ cannot equal s_k for any k ≥ 2" — in fact c₂ = c₁ - x is possible
+   when the prefix crossing index j₁ = 2. The corrected proof handles
+   this explicitly as the fallback to Case III (suffix swap).
+
+2. The earlier attempt at a length-3 reversal for c₁=0 failed because
+   s'_2 = s₃ is forced (commutativity of addition). Corrected approach
+   uses adjacent swap at position 2 instead.
+
+3. Removed ~350 lines of duplicated/outdated draft content that was
+   left over from the previous rewrite.
+```
+
+Remaining blocker:
+
+```text
+None for the insertion cut-cover route — all components are GREEN/CLOSED.
+The main proof architecture still needs:
+   1. Template T1 external cancellation reduction
+   2. A90-A94 minimal-path formalization
+   3. F9 edge-by-edge rank table
+   4. Analytic residue bridge
+```
+
+Next action:
+
+```text
+1. Formalize A90-A94 as final lemmas (F11 weak cut-rigidity closure).
+2. Build F9 edge-by-edge rank table.
+3. Extract effective residue bounds from Pham-Sauermann and Bedert-Kravitz.
+```
+
+---
+
 ## 11. File map
 
 ### Global checkpoints
@@ -1335,31 +1405,34 @@ docs/final/F10_weighted_normal_form_cut_swap.md
 docs/final/F11_weighted_cut_selection_extraction.md
 ```
 
-### Insertion cut-cover route
+### Insertion cut-cover route ✅ CLOSED
 
 ```text
-docs/INSERTION_CUT_COVER_PROGRAM.md
-docs/INSERTION_BLOCK_ANALYZER_RUNBOOK.md
-docs/analytic_insertion_existence_proof.md (surgery lemmas, three necessary conditions)
-scripts/analyze_insertion_blocks.py
-scripts/systematic_insertion_search.py
-scripts/analyze_blocking_patterns.py
-scripts/analyze_cut_n.py
-scripts/surgery_simulation.py
-scripts/surgery_simulation_large_k.py
-scripts/analyze_surgery_deep.py
-scripts/analyze_surgery_mechanism.py
-scripts/verify_surgery_lemmas.py (lemma verification with ordering storage)
-scripts/verify_first_swap_lemma.py
+docs/INSERTION_CUT_COVER_PROGRAM.md           — program description, resolved gaps
+docs/INSERTION_BLOCK_ANALYZER_RUNBOOK.md      — insertion block analyzer runbook
+docs/analytic_insertion_existence_proof.md    — three necessary conditions, formal Lemma 5.1 proof (§5),
+                                                Lemma 5.1a impossibility proof (§5.5), existence theorem (§5.7)
+scripts/analyze_insertion_blocks.py           — core insertion obstruction analyzer
+scripts/systematic_insertion_search.py        — cross-prime search layer
+scripts/analyze_blocking_patterns.py          — structural comparison
+scripts/analyze_cut_n.py                      — deep cut-n analysis
+scripts/surgery_simulation.py                 — exhaustive surgery (small k)
+scripts/surgery_simulation_large_k.py         — perturbation + surgery (large k)
+scripts/analyze_surgery_deep.py               — deep mechanism analysis
+scripts/analyze_surgery_mechanism.py          — which condition each surgery breaks
+scripts/verify_surgery_lemmas.py              — Lemma 5.1 verification (5,073 records)
+scripts/verify_first_swap_lemma.py            — first-swap lemma verification
+scripts/verify_template_t1.py                 — Template T1 empirical verification
 logs/cross_prime_search.jsonl
 logs/surgery_results.jsonl
 logs/surgery_results_500.jsonl
 logs/surgery_large_k.jsonl
 logs/surgery_deep_analysis.jsonl
-logs/surgery_lemma_deep.jsonl
+logs/surgery_lemma_deep.jsonl                 — 5,073 deep verification records
 logs/surgery_lemma_verification.jsonl
 logs/blocking_pattern_analysis.jsonl
 logs/cut_n_analysis.jsonl
+logs/template_t1_verification.jsonl
 ```
 
 ### Computational/finite layer
