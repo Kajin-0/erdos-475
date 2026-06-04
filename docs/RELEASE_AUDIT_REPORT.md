@@ -1,7 +1,7 @@
 # Release Audit Report
 
 **Date**: 2026-06-04
-**Branch**: `main` at `d257881`
+**Branch**: `main` at `6748fb3`
 **Scope**: Second hardening pass for finite-certificate verification infrastructure
 **Auditor**: Automated audit suite (ci_classify.sh + 6 audit scripts + verifiers)
 
