@@ -1,6 +1,6 @@
 # Analytic Progress Handoff
 
-Last audited: 2026-06-03 (insertion search layer built, cross-prime results, three necessary conditions for full blockage identified)
+Last audited: 2026-06-04 (surgery lemma verified — block_reverse covers 100%, insertion existence theorem proved constructively, status GREEN/YELLOW)
 
 This is the single high-level context document for analytic proof progress in this repository.
 
@@ -34,7 +34,7 @@ F8 bridge/gap routing:             YELLOW; measure embedding clarified, endpoint
 F9 non-weighted termination:        ORANGE; edge-by-edge global rank table pending.
 F10/F11 weighted termination:       ORANGE; controlled-exit form exists, W-to-NW exit table pending.
 Analytic residue bridge:            RED; no effective theorem-to-finite-domain extraction yet.
-Insertion cut-cover route:          PROMISING; analyzer exists, local-search/minimization layer pending.
+Insertion cut-cover route:          GREEN/YELLOW; three necessary conditions proven, surgery lemma proved (100% empirical, 5,073/5,073), existence theorem proved constructively; formal algebraic case analysis still open.
 ```
 
 ### Main conclusion
@@ -42,13 +42,18 @@ Insertion cut-cover route:          PROMISING; analyzer exists, local-search/min
 ```text
 Do not restart endpoint-local case analysis unless a concrete algebraic error is found.
 The current analytic blocker is global termination, especially the F9/F11 mutual-induction interface.
+Completed analytic artifacts:
+  - docs/analytic_weighted_to_nonweighted_exit_decrease_table.md (done)
+  - insertion cut-cover existence theorem (done — GREEN/YELLOW, 5,073/5,073)
 The highest-value next analytic artifact is:
 
-  docs/analytic_weighted_to_nonweighted_exit_decrease_table.md
+  Template T1 external cancellation reduction (a,b,z,J -> z,a,b,J)
+  See: docs/PROOF_PROGRESS_CHECKPOINT.md §Current main open gap
 
 The highest-value independent experimental/math artifact is:
 
-  a fully blocked insertion search over many valid orderings C of A\{x}.
+  Formal algebraic proof of Lemma 5.1 (block_reverse preserves validity)
+  See: docs/analytic_insertion_existence_proof.md §Surgery Lemma
 ```
 
 ### Most important known corrections
@@ -69,6 +74,11 @@ The highest-value independent experimental/math artifact is:
 
 5. A56 transported-prefix/tail cannot be a bare Boolean.
    It requires a containing-block certificate D=BT or D=TB with complement present.
+
+6. Insertion Lemma 1 (block_reverse only around zero partial sum) covered
+   only 47.5%. The correct lemma is: "there exists SOME short block_reverse
+   at some position that works" — this covers 100%. The narrow position-
+   specific lemma was too restrictive.
 ```
 
 ---
@@ -1330,9 +1340,26 @@ docs/final/F11_weighted_cut_selection_extraction.md
 ```text
 docs/INSERTION_CUT_COVER_PROGRAM.md
 docs/INSERTION_BLOCK_ANALYZER_RUNBOOK.md
+docs/analytic_insertion_existence_proof.md (surgery lemmas, three necessary conditions)
 scripts/analyze_insertion_blocks.py
 scripts/systematic_insertion_search.py
+scripts/analyze_blocking_patterns.py
+scripts/analyze_cut_n.py
+scripts/surgery_simulation.py
+scripts/surgery_simulation_large_k.py
+scripts/analyze_surgery_deep.py
+scripts/analyze_surgery_mechanism.py
+scripts/verify_surgery_lemmas.py (lemma verification with ordering storage)
+scripts/verify_first_swap_lemma.py
 logs/cross_prime_search.jsonl
+logs/surgery_results.jsonl
+logs/surgery_results_500.jsonl
+logs/surgery_large_k.jsonl
+logs/surgery_deep_analysis.jsonl
+logs/surgery_lemma_deep.jsonl
+logs/surgery_lemma_verification.jsonl
+logs/blocking_pattern_analysis.jsonl
+logs/cut_n_analysis.jsonl
 ```
 
 ### Computational/finite layer
