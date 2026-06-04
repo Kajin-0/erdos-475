@@ -36,6 +36,7 @@ while IFS= read -r path; do
     docs/literature_exact_thresholds.md) safe=true ;;
     docs/reduction_audit.md) safe=true ;;
     docs/source_theorem_ledger.md) safe=true ;;
+    docs/legacy/source_theorem_ledger_2026_05_06.md) safe=true ;;
     docs/validation_protocol.md) safe=true ;;
     docs/AI_ASSISTED_STRATEGY.md) safe=true ;;
     docs/ANALYTIC_AI_FIRST_ROADMAP.md) safe=true ;;

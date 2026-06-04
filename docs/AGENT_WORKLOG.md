@@ -1,5 +1,86 @@
 # Agent Worklog
 
+## Session: 2026-06-04 (session 5) — fix stale source_theorem_ledger references
+
+### Current objective
+
+Update stale references to `docs/source_theorem_ledger.md` in `docs/source_theorems.yaml`, `docs/literature_collection_protocol.md`, `docs/analytic_reduction_audit_plan.md`, and `scripts/ci_classify.sh`; add `docs/legacy/` path to CI safe list; add untracked `docs/proof/existence_theorem.md` to repo; delete stale `docs/source_theorem_ledger.stale.md`; run verification; commit and push.
+
+### Files read
+
+- docs/AGENT_WORKLOG.md
+- docs/source_theorems.yaml
+- docs/literature_collection_protocol.md
+- docs/analytic_reduction_audit_plan.md
+- scripts/ci_classify.sh
+- docs/proof/existence_theorem.md
+
+### Files changed
+
+- docs/source_theorems.yaml — updated 2 citation lines from `source_theorem_ledger.md` to `legacy/source_theorem_ledger_2026_05_06.md`
+- docs/literature_collection_protocol.md — extraction template now points to `source_theorems.yaml` instead of old ledger
+- docs/analytic_reduction_audit_plan.md — recommended next file updated from old ledger to `source_theorems.yaml`
+- scripts/ci_classify.sh — added `docs/legacy/source_theorem_ledger_2026_05_06.md` to safe doc list
+- docs/proof/existence_theorem.md — new file, committed (legitimate proof doc from prior session)
+- docs/source_theorem_ledger.stale.md — deleted (superseded by git-mv'd legacy version)
+- docs/AGENT_WORKLOG.md — added this session entry
+
+### Commands run
+
+```bash
+git add docs/source_theorems.yaml docs/literature_collection_protocol.md
+git add docs/analytic_reduction_audit_plan.md scripts/ci_classify.sh
+git add docs/proof/existence_theorem.md
+rm docs/source_theorem_ledger.stale.md
+python3 scripts/reduction_residue_audit.py --max-prime 31 --cover-verified-domain
+python3 scripts/check_claim_boundary_consistency.py
+python3 scripts/check_no_overclaiming.py
+python3 scripts/check_manifest_completeness.py
+python3 scripts/check_sha256_manifest_completeness.py
+bash scripts/make_manifest.sh
+```
+
+### Tests passed
+
+1. `reduction_residue_audit.py --cover-verified-domain` — PASS (residue=0)
+2. `check_claim_boundary_consistency.py` — PASS
+3. `check_no_overclaiming.py` — PASS
+4. `check_manifest_completeness.py` — PASS (47 required paths)
+5. `check_sha256_manifest_completeness.py` — PASS (after manifest regeneration)
+
+### Tests failed
+
+None
+
+### Exact failure messages
+
+N/A
+
+### What worked
+
+1. All 4 stale references to old `source_theorem_ledger.md` updated cleanly.
+2. `docs/proof/existence_theorem.md` is a real analytic document (199 lines) that was previously untracked — now committed.
+3. Legacy path added to CI safe list prevents false classification.
+4. Verification suite passes after manifest regeneration.
+
+### What did not work
+
+- N/A — all planned changes succeeded.
+
+### Next recommended step
+
+1. Decide whether to commit or gitignore the remaining untracked exploratory scripts (20 `scripts/test_*.py` etc).
+2. Continue main proof architecture (A90-A94, F9 rank table).
+3. No further stale ledger references remain.
+
+### Current claim boundary
+
+Safe: finite-certificate verification workspace for declared complement domains (p <= 31). Source theorem routing fully synced: `docs/source_theorems.yaml` is the machine-readable ledger, `docs/legacy/` holds the pre-YAML notes, `docs/source_theorem_ledger.md` is a pointer.
+
+Unsafe: any claim that effective constants exist for Pham-Sauermann, Bedert-Kravitz, or BBKMM. All three papers confirmed non-effective.
+
+---
+
 ## Session: 2026-06-04 (session 4) — doc consistency cleanup
 
 ### Current objective

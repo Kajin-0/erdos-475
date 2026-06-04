@@ -201,7 +201,7 @@ Find and enter the exact theorem statements in a source ledger.
 Recommended next file:
 
 ```text
-docs/source_theorem_ledger.md
+docs/source_theorems.yaml
 ```
 
 Do not generate additional finite witnesses unless the analytic audit exposes new residue outside:

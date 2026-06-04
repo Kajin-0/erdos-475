@@ -25,7 +25,7 @@
   translation_to_p_t: "t <= 12"
   translation_to_p_b: "|B| >= p - 1 - 12"
   audit_rule_status: "default_rule"
-  citation: "Multiple references; see docs/source_theorem_ledger.md"
+  citation: "Multiple references; see docs/legacy/source_theorem_ledger_2026_05_06.md"
   notes: "Default rule in reduction_residue_audit.py. Not formally cited from a single peer-reviewed source."
 
 - source_id: default_very_large_set

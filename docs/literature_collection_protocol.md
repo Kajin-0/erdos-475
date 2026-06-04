@@ -52,7 +52,7 @@ Discard sources that only discuss unrelated zero-sum subsequence problems, addit
 
 ## Extraction template
 
-For each source, copy the exact theorem statement into `docs/source_theorem_ledger.md` using this format:
+For each source, add the exact theorem statement to `docs/source_theorems.yaml` using this format:
 
 ```text
 source_id:
