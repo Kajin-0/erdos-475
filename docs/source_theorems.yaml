@@ -28,6 +28,23 @@
   citation: "Multiple references; see docs/legacy/source_theorem_ledger_2026_05_06.md"
   notes: "Default rule in reduction_residue_audit.py. Not formally cited from a single peer-reviewed source."
 
+- source_id: kravitz_2024_log_over_loglog_small_sets
+  authors: "Noah Kravitz"
+  title: "Rearranging small sets for distinct partial sums"
+  arxiv_or_publication: "arXiv:2407.01835; Integers 24 (2024), Paper A113"
+  theorem_number: "Main theorem / abstract-level extraction pending PDF audit"
+  exact_statement: "For prime p, the paper proves Graham's rearrangement conjecture for subsets of Z_p \ {0} of size at most log p / log log p, with constants and endpoint conventions pending extraction from the paper body."
+  prime_hypotheses: "p prime; exact lower threshold and endpoint conventions pending extraction"
+  set_size_hypotheses: "t = |A| <= log(p)/log(log(p)) up to endpoint and constant conventions pending extraction"
+  exceptional_cases: "small-prime handling pending extraction"
+  constants_or_thresholds: "baseline threshold shape f_small(p) = floor(log(p)/log(log(p))); exact constant and minimum p pending extraction"
+  effective_status: "pending_extraction"
+  translation_to_p_t: "t <= floor(log(p)/log(log(p))) once endpoint conventions and minimum p are extracted"
+  translation_to_p_b: "|B| >= p - 1 - floor(log(p)/log(log(p))) once endpoint conventions and minimum p are extracted"
+  audit_rule_status: "baseline_effectivity_candidate; not proof-level usable until PDF constants are extracted"
+  citation: "Kravitz, Noah (2024). Rearranging small sets for distinct partial sums. arXiv:2407.01835; Integers 24, Paper A113."
+  notes: "Added 2026-06-04 after deep source search. This source is weaker asymptotically than Bedert-Kravitz, but likely easier to make explicit because it rests on rectification and integer-ordering machinery. Treat as the baseline small-set effectivity target."
+
 - source_id: default_very_large_set
   authors: "Various (trivial / folklore / very-large-set results)"
   title: "Very-large-set sequenceability in prime fields"
