@@ -668,6 +668,85 @@ Same as before: R3 (F11 A90-A94 formalization) or F9 edge-by-edge rank table rem
 
 ---
 
+## Session: 2026-06-04 — create A90-A94 formalization obligation ledger
+
+### Current objective
+
+Create `docs/analytic_a90_a94_formalization_obligation_ledger.md` extracting the exact proof obligations needed to formalize the persistent cut-rigidity branch in F11 and close the F9/F11 mutual-induction interface. Do not prove A90-A94 — only extract and organize the obligations.
+
+### Confirmed working path
+
+/tmp/erdos-475
+
+### Files read
+
+- README.md
+- docs/CLAIM_BOUNDARY.md
+- docs/VERIFIED_DOMAIN.md
+- docs/AGENT_WORKLOG.md
+- docs/ANALYTIC_PROGRESS_HANDOFF.md
+- docs/analytic_weighted_exit_audit_interface.md
+- docs/analytic_f9_f11_mutual_induction_convention.md
+- docs/analytic_weighted_to_nonweighted_exit_decrease_table.md
+- docs/final/F09_nonweighted_termination_theorem.md
+- docs/final/F10*weighted_normal_form_cut_swap.md (actual filename differs from expected: no "\_fixed*")
+- docs/final/F11_weighted_cut_selection_extraction.md (actual filename differs from expected: "\_extraction" not "\_termination")
+
+### Files changed
+
+- `docs/analytic_a90_a94_formalization_obligation_ledger.md` — new file (A90-A94 obligation ledger with extraction table, dependency graph, minimal-path objects, gap analysis, and findings)
+- `docs/AGENT_WORKLOG.md` — added this session entry
+
+### Commands run
+
+```bash
+python3 scripts/check_claim_boundary_consistency.py
+python3 scripts/check_no_overclaiming.py
+python3 scripts/check_manifest_completeness.py
+python3 scripts/check_sha256_manifest_completeness.py
+bash scripts/make_manifest.sh
+```
+
+### Tests passed
+
+All 4 checks pass (boundary, overclaim, manifest, SHA256 after regeneration)
+
+### Tests failed
+
+None
+
+### What worked
+
+1. A90-A94 obligation ledger created with full extraction table covering all 5 A-lemmas (A90-A94).
+2. Each entry uses conservative status values: 5 ASSERTED, 0 PROVED, 0 AMBIGUOUS.
+3. Gap types identified: definition_gap (A92 finite return-path model, A93 state-machine coverage, minimal-path objects), decrease_gap (NW0 vs Wwin comparison), case_split_gap (A90 diagnostic), no_reentry_gap (no formal certificate), dependency_gap (A93).
+4. Key finding: the critical blocker is that even if A90-A94 are formalized, they must prove M_NW*(NW1) < M_NW*(NW0), not just "routed to non-weighted classes." The W-to-NW table compares against Wwin and explicitly acknowledges NW0 comparison is still needed.
+5. Actual F10/F11 filenames recorded: `F10_weighted_normal_form_cut_swap.md` (no "_fixed_") and `F11_weighted_cut_selection_extraction.md` ("\_extraction" not "\_termination").
+
+### What did not work
+
+None of A90-A94 exists as an extracted formal lemma. A90 (dichotomous reduction), A91 (first-changed-endpoint), A92 (finite return-path), A93 (state-machine coverage), and A94 (strict progress) are all ASSERTED in the final docs, cited only as A-note references within the Lemma F11.6 proof sketch and the F11.0 dependency list.
+
+### Mathematical direction
+
+no mathematical change — proof-audit documentation only
+
+### Claim boundary
+
+finite-certificate verification and proof-engineering workspace only. No new proof claims. A90-A94 not proved, not claimed closed.
+
+### Next recommended small task
+
+Formalize A92 (finite return-path model) as a standalone definition + existence lemma. A92 is the most foundational missing piece: A91 and A94 cannot be formalized without it.
+
+Config available:
+
+- branch: main
+- remote: git@github.com:Kajin-0/erdos-475.git
+- CI: .github/workflows/verify.yml
+
+---
+
 ## Session: 2026-06-04 — commit untracked weighted-exit audit doc, verify manifest
 
 ### Current objective

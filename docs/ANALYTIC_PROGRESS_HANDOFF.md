@@ -1009,6 +1009,12 @@ Average blocked-cut reduction:    1.72 per operation
 
 ---
 
+### 2026-06-04: A90-A94 obligation ledger created
+
+A90-A94 formalization obligation ledger created at `docs/analytic_a90_a94_formalization_obligation_ledger.md`. Main blocker: A92 finite return-path model (MISSING) — the most foundational missing definition; A91 and A94 cannot be formalized without it. None of A90-A94 exists as an extracted formal lemma (all ASSERTED in final docs). The critical decrease_gap is that M_NW*(NW1) must be proven < M_NW*(NW0), but the W-to-NW exit table only compares against Wwin.
+
+---
+
 ## 9. Recommended next actions
 
 ### Immediate analytic action
