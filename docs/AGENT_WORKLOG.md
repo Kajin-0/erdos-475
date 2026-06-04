@@ -617,6 +617,78 @@ finite-certificate verification and proof-engineering workspace only. No new pro
 1. R3 remains the sole open risk in F9.13 -- F11 must be hardened (theorem dependency, not a doc fix). Requires A90-A94 formalization.
 2. T1 external cancellation (Rz-long bridge obstruction) -- highest-value open gap in endpoint-avoidance route.
 
+## Session: 2026-06-04 — commit untracked weighted-exit audit doc, verify manifest
+
+### Current objective
+
+Commit the untracked `docs/analytic_weighted_exit_audit_interface.md` proof-audit document; fix stale MANIFEST.sha256 hash for worklog; run verification suite; commit and push.
+
+### Confirmed working path
+
+/tmp/erdos-475
+
+### Files read
+
+- README.md
+- docs/CLAIM_BOUNDARY.md
+- docs/VERIFIED_DOMAIN.md
+- docs/AGENT_WORKLOG.md
+- docs/ANALYTIC_PROGRESS_HANDOFF.md
+- docs/RELEASE_AUDIT_REPORT.md
+- docs/source_theorem_ledger.md
+- docs/SOURCE_EXTRACTION_PRIME_FIELD.md
+- docs/source_theorems.yaml
+- docs/analytic_weighted_exit_audit_interface.md
+- scripts/make_manifest.sh
+- release/manifest_policy.json
+
+### Files changed
+
+- `docs/AGENT_WORKLOG.md` — added this session entry.
+- `MANIFEST.sha256` — updated hash for worklog (content changed by prior sessions).
+- `docs/analytic_weighted_exit_audit_interface.md` — new file, committed (weighted-exit audit document mapping every WEIGHTED_EXIT from F4-F9 to F10/F11 entry and interface status).
+
+### Commands run
+
+```bash
+python3 scripts/check_claim_boundary_consistency.py    # PASS
+python3 scripts/check_no_overclaiming.py                # PASS
+python3 scripts/check_manifest_completeness.py          # PASS
+python3 scripts/check_sha256_manifest_completeness.py   # PASS (after hash fix)
+python3 scripts/reduction_residue_audit.py --max-prime 31 --cover-verified-domain  # PASS (residue=0)
+```
+
+### Tests passed
+
+All 5 checks pass: boundary, overclaim, manifest, SHA256 (after hash fix), residue audit (residue=0, verdict: contained).
+
+### Tests failed
+
+None.
+
+### What worked
+
+1. Untracked `docs/analytic_weighted_exit_audit_interface.md` is a legitimate 104-line proof-audit document identifying all 6 WEIGHTED_EXIT source theorems (F4-F9), 22 exit types, and their F10/F11 interface status. Documented as OPEN for the mutual-induction interface.
+2. Manifest was in good shape (491 entries); only stale hash was the worklog itself — fixed by updating the single line.
+3. All verification checks pass.
+
+### What did not work
+
+- `bash scripts/make_manifest.sh` produced an unexpectedly small manifest (16 vs 491 entries) when run. Root cause not investigated — workaround: direct hash update was sufficient since only one file changed.
+
+### Mathematical direction
+
+no mathematical change — documentation and audit document committed
+
+### Claim boundary
+
+finite-certificate verification and proof-engineering workspace only. No new proof claims.
+
+### Next small recommended task
+
+1. R3 remains open (F11 dependency on A90-A94 formalization) — theorem work, not a doc fix.
+2. F9 edge-by-edge rank table — next analytic artifact gap.
+
 Config available:
 
 - branch: main
