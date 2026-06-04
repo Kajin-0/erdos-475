@@ -37,6 +37,17 @@ required scripts/sweep_coverage_sandwich.py
 required scripts/analyze_insertion_blocks.py
 required scripts/search_insertion_reorderings.py
 required scripts/search_small_counterexamples.py
+required certificates/direct_witnesses_small_primes.jsonl
+required certificates/witnesses_p29_b08.jsonl
+required scripts/validate_certificate_schema.py
+required scripts/audit_canonical_counts.py
+required scripts/check_manifest_completeness.py
+required scripts/check_claim_boundary_consistency.py
+required tests/__init__.py
+required tests/test_verify_minimal_witnesses.py
+required tests/test_validate_certificate_schema.py
+required tests/test_audit_canonical_counts.py
+required docs/RELEASE_AUDIT_REPORT.md
 required .github/workflows/verify.yml
 
 certificate_source certificates/minimal_witnesses.jsonl traces/p29_r3_to_r7_repair_traces_strict.jsonl traces/p31_r3_to_r6_repair_traces_strict.jsonl

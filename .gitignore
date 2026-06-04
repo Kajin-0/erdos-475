@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+*.pyc
 
 # Rust build output
 rust-verifier/target/
@@ -10,3 +11,21 @@ rust-verifier/target/
 .DS_Store
 *.swp
 *.swo
+*.bak
+
+# Virtual environments
+.venv/
+venv/
+
+# Language server / ctags
+tags
+
+# Large/transient artifacts (committed metadata lives in local_artifacts/batch_manifest/)
+*.jsonl.gz
+local_artifacts/raw/
+
+# CI smoke-test logs generated at repo root
+*_smoke.log
+
+# Node modules (if any JS tooling is added)
+node_modules/

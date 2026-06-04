@@ -63,13 +63,35 @@ jobs:
       - uses: actions/setup-python@v5
         if: steps.changes.outputs.docs_only != 'true'
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - name: Show Python version
         if: steps.changes.outputs.docs_only != 'true'
         run: python --version
       - name: Run Python finite certificate verification
         if: steps.changes.outputs.docs_only != 'true'
         run: bash scripts/run_all_verification.sh
+      - name: Validate certificate JSON schema
+        if: steps.changes.outputs.docs_only != 'true'
+        run: |
+          python scripts/validate_certificate_schema.py certificates/minimal_witnesses.jsonl
+          python scripts/validate_certificate_schema.py certificates/witnesses_p29_b08.jsonl
+          python scripts/validate_certificate_schema.py --domains certificates/verified_domains.json
+      - name: Audit canonical B counts
+        if: steps.changes.outputs.docs_only != 'true'
+        run: |
+          python scripts/audit_canonical_counts.py \
+            certificates/minimal_witnesses.jsonl \
+            certificates/witnesses_p29_b08.jsonl \
+            --domain 17:3 --domain 19:3-5 --domain 23:3-9 --domain 29:3-8 --domain 31:3-6
+      - name: Check manifest completeness
+        if: steps.changes.outputs.docs_only != 'true'
+        run: python scripts/check_manifest_completeness.py
+      - name: Check claim boundary consistency
+        if: steps.changes.outputs.docs_only != 'true'
+        run: python scripts/check_claim_boundary_consistency.py
+      - name: Run audit regression tests
+        if: steps.changes.outputs.docs_only != 'true'
+        run: python -m pytest tests/ -v
       - name: Skip finite certificate verification for docs-only change
         if: steps.changes.outputs.docs_only == 'true'
         run: echo "Docs/artifact-ledger-only change; skipping full Python finite-certificate verification."
@@ -125,7 +147,7 @@ jobs:
       - uses: actions/setup-python@v5
         if: steps.changes.outputs.docs_only != 'true'
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - name: Validate verified domain JSON
         if: steps.changes.outputs.docs_only != 'true'
         run: python -m json.tool certificates/verified_domains.json > /dev/null
