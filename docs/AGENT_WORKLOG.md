@@ -1,5 +1,76 @@
 # Agent Worklog
 
+## Session: 2026-06-04 — construct A92 no-reentry certificate instances for E15, E18, E19
+
+### Current objective
+
+Construct concrete no-reentry certificate instances for the three confirmed support-containment W-to-NW exit rows: E15 (two-piece zero inside B), E18 (equal-prefix inside B), and E19 (equal-tail inside B). Each instance follows the schema from docs/analytic_a92_no_reentry_certificate_schema.md.
+
+### Confirmed working path
+
+/tmp/erdos-475
+
+### Files read
+
+- docs/AGENT_WORKLOG.md
+- docs/analytic_a92_no_reentry_certificate_schema.md
+- docs/analytic_a92_support_containment_analysis.md
+- docs/analytic_weighted_to_nonweighted_exit_decrease_table.md
+- docs/final/F11_weighted_cut_selection_extraction.md
+- docs/final/F10_weighted_normal_form_cut_swap.md
+
+### Files changed
+
+- `docs/analytic_a92_no_reentry_certificate_instances.md` — new file (3 complete certificate instances for E15, E18, E19 with full C_no_reentry objects, exclusion bases, checked coordinates, blocked reentry types, theorem sources, verification status, comparison table, and A92 graph attachment mapping).
+- `docs/AGENT_WORKLOG.md` — added this session entry.
+
+### Commands run
+
+```bash
+python3 scripts/check_claim_boundary_consistency.py
+python3 scripts/check_no_overclaiming.py
+python3 scripts/check_manifest_completeness.py
+python3 scripts/check_sha256_manifest_completeness.py
+bash scripts/make_manifest.sh
+```
+
+### Tests passed
+
+All 4 checks pass (boundary, overclaim, manifest, SHA256 after regeneration)
+
+### Tests failed
+
+None
+
+### What worked
+
+1. E15 certificate (R_k'=P_j', two-piece zero inside B): strict support_size(NW1) < m blocks same-middle without needing A89. Strongest candidate — support containment alone suffices for both j=m and j>m.
+2. E18 and E19 certificates (equal-prefix/equal-tail): support_size(NW1) <= m blocks j>m unconditionally, and j=m is blocked by A89/F11.7 pattern-rigid impossibility. Correctly documented the A89 dependency.
+3. All three certificates include detailed exclusion_basis with per-case coverage (same_middle vs larger_middle), checked_coordinates with PROPOSED status, blocked_reentry_types with structural reasoning for each weighted entry type (A56, A81, A97, F6, F7).
+4. Comparison table shows the strength difference: E15 is strongest (no external theorem dependency for same-middle), E18/E19 are medium (need A89).
+5. Attachment mapping defines the exact graph edge linkage for each certificate.
+
+### What did not work
+
+- All 3 instances are PROPOSED — none is PROVED. Each has missing_fields including per-instance measure coordinates and formal blocked-reentry proofs.
+- Earlier-coordinate non-increase (enclosing_span, gap_length) is PROPOSED but not proved for any row.
+- The blocked_reentry_types arguments are heuristic — they argue structural impossibility but are not formal proofs.
+- E18 and E19 depend on A89/F11.7 for same-middle exclusion, which is a nontrivial external theorem dependency.
+
+### Mathematical direction
+
+no mathematical change — proof-audit documentation only
+
+### Claim boundary
+
+finite-certificate verification and proof-engineering workspace only. No-reentry certificates not proved, not claimed to exist.
+
+### Next recommended small task
+
+Verify the earlier-coordinate non-increase (enclosing_span, gap_length) for E15, E18, and E19 by tracing the concrete atom configuration of each exit type. This is the last prerequisite before these certificates can be promoted from PROPOSED to ASSERTED.
+
+---
+
 ## Session: 2026-06-04 — analyze W-to-NW support containment for A92 no-reentry certificate
 
 ### Current objective
