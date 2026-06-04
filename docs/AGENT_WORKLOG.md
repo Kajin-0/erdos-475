@@ -747,6 +747,91 @@ Config available:
 
 ---
 
+## Session: 2026-06-04 — A92 finite return-path model extraction
+
+### Current objective
+
+Create a precise definition-and-obligation document (`docs/analytic_a92_finite_return_path_model.md`) for the finite return-path model needed by A92 in the A90-A94 persistent cut-rigidity branch. Do not prove A92 — only extract and organize the definitions, interface, graph model, and obligations.
+
+### Confirmed working path
+
+/tmp/erdos-475
+
+### Files read
+
+- README.md
+- docs/CLAIM_BOUNDARY.md
+- docs/VERIFIED_DOMAIN.md
+- docs/AGENT_WORKLOG.md
+- docs/ANALYTIC_PROGRESS_HANDOFF.md
+- docs/analytic_weighted_exit_audit_interface.md
+- docs/analytic_a90_a94_formalization_obligation_ledger.md
+- docs/analytic_f9_f11_mutual_induction_convention.md
+- docs/analytic_weighted_to_nonweighted_exit_decrease_table.md
+- docs/final/F09_nonweighted_termination_theorem.md
+- docs/final/F10_weighted_normal_form_cut_swap.md
+- docs/final/F11_weighted_cut_selection_extraction.md
+
+### Filename note
+
+Expected F10 filename `F10_weighted_normal_form_fixed_cut_swap.md` does not exist. Actual: `F10_weighted_normal_form_cut_swap.md`. Expected F11 filename `F11_weighted_cut_selection_termination.md` does not exist. Actual: `F11_weighted_cut_selection_extraction.md`. Both were already recorded in the A90-A94 obligation ledger session.
+
+### Files changed
+
+- `docs/analytic_a92_finite_return_path_model.md` — new file (A92 finite return-path model definition document with parent/weighted state extraction, required A92 interface, finite directed graph model (vertices, edges, labels, admissible/forbidden transitions, measure annotations), obligation table with gap types, minimal example pseudo-schema, and gap summary).
+- `docs/AGENT_WORKLOG.md` — added this session entry.
+
+### Commands run
+
+```bash
+python3 scripts/check_claim_boundary_consistency.py
+python3 scripts/check_no_overclaiming.py
+python3 scripts/check_manifest_completeness.py
+python3 scripts/check_sha256_manifest_completeness.py
+bash scripts/make_manifest.sh
+```
+
+### Tests passed
+
+All 4 checks pass (boundary, overclaim, manifest, SHA256 after regeneration)
+
+### Tests failed
+
+None
+
+### Exact failure messages
+
+N/A
+
+### What worked
+
+1. Extracted all defined objects (NW0, Wwin, m, M_W, M_NW\*) from existing docs with exact location references.
+2. Marked 5 objects as MISSING (finite return-path model, no-reentry certificate schema, first changed endpoint, self-return path minimality, parent-support annotation) and 2 as PARTIAL (NW1, weak cut-rigid core).
+3. Proposed a finite directed graph model with vertices (entry, cut, weighted-return, NW-exit, terminal), edges (cut-swap, weighted-return, NW-exit, terminal), and required edge labels (cut_position, middle_length, result_type, measure_delta, no_reentry_flag).
+4. Created a 14-row obligation table covering all objects needed by A92, each with status and gap type.
+5. Created a minimal example pseudo-schema for one return-path certificate.
+6. The A92 interface (5 allowed outputs) matches exactly the mutual-induction interface — no change needed.
+
+### What did not work
+
+- A92 is entirely MISSING as a formal definition. No vertex set, edge set, or bounded-length construction exists in any doc.
+- No-reentry certificate schema is MISSING with no definition anywhere in the repository.
+- Weak cut-rigidity definition F11.5 is PARTIAL — depends on informal terms "doubled middle" and "routed exit."
+
+### Mathematical direction
+
+no mathematical change — proof-audit documentation only
+
+### Claim boundary
+
+finite-certificate verification and proof-engineering workspace only. No new proof claims. A92 not proved, not claimed closed.
+
+### Next recommended small task
+
+Formalize the vertex set and edge set of the finite return-path graph model for a weakly cut-rigid weighted core with |B| >= 2. This is the minimal first step without which A92 cannot be stated as a lemma.
+
+---
+
 ## Session: 2026-06-04 — commit untracked weighted-exit audit doc, verify manifest
 
 ### Current objective
