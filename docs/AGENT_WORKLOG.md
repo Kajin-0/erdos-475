@@ -617,6 +617,57 @@ finite-certificate verification and proof-engineering workspace only. No new pro
 1. R3 remains the sole open risk in F9.13 -- F11 must be hardened (theorem dependency, not a doc fix). Requires A90-A94 formalization.
 2. T1 external cancellation (Rz-long bridge obstruction) -- highest-value open gap in endpoint-avoidance route.
 
+## Session: 2026-06-04 (this session) — diagnose make_manifest.sh 16-entry output
+
+### Current objective
+
+Investigate why `bash scripts/make_manifest.sh` produced only 16 entries (vs 491) in the prior session. Root cause: dirty working tree with git-deleted files still listed by `git ls-files` but absent from disk. After commit and clean tree, the script produces the correct 493 entries.
+
+### Confirmed working path
+
+/tmp/erdos-475
+
+### Files read
+
+- scripts/make_manifest.sh
+
+### Files changed
+
+- `docs/AGENT_WORKLOG.md` — added this session entry.
+
+### Commands run
+
+```bash
+bash scripts/make_manifest.sh                              # 493 entries, correct
+python3 scripts/check_sha256_manifest_completeness.py      # PASS
+```
+
+### Tests passed
+
+SHA256 manifest completeness check: PASS (493 entries, all trusted files covered, no hash mismatches)
+
+### What worked
+
+`make_manifest.sh` works correctly when the working tree is clean. The prior failure was an artifact of running it during a session with uncommitted deletions.
+
+### What did not work
+
+No script issues found. The 16-entry output was caused by `git ls-files` listing recently deleted (but still tracked in HEAD) files that `sha256sum` could not read.
+
+### Mathematical direction
+
+no mathematical change
+
+### Claim boundary
+
+finite-certificate verification and proof-engineering workspace only
+
+### Next small recommended task
+
+Same as before: R3 (F11 A90-A94 formalization) or F9 edge-by-edge rank table remain the next substantive analytic gaps.
+
+---
+
 ## Session: 2026-06-04 — commit untracked weighted-exit audit doc, verify manifest
 
 ### Current objective
