@@ -1,5 +1,53 @@
 # Agent Worklog
 
+## Session: 2026-06-04 (session 6) — gitignore session-specific exploratory scripts
+
+### Current objective
+
+Add 20 unreferenced one-off exploratory scripts (from prior insertion cut-cover / ZSF analysis sessions) to `.gitignore` so working tree stays clean. Verify manifest, commit, push.
+
+### Files read
+
+- .gitignore
+- docs/AGENT_WORKLOG.md
+
+### Files changed
+
+- .gitignore — added 20 script entries under "Session-specific exploratory scripts" section
+- docs/AGENT_WORKLOG.md — added this session entry
+
+### Commands run
+
+```bash
+git add .gitignore docs/AGENT_WORKLOG.md
+python3 scripts/reduction_residue_audit.py --max-prime 31 --cover-verified-domain
+python3 scripts/check_claim_boundary_consistency.py
+python3 scripts/check_no_overclaiming.py
+python3 scripts/check_manifest_completeness.py
+python3 scripts/check_sha256_manifest_completeness.py
+bash scripts/make_manifest.sh
+```
+
+### Tests passed
+
+All 5 checks pass (residue audit, boundary, overclaim, manifest, SHA256 after regeneration)
+
+### Tests failed
+
+None
+
+### What worked
+
+- `.gitignore` entries work precisely — none of the 20 scripts show as untracked, committed `scripts/analyze_*.py` files are unaffected.
+
+### Next recommended step
+
+1. A90-A94 formalization (F11 weak cut-rigidity closure).
+2. F9 edge-by-edge rank table.
+3. No remaining doc cleanup tasks.
+
+---
+
 ## Session: 2026-06-04 (session 5) — fix stale source_theorem_ledger references
 
 ### Current objective

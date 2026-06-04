@@ -43,3 +43,25 @@ local_artifacts/**/*.tar.gz
 
 # Node modules (if any JS tooling is added)
 node_modules/
+
+# Session-specific exploratory scripts (unreferenced, one-off analysis)
+scripts/analyze_both_conditions_deep.py
+scripts/analyze_lemma31_subcase.py
+scripts/check_working_positions.py
+scripts/trace_inductive_construction.py
+scripts/verify_reverse_lemma31.py
+scripts/test_both_conditions_analysis.py
+scripts/test_cyclic_vs_inductive.py
+scripts/test_exhaustive_zsf_search.py
+scripts/test_inductive_zsf.py
+scripts/test_inductive_zsf_v2.py
+scripts/test_inductive_zsf_v3.py
+scripts/test_lemma31_constructions.py
+scripts/test_lemma31_deep_dive.py
+scripts/test_lemma31_v2.py
+scripts/test_move_any_definitive.py
+scripts/test_move_any_to_end.py
+scripts/test_move_first_past_zero.py
+scripts/test_reverse_fix.py
+scripts/test_rotation_counterexample.py
+scripts/test_which_element_to_move.py
