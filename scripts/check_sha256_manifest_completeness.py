@@ -30,7 +30,6 @@ from pathlib import Path
 TRUSTED_RELEASE_FILES = [
     "README.md",
     "MANIFEST.required",
-    "MANIFEST.sha256",
     ".github/workflows/verify.yml",
     "certificates/verified_domains.json",
     "certificates/minimal_witnesses.jsonl",

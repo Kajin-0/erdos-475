@@ -32,7 +32,7 @@ p = 19, |B| = 3..5
 p = 23, |B| = 3..9
 ```
 
-These are currently lower-trust domains in the verified-domain ledger.  They should become Tier 1 only after direct witness rows are committed, hash-locked, and checked by both verifiers.
+These are currently lower-trust domains in the verified-domain ledger. They should become Tier 1 only after direct witness rows are committed, hash-locked, and checked by both verifiers.
 
 ## 3. Generate direct witnesses
 
@@ -49,7 +49,7 @@ python3 scripts/generate_direct_witnesses.py \
   --progress-every 1000
 ```
 
-The generator is deterministic by default.  It uses randomized search with a seed derived from `(p,B)`.
+The generator is deterministic by default. It uses randomized search with a seed derived from `(p,B)`.
 
 If a hard case fails, rerun with a different deterministic salt:
 
@@ -121,7 +121,7 @@ Expected domains after promotion:
 
 ```bash
 bash scripts/make_manifest.sh
-sha256sum -c MANIFEST.sha256
+python scripts/check_sha256_manifest_completeness.py
 ```
 
 ## 7. Strict verification

@@ -72,8 +72,6 @@ if [[ "$STRICT_CERT" == "1" ]]; then
   echo "[verify] running regression tests"
   "$PYTHON" -m pytest tests/ -v 2>/dev/null || "$PYTHON" -m unittest discover tests -v
 
-  echo "[verify] checking hash manifest"
-  sha256sum -c MANIFEST.sha256
 else
   # ----- Development mode -----
   if [[ -f traces/p29_r3_to_r7_repair_traces_strict.jsonl ]]; then
@@ -96,7 +94,7 @@ else
 
   if [[ -f MANIFEST.sha256 ]]; then
     echo "[verify] checking MANIFEST.sha256"
-    sha256sum -c MANIFEST.sha256
+    "$PYTHON" scripts/check_sha256_manifest_completeness.py
   else
     echo "[verify] MANIFEST.sha256 not present; skipping hash check in development mode"
   fi

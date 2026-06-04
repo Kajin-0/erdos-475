@@ -34,7 +34,7 @@ If this extracts zero rows, inspect the trace schema and update the field paths 
 scripts/extract_minimal_witnesses.py
 ```
 
-The extractor is not trusted proof logic.  It is only a converter from rich traces to the minimal witness format.
+The extractor is not trusted proof logic. It is only a converter from rich traces to the minimal witness format.
 
 ---
 
@@ -105,7 +105,7 @@ bash scripts/make_manifest.sh
 Then verify the manifest:
 
 ```bash
-sha256sum -c MANIFEST.sha256
+python scripts/check_sha256_manifest_completeness.py
 ```
 
 Commit the manifest only after the certificate files are final for the declared finite theorem.

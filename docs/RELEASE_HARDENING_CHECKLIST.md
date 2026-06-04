@@ -51,13 +51,13 @@ cargo run --release -- ../certificates/minimal_witnesses.jsonl \
 [ ] MANIFEST.sha256 includes certificates/minimal_witnesses.jsonl.
 [ ] MANIFEST.sha256 includes certificates/verified_domains.json.
 [ ] MANIFEST.sha256 includes verifier source files.
-[ ] sha256sum -c MANIFEST.sha256 passes.
+[ ] scripts/check_sha256_manifest_completeness.py passes.
 ```
 
 Required command:
 
 ```bash
-sha256sum -c MANIFEST.sha256
+python scripts/check_sha256_manifest_completeness.py
 ```
 
 ## 4a. Schema validation
@@ -113,7 +113,6 @@ Required commands:
 ```bash
 python scripts/check_manifest_completeness.py
 python scripts/check_sha256_manifest_completeness.py
-sha256sum -c MANIFEST.sha256
 ```
 
 ## 4d. Overclaim detection

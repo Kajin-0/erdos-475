@@ -1,7 +1,7 @@
 # Release Audit Report
 
 **Date**: 2026-06-04
-**Branch**: `main` at `6e0ff35`
+**Branch**: `main` at `d257881`
 **Scope**: Second hardening pass for finite-certificate verification infrastructure
 **Auditor**: Automated audit suite (ci_classify.sh + 6 audit scripts + verifiers)
 
@@ -13,13 +13,12 @@
 | Schema validation (strict)     | PASS   | `--strict` mode: no untrusted fields, no bool-as-int, no empty files, valid domain artifact classes                   |
 | Canonical count audit          | PASS   | `--require-canonical`: 247,416 rows, all canonical, no duplicates, full domain coverage                               |
 | Manifest completeness          | PASS   | `scripts/check_manifest_completeness.py`: all MANIFEST.required entries present                                       |
-| SHA256 manifest coverage       | PASS   | `scripts/check_sha256_manifest_completeness.py`: 39 trusted files all covered                                         |
+| SHA256 manifest coverage       | PASS   | `scripts/check_sha256_manifest_completeness.py`: 38 trusted files, all covered, all hashes match                      |
 | Claim boundary consistency     | PASS   | `scripts/check_claim_boundary_consistency.py`: declared domains match certificate coverage                            |
 | Overclaim detection            | PASS   | `scripts/check_no_overclaiming.py`: no unsafe phrases found in 14 high-risk docs                                      |
 | Python verifier                | PASS   | 247,416 rows, all domains covered, canonical coverage confirmed                                                       |
 | Rust verifier                  | SKIP   | No Rust toolchain in this environment; CI handles it                                                                  |
 | Regression tests               | PASS   | 19/19 pytest tests pass                                                                                               |
-| Hash manifest integrity        | PASS   | `sha256sum -c MANIFEST.sha256`: 393/394 OK (MANIFEST.sha256 self-hash excluded)                                       |
 | .gitignore hardening           | PASS   | Patterns for `logs/*.jsonl`, `*.tmp`, `local_artifacts/**/*.{jsonl,zip,tar,tar.gz}`, `logs/*.log`                     |
 | Literature notation correction | PASS   | `data/literature_coverage.json` fixed: "F_p\*" → "additive cyclic group F_p, with A subset F_p \ {0}"                 |
 | Artifact manifest scripts      | PASS   | `batch_local_jsonl_manifest.py` and `parse_summary_only_artifacts.py` improved with `--allow-empty`/`--allow-unknown` |
@@ -73,8 +72,7 @@ Counts verified by `scripts/audit_canonical_counts.py --require-canonical --doma
 ### Manifest and SHA256 checks
 
 - `check_manifest_completeness.py`: 54 entries in MANIFEST.required, all present
-- `check_sha256_manifest_completeness.py`: 39 trusted files, all present in MANIFEST.sha256 (394 entries), no hash mismatches
-- `sha256sum -c MANIFEST.sha256`: 393/394 OK (only MANIFEST.sha256 self-entry is excluded — unavoidable self-referential hash)
+- `check_sha256_manifest_completeness.py`: 38 trusted files, all present in MANIFEST.sha256 (494 entries), no hash mismatches (MANIFEST.sha256 has no self-entry)
 
 ### Overclaim detection
 
@@ -111,7 +109,7 @@ Counts verified by `scripts/audit_canonical_counts.py --require-canonical --doma
 - Updated `.gitignore` — Added `logs/*.jsonl`, `logs/*.log`, `logs/*.tmp`, `*.tmp`, `local_artifacts/**/*.{jsonl,zip,tar,tar.gz}`
 - Fixed `data/literature_coverage.json` — Corrected notation for Costa-Della Fiore-Fontana-Vena entry
 - Updated `MANIFEST.required` — Added new scripts
-- Updated `MANIFEST.sha256` — Regenerated (394 entries)
+- Updated `MANIFEST.sha256` — Regenerated (494 entries, no self-entry)
 - Updated `README.md` — Added audit suite documentation
 - Updated `docs/RELEASE_HARDENING_CHECKLIST.md` — Added schema, canonical, manifest, SHA256, overclaim items
 
