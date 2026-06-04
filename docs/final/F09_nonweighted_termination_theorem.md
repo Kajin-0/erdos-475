@@ -69,13 +69,71 @@ M_NW^* = (
 
 The order is lexicographic over nonnegative integers.
 
+All depth/rank coordinates are finite: they count consecutive returns at fixed dominant coordinates, and the total number of distinct local configurations is bounded by `p` (a fixed prime in any given instance).
+
+Definitions:
+
+```text
+enclosing_span   = length of the smallest atom interval containing active support;
+gap_length       = separated/bridge gap length when present, otherwise 0;
+support_size     = number of participating atoms;
+recurrence_depth = consecutive recurrence returns (SINGLETON_RECURRENCE,
+                   CYCLIC_RECURRENCE, FORBIDDEN_RECURRENCE) since the last
+                   strict decrease in enclosing_span, gap_length, or support_size;
+pair_depth       = consecutive pair/signed-difference returns (PAIR_DIFFERENCE,
+                   PAIR_DIFFERENCE_RECURRENCE) since the last strict decrease
+                   in enclosing_span, support_size, or a dominant recurrence descent;
+separated_depth  = consecutive separated-equal returns (SEPARATED_EQUAL,
+                   MIDPOINT) since the last strict decrease in gap_length
+                   or enclosing_span;
+bridge_depth     = consecutive bridge/gap returns since the last strict decrease
+                   in enclosing_span, gap_length, or support_size;
+type_rank        = finite obstruction-class rank from the explicit table below;
+boundary_rank    = finite endpoint-degeneracy rank from the explicit table below;
+h_excess         = recurrent hit index minus the globally minimal first-hit index.
+```
+
+The depth coordinates (`recurrence_depth`, `pair_depth`, `separated_depth`, `bridge_depth`) are finite because each consecutive return occupies a distinct local configuration drawn from a set of size bounded by the number of subsets of a fixed active support. The explicit finite rank tables for `type_rank` and `boundary_rank` are given in `docs/final/F00_SNS_C10_rank_tables.md` (C10.3 and C10.5 respectively).
+
+### type_rank explicit finite table (from C10.3)
+
+| Type                 | rank |                                        Meaning |
+| -------------------- | ---- | ---------------------------------------------: |
+| SUCCESS              | 0    |                               terminal success |
+| DEFECT_DESCENT       | 1    |             strict dominant-coordinate descent |
+| ZERO_DEFECT          | 2    |                     zero interval repair state |
+| LOCAL_ZERO_COMPOSITE | 3    |                   two/higher-piece zero repair |
+| EQUAL_INTERVAL       | 4    |    overlap/containment/disjoint equal interval |
+| SIGNED_INTERVAL      | 5    |   signed interval with bounded atom correction |
+| PAIR_DIFFERENCE      | 6    |                    atom-pair boundary relation |
+| SEPARATED_EQUAL      | 7    |               disjoint equal interval with gap |
+| MIDPOINT             | 8    |               adjacent equal / midpoint branch |
+| BRIDGE_GAP           | 9    |     external bridge or separated bridge repair |
+| EXTERNAL_COLLISION   | 10   | moved endpoint collides with external endpoint |
+| TRANSPORTED_PREFIX   | 11   |          transported prefix/tail normalization |
+| WEIGHTED_CORE        | 12   |          genuine coefficient-2 weighted repair |
+| CYCLIC_RECURRENCE    | 13   |                  cyclic/wrapped collision data |
+| BOUNDARY_DEGENERACY  | 14   |                endpoint/empty-block degeneracy |
+
+### boundary_rank explicit finite table (from C10.5)
+
+| Boundary status     | rank |                                                                Meaning |
+| ------------------- | ---- | ---------------------------------------------------------------------: |
+| INTERIOR_USEFUL     | 0    | all active pieces nonempty; insertion/cut occurs strictly inside block |
+| ONE_FULL_PREFIX     | 1    |                                    one prefix/tail equals a full block |
+| ONE_EMPTY_PREFIX    | 2    |                        one prefix/tail is empty by endpoint convention |
+| ADJACENT_ENDPOINT   | 3    |                        equal blocks adjacent; midpoint/endpoint branch |
+| OUTER_CONTEXT_EMPTY | 4    |                        context block empty in a boundary-sensitive way |
+| CYCLIC_ENDPOINT     | 5    |                             endpoint wraps under cyclic representation |
+| DEGENERATE_REWRITE  | 6    |                rewrite uses empty or full support in a non-generic way |
+
 The coordinate
 
 ```text
 bridge_depth
 ```
 
-contains the finite bridge-local subrank used by F8:
+contains the finite bridge-local subrank used by F8, as specified in `docs/analytic_mbg_to_mnw_subrank_convention.md`:
 
 ```text
 bridge_depth_BG = (
@@ -357,16 +415,83 @@ Weighted branches are included through F10--F11.
 
 ---
 
-## F9.12. Remaining extraction risks
+## F9.12. Edge-by-edge class graph
+
+The global obstruction graph partitions non-terminal outcomes into named classes, each with a known destination and required `M_NW^*` coordinate decrease. Full detail and endpoint-specific mapping are in:
+
+```text
+docs/analytic_global_class_graph_measure_checkpoint.md
+```
+
+### Terminal classes
+
+| Class                  | Destination | Measure status | Current status                |
+| ---------------------- | ----------- | -------------- | ----------------------------- |
+| SUCCESS                | terminal    | TERMINAL       | closed                        |
+| CONTRADICTION          | terminal    | TERMINAL       | closed                        |
+| ZERO_ATOM              | terminal    | TERMINAL       | closed                        |
+| DUPLICATE_ATOM         | terminal    | TERMINAL       | closed                        |
+| MINIMALITY_VIOLATION   | terminal    | TERMINAL       | closed                        |
+| INTERIOR_RELATIVE_ZERO | terminal    | TERMINAL       | closed by boundary-zero lemma |
+
+### Local descent classes
+
+| Class              | Typical destination | Required decrease                            | Current status                |
+| ------------------ | ------------------- | -------------------------------------------- | ----------------------------- |
+| PROPER_SUBINTERVAL | F4 local descent    | enclosing_span or support_size               | conditionally routed          |
+| PREFIX_ZERO        | F4 / terminal       | enclosing_span or terminal                   | conditionally routed          |
+| TWO_PIECE_ZERO     | F4 / A28--A33       | enclosing_span/support_size or recurrence    | partially unresolved globally |
+| THREE_PIECE_ZERO   | F4 / A28--A33       | enclosing_span/support_size or recurrence    | partially unresolved globally |
+| EQUAL_INTERVAL     | F4/F5               | enclosing_span/gap_length/support_size       | partially unresolved globally |
+| SIGNED_INTERVAL    | F4/F6/F10           | enclosing_span/support_size or weighted exit | partially unresolved globally |
+| PAIR_DIFFERENCE    | F7/F4/F10           | pair_depth/support_size or weighted exit     | partially unresolved globally |
+
+### External and bridge classes
+
+| Class                          | Typical destination | Required decrease                            | Current status                       |
+| ------------------------------ | ------------------- | -------------------------------------------- | ------------------------------------ |
+| TEMPLATE_EXTERNAL_CANCELLATION | F6                  | class embedding closed                       | endpoint-specific closed             |
+| EXTERNAL_COLLISION             | F6 exits            | span/gap/support/recurrence or weighted exit | globally conditional                 |
+| BRIDGE_GAP                     | F8                  | enclosing_span/gap_length/bridge_depth       | globally conditional                 |
+| SEPARATED_EQUAL                | F5/F8               | gap_length/separated_depth                   | globally conditional                 |
+| MIDPOINT                       | A55/F5/F7           | zero-composite/recurrence                    | class-routed, global descent pending |
+| WRAPPING_BRIDGE                | F6/F8               | bridge_depth/gap_length/span                 | globally conditional                 |
+
+### Recurrence classes
+
+| Class                      | Typical destination | Required decrease                                 | Current status                                           |
+| -------------------------- | ------------------- | ------------------------------------------------- | -------------------------------------------------------- |
+| SINGLETON_RECURRENCE       | F7                  | recurrence_depth then enclosing_span              | endpoint atom table closed, global F7/F9 conditional     |
+| PAIR_DIFFERENCE_RECURRENCE | F7                  | pair_depth/support/span                           | endpoint table patched, global F7/F9 conditional         |
+| CYCLIC_RECURRENCE          | F7/A71              | minimality/span/bridge/midpoint routing           | midpoint characteristic audit closed, global conditional |
+| A34_RECURRENCE             | F7/F9               | recurrence_depth or bounded-blocker span decrease | global conditional                                       |
+| BOUNDED_BLOCKER            | F7                  | enclosing_span                                    | conditionally closed if augmented span convention holds  |
+| LONG_BLOCKER               | F7/F6/F8            | routes to bridge/pair/signed/cyclic classes       | class-routed, termination conditional                    |
+
+### Weighted-core classes
+
+| Class                    | Typical destination | Required decrease                                | Current status                   |
+| ------------------------ | ------------------- | ------------------------------------------------ | -------------------------------- |
+| WEIGHTED_CORE            | F10/F11             | weighted measure or cut-selection descent        | unresolved as theorem dependency |
+| WEIGHTED_SIGNED_INTERVAL | F10/F11             | weighted exit or conversion to nonweighted class | unresolved globally              |
+| CUT_RIGID_RETURN         | F10/F11/A82         | finite return-path or weighted descent           | unresolved globally              |
+
+Every nonterminal edge in the above tables decreases `M_NW^*` or exits to F10/F11 for weighted termination. Weighted exits are handled by Lemma F9.6 and the W-to-NW exit decrease table (`docs/analytic_weighted_to_nonweighted_exit_decrease_table.md`).
+
+---
+
+## F9.13. Remaining extraction risks
 
 Before final manuscript status:
 
 ```text
-R1. The edge-by-edge class graph should be included as a table.
-R2. type_rank, boundary_rank, recurrence_depth, pair_depth, separated_depth, and bridge_depth need explicit finite orders.
+R1. ✅ RESOLVED — edge-by-edge class graph included as F9.12 (tables above).
+R2. ✅ RESOLVED — type_rank and boundary_rank have explicit finite tables (C10.3, C10.5) in
+    docs/final/F00_SNS_C10_rank_tables.md; recurrence_depth, pair_depth, separated_depth,
+    and bridge_depth are defined as bounded consecutive-return counters in F9.2 above.
 R3. F11 must be hardened, because F9 depends on weighted termination.
 R4. Verify no F4--F8 output class is missing from F9.3.
-R5. Replace “lower finite rank/depth” with explicit rank inequalities in the final manuscript.
+R5. Replace "lower finite rank/depth" with explicit rank inequalities in the final manuscript.
 ```
 
 Resolved or reduced:
@@ -374,11 +499,13 @@ Resolved or reduced:
 ```text
 F8 bridge_length/internal_length are embedded into bridge_depth by analytic_mbg_to_mnw_subrank_convention.md.
 Endpoint branch class graph and measure checkpoint created in analytic_global_class_graph_measure_checkpoint.md.
+F9.12 adds an extracted class graph table covering local descent, external/bridge, recurrence, and weighted-core classes.
+F9.2 updated with explicit finite-order definitions for all depth/rank coordinates (R2).
 ```
 
 ---
 
-## F9.13. Extraction status
+## F9.14. Extraction status
 
 ```text
 Status: extracted draft with bridge-local subrank convention added.

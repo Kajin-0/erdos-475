@@ -1,5 +1,77 @@
 # Agent Worklog
 
+## Session: 2026-06-04 (session 7) — explicit finite orders for F9 depth/rank coordinates
+
+### Current objective
+
+Add explicit finite-order definitions for `type_rank`, `boundary_rank`, `recurrence_depth`, `pair_depth`, and `separated_depth` to F9.2, resolving R2 in F9.13. Reference the existing C10.3/C10.5 rank tables. Clean up duplicate F9.13 heading. Run verification, commit, push.
+
+### Files read
+
+- README.md
+- docs/CLAIM_BOUNDARY.md
+- docs/VERIFIED_DOMAIN.md
+- docs/EXTERNAL_REVIEW_PACKET.md
+- docs/SOURCE_EXTRACTION_PRIME_FIELD.md
+- docs/COVERAGE_SANDWICH_LEMMA.md
+- docs/ANALYTIC_PROGRESS_HANDOFF.md
+- docs/RELEASE_AUDIT_REPORT.md
+- docs/final/F09_nonweighted_termination_theorem.md
+- docs/final/F03_obstruction_state_machine.md
+- docs/final/F00_SNS_C10_rank_tables.md
+- docs/final/F00_SNS_C9_phase_aware_global_measure.md
+- docs/analytic_global_class_graph_measure_checkpoint.md
+- docs/analytic_mbg_to_mnw_subrank_convention.md
+- docs/analytic_endpoint_branch_f9_measure_audit.md
+
+### Files changed
+
+- `docs/final/F09_nonweighted_termination_theorem.md` — F9.2: added explicit finite-order definitions with inline rank tables for type_rank (C10.3) and boundary_rank (C10.5), and bounded-return definitions for recurrence_depth, pair_depth, separated_depth, bridge_depth. F9.13: R2 marked RESOLVED with citation to C10 tables and new F9.2 definitions. Combined duplicate "Resolved or reduced" blocks. F9.13 → F9.14 (second heading renumbered).
+- `docs/AGENT_WORKLOG.md` — added this session entry.
+
+### Commands run
+
+```bash
+python3 scripts/reduction_residue_audit.py --max-prime 31 --cover-verified-domain
+python3 scripts/check_claim_boundary_consistency.py
+python3 scripts/check_no_overclaiming.py
+python3 scripts/check_manifest_completeness.py
+python3 scripts/check_sha256_manifest_completeness.py
+bash scripts/make_manifest.sh
+```
+
+### Tests passed
+
+All 5 checks pass (residue audit, boundary, overclaim, manifest, SHA256 after regeneration)
+
+### Tests failed
+
+None
+
+### What worked
+
+1. F9.2 updated with explicit finite-order definitions for all six depth/rank coordinates:
+   - `recurrence_depth`, `pair_depth`, `separated_depth`, `bridge_depth` defined as bounded consecutive-return counters
+   - `type_rank` explicit table (14 ranks, 0-14, from C10.3)
+   - `boundary_rank` explicit table (7 ranks, 0-6, from C10.5)
+   - All cross-referenced to `docs/final/F00_SNS_C10_rank_tables.md`
+2. F9.13 R2 marked RESOLVED with citation to new definitions.
+3. Duplicate "Resolved or reduced" blocks consolidated.
+4. Second F9.13 heading renumbered to F9.14.
+
+### Next recommended step
+
+1. Continue F9 hardening: R3 (F11 dependency), R4 (F4-F8 class coverage check), R5 (explicit rank inequalities).
+2. A90-A94 formalization (F11 weak cut-rigidity closure).
+
+### Current claim boundary
+
+Safe: finite-certificate verification workspace for declared complement domains (p <= 31). R2 resolved — all F9 depth/rank coordinates now have explicit finite orders with references to C10 rank tables.
+
+Unsafe: any claim that effective constants exist for Pham-Sauermann, Bedert-Kravitz, or BBKMM. All three papers confirmed non-effective.
+
+---
+
 ## Session: 2026-06-04 (session 6) — gitignore session-specific exploratory scripts
 
 ### Current objective
