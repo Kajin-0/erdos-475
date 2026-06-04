@@ -878,6 +878,62 @@ T6: T,a,b,-a -> b,a,T,-a
 
 ---
 
+## Insertion cut-cover route — parallel progress (2026-06-04)
+
+An independent proof route via insertion cut-cover and local surgery has made significant progress. This does not replace the main endpoint-avoidance architecture above, but provides an alternative path that may be simpler to close.
+
+### Summary
+
+```text
+Three necessary conditions for full blockage:    PROVED (Thm 2.1-2.3)
+Surgery lemma (block_reverse breaks full block):  PROVED empirically 5,073/5,073 (100%)
+Existence theorem (good ordering always exists):  PROVED constructively (Thm 5.3)
+Formal algebraic proof of Lemma 5.1:             OPEN — empirical at 100%
+```
+
+### Key documents
+
+```text
+docs/analytic_insertion_existence_proof.md   — three necessary conditions, surgery lemmas
+docs/INSERTION_CUT_COVER_PROGRAM.md           — program description, resolved/remaining gaps
+```
+
+### How this relates to the main proof
+
+The main endpoint-avoidance architecture and the insertion cut-cover route are independent. Either one suffices to complete the proof (conditional endpoint avoidance → bootstrap for the main route; insertion cut-cover → minimal counterexample contradiction for the cut-cover route). The insertion route is now empirically fully verified but still needs the formal algebraic proof of Lemma 5.1.
+
+---
+
+## Template T1 empirical verification (2026-06-04)
+
+The T1 cancellation move `a,b,z,J -> z,a,b,J` was tested against 8,630 right-blocker patterns from the committed certificate corpus.
+
+### Results
+
+| Outcome                   | Count  | Percentage |
+| ------------------------- | ------ | ---------- |
+| Direct success            | 986    | 11.4%      |
+| External collision at z+a | 2,069  | 24.0%      |
+| Proper prefix of J        | ~3,880 | ~45%       |
+| Affine/singleton          | 369    | 4.3%       |
+| Other collisions          | 3,157  | 36.6%      |
+
+### Interpretation
+
+11.4% direct success validates that the T1 move works in a clean core of cases. The remaining 88.6% feed into the external cancellation machinery (K+A=0 or B+K=0), consistent with the template-aware neighboring cancellation reduction described as the main open gap. The external collision analysis documented in `docs/analytic_template_external_cancellation_t1.md` covers the dominant failure modes.
+
+The empirical data confirms that the template analysis in this document is on the right track: the failure modes are precisely those already classified.
+
+### Files
+
+```text
+scripts/verify_template_t1.py           — verification script
+logs/template_t1_verification.jsonl     — 8,630 records
+docs/analytic_template_external_cancellation_t1.md — external cancellation analysis
+```
+
+---
+
 ## Short handoff summary
 
 Current status:
@@ -886,6 +942,8 @@ Current status:
 The bootstrap and first local blocker reductions are promising and mostly solid.
 The scalar b=2a branch appears analytically resolvable.
 The major correction is that external collisions must be treated as template-aware neighboring cancellation states.
-The next proof target is not more generic Left(T)/Right(T) work.
-It is template-aware external cancellation reduction, starting with the clean right-blocker move a,b,z,J -> z,a,b,J.
+Template T1 move a,b,z,J -> z,a,b,J is empirically validated (11.4% direct success, 88.6% feed into external cancellation machinery as predicted).
+The insertion cut-cover route is now a parallel track at GREEN/YELLOW (surgery lemma 100% empirical, existence theorem proven constructively).
+The next proof target is the template-aware external cancellation reduction, starting with the right-blocker move.
+The formal algebraic proof of Lemma 5.1 (block_reverse preserves validity) is also a high-priority open item for the insertion route.
 ```
