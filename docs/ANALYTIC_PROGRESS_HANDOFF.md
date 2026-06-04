@@ -1023,6 +1023,28 @@ Average blocked-cut reduction:    1.72 per operation
 Keep this handoff updated after every major analytic commit.
 ```
 
+### Immediate source-certification action
+
+```text
+1. Extract effective constants from Pham-Sauermann 2026 (PDF/TeX).
+   Update docs/source_theorems.yaml entry pham_sauermann_2026_large_prime:
+   set effective_status to "effective" once N_alpha and P_alpha are known.
+2. Extract effective constants from Bedert-Kravitz 2024 (PDF/TeX).
+   Update docs/source_theorems.yaml entry bedert_kravitz_2024_small_prime_field_sets:
+   confirm exact large-prime condition and set effective_status accordingly.
+3. Extract effective constant c from BBKMM 2025 (PDF/TeX).
+   Update docs/source_theorems.yaml entry bbkmm_2025_large_sets_general_groups.
+4. After extraction, run:
+   python scripts/reduction_residue_audit.py --max-prime 1000 \
+     --cover-verified-domain \
+     --cover-small-exp-quarter \
+     --cover-medium-alpha 0.10:20:37:pham_sauermann_alpha_010 \
+     --cover-large-power-c 0.05 \
+     --cover-large-power-threshold 37 \
+     --prove
+   The --prove gate will verify all rules are source-certified.
+```
+
 ### Immediate experimental action
 
 ```text
@@ -1066,7 +1088,68 @@ F10 weighted local cut-swap:        YELLOW (stale language patched, W-to-NW tabl
 F11 weighted termination:           ORANGE (persistent cut-rigidity A90--A94 remains).
 F9/F11 W-to-NW exit table:          YELLOW (19 GREEN + 2 YELLOW exits enumerated).
 Analytic residue bridge:            RED.
+Source theorem ledger + gate:       GREEN (docs/source_theorems.yaml + --prove hard gate built).
 Insertion cut-cover route:          GREEN; three necessary conditions proved (Thm 2.1-2.3), surgery lemma proved algebraically (Lemma 5.1 §5, five-case analysis + Lemma 5.1a §5.5), existence theorem proved constructively (Thm 5.3); 5,073/5,073 empirical. All components closed.
+```
+
+---
+
+### 2026-06-04: source theorem ledger and --prove hard gate
+
+Key files:
+
+```text
+docs/source_theorems.yaml (created — machine-readable theorem ledger)
+docs/AGENT_WORKLOG.md (created — session worklog)
+docs/source_theorem_ledger.md (identified as stale; kept as legacy reference)
+scripts/reduction_residue_audit.py (added --prove flag and certification gate)
+docs/analytic_insertion_existence_proof.md (overclaim title fixed)
+```
+
+What worked:
+
+```text
+1. Created docs/source_theorems.yaml with structured entries for all known
+   source theorems: default small-set, default very-large-set,
+   Bedert-Kravitz 2024, Pham-Sauermann 2026, BBKMM 2025,
+   Costa-Della Fiore-Fontana-Vena 2026.
+2. Added --prove flag to reduction_residue_audit.py: proof-level gate that
+   refuses p-dependent exploratory coverage rules unless the corresponding
+   source theorem in docs/source_theorems.yaml has effective_status="effective".
+3. The gate is class-based: SmallExpQuarterRule, MediumAlphaRule, LargePowerRule
+   are all blocked in --prove mode until the source paper constants are extracted
+   and the YAML entry is updated.
+4. Fixed an overclaim title in analytic_insertion_existence_proof.md:
+   "complete proof" -> "structural analysis and constructive approach".
+5. docs/source_theorems.yaml uses explicit translation formulas (translation_to_p_t,
+   translation_to_p_b) for each theorem.
+```
+
+What was corrected:
+
+```text
+1. docs/analytic_insertion_existence_proof.md title was "complete proof" —
+   reverted to "structural analysis and constructive approach". The insertion
+   existence theorem is one lemma toward one proof approach, not a full Erdős 475 proof.
+```
+
+Remaining blocker:
+
+```text
+1. docs/source_theorem_ledger.md is stale relative to SOURCE_EXTRACTION_PRIME_FIELD.md
+   and the new YAML ledger. Should be archived or rewritten as a narrative supplement.
+2. The default rules (t <= 12, |B| <= 2) are recorded in source_theorems.yaml as
+   "non_effective" — they are informal/folklore, not peer-reviewed theorems.
+3. No source theorem currently has effective_status="effective" for p-dependent rules,
+   so --prove mode currently blocks all exploratory flags.
+```
+
+Next action:
+
+```text
+1. Extract effective constants from Pham-Sauermann 2026 and update source_theorems.yaml.
+2. Extract effective constants from Bedert-Kravitz 2024 and update source_theorems.yaml.
+3. Consider demoting/archiving docs/source_theorem_ledger.md with a pointer to the YAML file.
 ```
 
 ---

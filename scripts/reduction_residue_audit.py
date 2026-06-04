@@ -52,8 +52,9 @@ import argparse
 import dataclasses
 import json
 import math
+import re
 from pathlib import Path
-from typing import List, Optional, Protocol, Set, Tuple
+from typing import Any, Dict, List, Optional, Protocol, Set, Tuple
 
 
 @dataclasses.dataclass(frozen=True)
@@ -138,6 +139,127 @@ class LargePowerRule:
             return False
         endpoint = math.ceil(case.p ** (1.0 - self.c))
         return case.t >= endpoint
+
+
+def load_source_theorems(path: Path) -> List[Dict[str, Any]]:
+    """Load source theorem ledger from YAML.
+
+    Returns a list of source theorem entries. Each entry is expected to have
+    at minimum:
+      source_id: str
+      effective_status: str  ("effective", "non_effective", "pending_extraction")
+
+    Returns an empty list if the file does not exist (exploratory mode).
+    Raises ValueError on parse failure or missing required fields.
+    """
+    if not path.exists():
+        return []
+
+    text = path.read_text(encoding="utf-8")
+    entries: List[Dict[str, Any]] = []
+
+    # Minimal YAML sequence parser: split on "- source_id:" markers.
+    # This avoids a hard dependency on PyYAML.
+    # Remove comment lines and strip trailing whitespace per line first.
+    clean_lines: List[str] = []
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            continue
+        clean_lines.append(stripped)
+    clean_text = "\n".join(clean_lines)
+
+    blocks = re.split(r"\n(?=- source_id:)", clean_text)
+    for block in blocks:
+        block = block.strip()
+        if not block:
+            continue
+        entry: Dict[str, Any] = {}
+        for line in block.split("\n"):
+            line = line.strip()
+            # Strip leading "- " YAML list prefix if present
+            if line.startswith("- "):
+                line = line[2:].strip()
+            m = re.match(r"^([a-zA-Z_][a-zA-Z0-9_]*):\s+(.*)", line)
+            if m:
+                key = m.group(1)
+                val = m.group(2).strip()
+                if val.startswith('"') and val.endswith('"'):
+                    val = val[1:-1]
+                elif val.startswith("'") and val.endswith("'"):
+                    val = val[1:-1]
+                entry[key] = val
+        if "source_id" in entry:
+            entries.append(entry)
+
+    # Validate required fields
+    for idx, entry in enumerate(entries):
+        if "effective_status" not in entry:
+            raise ValueError(
+                f"docs/source_theorems.yaml entry {idx} (source_id={entry.get('source_id', '?')}) "
+                "is missing 'effective_status'"
+            )
+        if entry["effective_status"] not in ("effective", "non_effective", "pending_extraction"):
+            raise ValueError(
+                f"docs/source_theorems.yaml entry {idx} (source_id={entry.get('source_id', '?')}) "
+                f"has invalid effective_status={entry['effective_status']!r} "
+                "(must be 'effective', 'non_effective', or 'pending_extraction')"
+            )
+
+    return entries
+
+
+def is_source_certified(source_id: str, source_theorems: List[Dict[str, Any]]) -> bool:
+    """Check whether a source theorem is certified for proof-level use.
+
+    Returns True if an entry with matching source_id exists and has
+    effective_status == "effective".
+    """
+    for entry in source_theorems:
+        if entry.get("source_id") == source_id:
+            return entry.get("effective_status") == "effective"
+    return False
+
+
+# Maps rule class names to source theorem source_ids for --prove gate enforcement.
+# Each key is the Python class __name__ of the coverage rule.
+# Each value is the source_id from docs/source_theorems.yaml.
+PROVE_GATE_RULES: Dict[str, str] = {
+    "SmallExpQuarterRule": "bedert_kravitz_2024_small_prime_field_sets",
+    "MediumAlphaRule": "pham_sauermann_2026_large_prime",
+    "LargePowerRule": "bbkmm_2025_large_sets_general_groups",
+}
+
+
+def enforce_prove_gate(
+    rules: List[CoverageRule],
+    source_theorems: List[Dict[str, Any]],
+) -> None:
+    """Enforce that all source-backed coverage rules are certified for --prove.
+
+    Only rules whose class name appears in PROVE_GATE_RULES are checked.
+    Raises SystemExit(1) with explanation if a matching rule is not source-certified.
+    """
+    for rule in rules:
+        cls_name = type(rule).__name__
+        source_id = PROVE_GATE_RULES.get(cls_name)
+        if source_id is None:
+            continue
+        if is_source_certified(source_id, source_theorems):
+            continue
+        entry = next((e for e in source_theorems if e.get("source_id") == source_id), None)
+        status = entry["effective_status"] if entry else "not_in_ledger"
+        print(
+            f"ERROR: --prove mode requires all coverage rules to be source-certified.\n"
+            f"  Rule '{rule.name}' (class={cls_name}) maps to source_id='{source_id}'.\n"
+            f"  Current effective_status='{status}'.\n"
+            f"  Either:\n"
+            f"    (a) remove --prove for exploratory use; or\n"
+            f"    (b) extract effective constants from the source paper and update\n"
+            f"        docs/source_theorems.yaml effective_status to 'effective'.",
+            file=__import__("sys").stderr,
+        )
+        raise SystemExit(1)
 
 
 def is_prime(n: int) -> bool:
@@ -351,12 +473,27 @@ def main() -> int:
         default=2,
         help="Prime threshold for --cover-large-power-c.",
     )
+    ap.add_argument(
+        "--prove",
+        action="store_true",
+        help="Proof-level audit mode: refuse non-source-certified coverage rules. "
+        "All p-dependent source-backed rules must have effective_status='effective' "
+        "in the source theorem ledger.",
+    )
+    ap.add_argument(
+        "--source-theorems-file",
+        default="docs/source_theorems.yaml",
+        help="Path to the source theorem ledger YAML file.",
+    )
     args = ap.parse_args()
 
     verified_rules = load_verified_domain_rules(Path(args.verified_domain_file))
     cases = [Case(p, t) for p in primes_upto(args.max_prime) for t in range(1, p)]
 
     rules: List[CoverageRule] = [] if args.no_default_rules else default_rules()
+
+    # Load source theorems for --prove gate
+    source_theorems = load_source_theorems(Path(args.source_theorems_file))
     if args.cover_verified_domain:
         rules.extend(verified_rules)
     if args.cover_small_exp_quarter:
@@ -375,6 +512,10 @@ def main() -> int:
             )
         )
     rules.extend(parse_rule(x) for x in args.range)
+
+    # Enforce --prove gate after all rules are assembled
+    if args.prove:
+        enforce_prove_gate(rules, source_theorems)
 
     covered = set()
     coverage_by_rule = {r.name: 0 for r in rules}
