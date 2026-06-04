@@ -558,6 +558,65 @@ Insertion cut-cover route:       GREEN (fully closed)
 T1 external cancellation:        ORANGE (Rz-long bridge open)
 ```
 
+## Session: 2026-06-04 (session 10) — resolve R4: F4-F8 class coverage audit, PROPER_SUBINTERVAL documented in F9.3
+
+### Current objective
+
+Track the F4-F8 to F9.3 class coverage audit document; add `PROPER_SUBINTERVAL` note to F9.3 class universe; add note about F9.12 refinement subclasses; mark R4 resolved in F9.13; run verification; commit and push.
+
+### Files read
+
+- README.md
+- docs/CLAIM_BOUNDARY.md
+- docs/VERIFIED_DOMAIN.md
+- docs/AGENT_WORKLOG.md
+- docs/ANALYTIC_PROGRESS_HANDOFF.md
+- docs/final/F09_nonweighted_termination_theorem.md
+- docs/analytic_f4_f8_to_f9_class_coverage_audit.md
+
+### Files changed
+
+- `docs/final/F09_nonweighted_termination_theorem.md` — F9.3: added note about `PROPER_SUBINTERVAL` as a refinement subclass concept, and note that F9.12 subclasses refine the core universe without introducing new obstruction species. F9.13: R4 marked RESOLVED with citation to audit doc.
+- `docs/analytic_f4_f8_to_f9_class_coverage_audit.md` — new file, committed (F4-F8 to F9.3 class coverage audit).
+- `docs/AGENT_WORKLOG.md` — added this session entry.
+- `MANIFEST.sha256` — updated after edits.
+
+### Commands run
+
+python3 scripts/check_claim_boundary_consistency.py
+python3 scripts/check_no_overclaiming.py
+python3 scripts/check_manifest_completeness.py
+python3 scripts/check_sha256_manifest_completeness.py
+bash scripts/make_manifest.sh
+
+### Tests passed
+
+All 4 checks pass (boundary, overclaim, manifest, SHA256 after regeneration)
+
+### Tests failed
+
+None
+
+### What worked
+
+1. Audit document confirms: no F4-F8 output class is missing from the F9.3 core universe.
+2. PROPER_SUBINTERVAL — the measure-decrease routing concept — explained as a refinement subclass, not a missing species.
+3. R4 resolved — last documentation-fixable extraction risk in F9 (R1, R2, R4, R5 all resolved; R3 remains as a theorem dependency on F11).
+4. F9.12 subclass relationship documented explicitly so future readers understand the tiered class hierarchy.
+
+### Mathematical direction
+
+no mathematical change — documentation synchronization only
+
+### Claim boundary
+
+finite-certificate verification and proof-engineering workspace only. No new proof claims. F9 R4 resolved by audit.
+
+### Next recommended small task
+
+1. R3 remains the sole open risk in F9.13 -- F11 must be hardened (theorem dependency, not a doc fix). Requires A90-A94 formalization.
+2. T1 external cancellation (Rz-long bridge obstruction) -- highest-value open gap in endpoint-avoidance route.
+
 Config available:
 
 - branch: main

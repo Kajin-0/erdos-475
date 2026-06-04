@@ -191,6 +191,10 @@ CONTRADICTION.
 
 The class `WEIGHTED_CORE` is treated as an exit to F10--F11, not as a non-weighted cycle node.
 
+The class `PROPER_SUBINTERVAL` (strict decrease in enclosing_span or support_size, routing to a smaller instance of the same or a lower class) is used by F4--F8 as a routing destination and is listed in the F9.12 subclass tables. It is a refinement concept rather than a new obstruction species, so it is not listed as a core class above.
+
+The class universe above lists the core obstruction classes. The F9.12 edge-by-edge tables introduce additional refinement subclasses (`PROPER_SUBINTERVAL`, `TEMPLATE_EXTERNAL_CANCELLATION`, `WRAPPING_BRIDGE`, `PAIR_DIFFERENCE_RECURRENCE`, `A34_RECURRENCE`, `BOUNDED_BLOCKER`, `LONG_BLOCKER`, `ZERO_ATOM`, `DUPLICATE_ATOM`, `MINIMALITY_VIOLATION`, `INTERIOR_RELATIVE_ZERO`, `WEIGHTED_SIGNED_INTERVAL`, `CUT_RIGID_RETURN`) that are used for routing precision. These subclasses refine the core classes and do not represent new obstruction species outside the F9.3 universe.
+
 ---
 
 ## F9.4. Local descent edges
@@ -490,7 +494,7 @@ R2. ✅ RESOLVED — type_rank and boundary_rank have explicit finite tables (C1
     docs/final/F00_SNS_C10_rank_tables.md; recurrence_depth, pair_depth, separated_depth,
     and bridge_depth are defined as bounded consecutive-return counters in F9.2 above.
 R3. F11 must be hardened, because F9 depends on weighted termination.
-R4. Verify no F4--F8 output class is missing from F9.3.
+R4. ✅ RESOLVED — F4-F8 class coverage audit complete (`docs/analytic_f4_f8_to_f9_class_coverage_audit.md`). No F4-F8 output class is missing from the F9.3 core universe. `PROPER_SUBINTERVAL` — the measure-decrease routing used by all F4-F8 theorems — is documented as a refinement subclass (F9.12) rather than a new obstruction species. F9.3 now includes an explanatory note about the subclass relationship.
 R5. ✅ RESOLVED — "lower finite rank/depth" replaced with explicit type_rank (C10.3), boundary_rank (C10.5), and depth-coordinate references in F9.10 proof paragraph.
 ```
 
