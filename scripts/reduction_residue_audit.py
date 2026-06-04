@@ -20,8 +20,9 @@ The verified finite domain is data-driven by default:
   certificates/verified_domains.json
 
 The missing analytic input is the published medium/large/sufficiently-large
-prime reduction. Add those rules through --range or the p-dependent rule flags
-once they are source-certified.
+prime reduction. Add those rules through p-dependent rule flags only once
+they are source-certified. In --prove mode, arbitrary --range rules are
+rejected unless explicitly marked finite/local or source-certified.
 
 Examples:
   python scripts/reduction_residue_audit.py --max-prime 31
@@ -29,6 +30,7 @@ Examples:
   python scripts/reduction_residue_audit.py --max-prime 31 \
     --cover-verified-domain
 
+Exploratory only, not proof-level:
   python scripts/reduction_residue_audit.py --max-prime 31 \
     --range p>=37,t=all,name=sufficiently_large_prime_theorem
 
@@ -44,6 +46,14 @@ Range syntax:
   p=all,t=13..20,name=label
   p>=37,t=all,name=sufficiently_large_primes
   p=all,b=3..7,name=small_complement
+
+Proof-mode manual range syntax:
+  --range p=29,t=13..20,name=finite_local,kind=finite_local
+  --range p=all,t=1..20,name=costa_small,source_id=costa_dellafiore_fontana_vena_2026_abelian_small_sets
+
+In --prove mode, every --range must either:
+  - set kind=finite_local and be p-bounded by explicit p_min/p_max; or
+  - set source_id=<ledger id> whose effective_status is "effective" in docs/source_theorems.yaml.
 """
 
 from __future__ import annotations
@@ -83,6 +93,9 @@ class Rule:
     t_max: Optional[int] = None
     b_min: Optional[int] = None
     b_max: Optional[int] = None
+    source_id: Optional[str] = None
+    kind: Optional[str] = None
+    raw_spec: Optional[str] = None
 
     def covers(self, case: Case) -> bool:
         if self.p_min is not None and case.p < self.p_min:
@@ -221,6 +234,13 @@ def is_source_certified(source_id: str, source_theorems: List[Dict[str, Any]]) -
     return False
 
 
+def source_status(source_id: str, source_theorems: List[Dict[str, Any]]) -> str:
+    for entry in source_theorems:
+        if entry.get("source_id") == source_id:
+            return str(entry.get("effective_status", "missing_status"))
+    return "not_in_ledger"
+
+
 # Maps rule class names to source theorem source_ids for --prove gate enforcement.
 # Each key is the Python class __name__ of the coverage rule.
 # Each value is the source_id from docs/source_theorems.yaml.
@@ -235,31 +255,61 @@ def enforce_prove_gate(
     rules: List[CoverageRule],
     source_theorems: List[Dict[str, Any]],
 ) -> None:
-    """Enforce that all source-backed coverage rules are certified for --prove.
+    """Enforce that all proof-mode coverage rules are source-certified or finite-local.
 
-    Only rules whose class name appears in PROVE_GATE_RULES are checked.
-    Raises SystemExit(1) with explanation if a matching rule is not source-certified.
+    Rules enforced here:
+      1. p-dependent source-backed rule classes must map to effective source theorem entries.
+      2. manual --range Rule objects must either:
+         - carry source_id=<effective source theorem id>; or
+         - set kind=finite_local and have explicit finite p_min and p_max.
+
+    This deliberately rejects unbounded or ungated manual --range rules in --prove mode.
     """
     for rule in rules:
         cls_name = type(rule).__name__
         source_id = PROVE_GATE_RULES.get(cls_name)
-        if source_id is None:
-            continue
-        if is_source_certified(source_id, source_theorems):
-            continue
-        entry = next((e for e in source_theorems if e.get("source_id") == source_id), None)
-        status = entry["effective_status"] if entry else "not_in_ledger"
-        print(
-            f"ERROR: --prove mode requires all coverage rules to be source-certified.\n"
-            f"  Rule '{rule.name}' (class={cls_name}) maps to source_id='{source_id}'.\n"
-            f"  Current effective_status='{status}'.\n"
-            f"  Either:\n"
-            f"    (a) remove --prove for exploratory use; or\n"
-            f"    (b) extract effective constants from the source paper and update\n"
-            f"        docs/source_theorems.yaml effective_status to 'effective'.",
-            file=__import__("sys").stderr,
-        )
-        raise SystemExit(1)
+        if source_id is not None:
+            if is_source_certified(source_id, source_theorems):
+                continue
+            status = source_status(source_id, source_theorems)
+            print(
+                f"ERROR: --prove mode requires all p-dependent coverage rules to be source-certified.\n"
+                f"  Rule '{rule.name}' (class={cls_name}) maps to source_id='{source_id}'.\n"
+                f"  Current effective_status='{status}'.\n"
+                f"  Either:\n"
+                f"    (a) remove --prove for exploratory use; or\n"
+                f"    (b) extract effective constants from the source paper and update\n"
+                f"        docs/source_theorems.yaml effective_status to 'effective'.",
+                file=__import__("sys").stderr,
+            )
+            raise SystemExit(1)
+
+        if isinstance(rule, Rule) and rule.raw_spec is not None:
+            if rule.source_id:
+                if is_source_certified(rule.source_id, source_theorems):
+                    continue
+                print(
+                    f"ERROR: --prove mode rejected manual --range rule '{rule.name}'.\n"
+                    f"  raw_spec={rule.raw_spec!r}\n"
+                    f"  source_id='{rule.source_id}' has effective_status='{source_status(rule.source_id, source_theorems)}'.\n"
+                    f"  Manual source-backed ranges require effective_status='effective'.",
+                    file=__import__("sys").stderr,
+                )
+                raise SystemExit(1)
+
+            if rule.kind == "finite_local" and rule.p_min is not None and rule.p_max is not None:
+                continue
+
+            print(
+                f"ERROR: --prove mode rejected manual --range rule '{rule.name}'.\n"
+                f"  raw_spec={rule.raw_spec!r}\n"
+                f"  Manual ranges in --prove mode must either include:\n"
+                f"    source_id=<effective source theorem id>, or\n"
+                f"    kind=finite_local with explicit finite p=... or p=a..b.\n"
+                f"  Use exploratory mode without --prove for placeholder ranges.",
+                file=__import__("sys").stderr,
+            )
+            raise SystemExit(1)
 
 
 def is_prime(n: int) -> bool:
@@ -308,7 +358,7 @@ def parse_rule(spec: str) -> Rule:
         parts[k.strip()] = v.strip()
 
     name = parts.get("name", spec)
-    rule = Rule(name=name)
+    rule = Rule(name=name, raw_spec=spec)
 
     if "p" in parts:
         rule.p_min, rule.p_max = parse_range_piece(parts["p"])
@@ -316,6 +366,15 @@ def parse_rule(spec: str) -> Rule:
         rule.t_min, rule.t_max = parse_range_piece(parts["t"])
     if "b" in parts:
         rule.b_min, rule.b_max = parse_range_piece(parts["b"])
+    if "source_id" in parts:
+        rule.source_id = parts["source_id"]
+    if "kind" in parts:
+        rule.kind = parts["kind"]
+
+    allowed_extra = {"name", "source_id", "kind"}
+    unknown = sorted(set(parts) - {"p", "t", "b"} - allowed_extra)
+    if unknown:
+        raise ValueError(f"Unsupported token(s) in --range rule {spec!r}: {unknown}")
 
     return rule
 
@@ -406,8 +465,8 @@ def verified_cases(max_prime: int, verified_rules: List[CoverageRule]) -> Set[Ca
 
 def default_rules() -> List[CoverageRule]:
     return [
-        Rule(name="small_set_t_le_12", t_min=None, t_max=12),
-        Rule(name="very_large_b_le_2", b_min=None, b_max=2),
+        Rule(name="small_set_t_le_12"),
+        Rule(name="very_large_b_le_2"),
     ]
 
 
@@ -478,7 +537,7 @@ def main() -> int:
         action="store_true",
         help="Proof-level audit mode: refuse non-source-certified coverage rules. "
         "All p-dependent source-backed rules must have effective_status='effective' "
-        "in the source theorem ledger.",
+        "in the source theorem ledger. Manual --range rules must be finite-local or source-certified.",
     )
     ap.add_argument(
         "--source-theorems-file",
