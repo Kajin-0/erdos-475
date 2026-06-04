@@ -49,5 +49,8 @@ required tests/test_validate_certificate_schema.py
 required tests/test_audit_canonical_counts.py
 required docs/RELEASE_AUDIT_REPORT.md
 required .github/workflows/verify.yml
+required scripts/ci_classify.sh
+required scripts/check_no_overclaiming.py
+required scripts/check_sha256_manifest_completeness.py
 
 certificate_source certificates/minimal_witnesses.jsonl traces/p29_r3_to_r7_repair_traces_strict.jsonl traces/p31_r3_to_r6_repair_traces_strict.jsonl

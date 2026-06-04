@@ -27,5 +27,11 @@ local_artifacts/raw/
 # CI smoke-test logs generated at repo root
 *_smoke.log
 
+# Research JSONL artifacts (large auto-generated files)
+logs/*.jsonl
+
+# Temporary files
+*.tmp
+
 # Node modules (if any JS tooling is added)
 node_modules/

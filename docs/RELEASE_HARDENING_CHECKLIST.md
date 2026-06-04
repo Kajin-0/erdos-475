@@ -60,13 +60,88 @@ Required command:
 sha256sum -c MANIFEST.sha256
 ```
 
-## 4. CI behavior
+## 4a. Schema validation
+
+```text
+[ ] scripts/validate_certificate_schema.py --strict passes on all certificate files.
+[ ] No untrusted fields (partial_sums, trace_status, etc.) in committed certificates.
+[ ] No bool-as-int values in certificate files.
+[ ] certificates/verified_domains.json has valid domain structure.
+[ ] No unknown artifact classes in verified_domains.json.
+```
+
+Required command:
+
+```bash
+python scripts/validate_certificate_schema.py \
+  certificates/minimal_witnesses.jsonl \
+  certificates/witnesses_p29_b08.jsonl \
+  certificates/verified_domains.json \
+  --strict
+```
+
+## 4b. Canonical count audit
+
+```text
+[ ] scripts/audit_canonical_counts.py --require-canonical passes for all domains.
+[ ] No noncanonical rows in committed certificates.
+[ ] No malformed rows.
+[ ] No duplicate canonical representatives.
+[ ] Expected counts match observed counts for every domain.
+```
+
+Required command:
+
+```bash
+python scripts/audit_canonical_counts.py \
+  certificates/minimal_witnesses.jsonl \
+  certificates/witnesses_p29_b08.jsonl \
+  --require-canonical
+```
+
+## 4c. Manifest and SHA256 checks
+
+```text
+[ ] scripts/check_manifest_completeness.py passes.
+[ ] scripts/check_sha256_manifest_completeness.py passes.
+[ ] Every required file from MANIFEST.required is present.
+[ ] Every trusted file from the SHA256 check list is covered in MANIFEST.sha256.
+```
+
+Required commands:
+
+```bash
+python scripts/check_manifest_completeness.py
+python scripts/check_sha256_manifest_completeness.py
+sha256sum -c MANIFEST.sha256
+```
+
+## 4d. Overclaim detection
+
+```text
+[ ] scripts/check_no_overclaiming.py passes.
+[ ] No high-risk doc contains unsafe phrases like "complete proof", "solved", "final proof".
+```
+
+Required command:
+
+```bash
+python scripts/check_no_overclaiming.py
+```
+
+## 4e. CI behavior
 
 ```text
 [ ] Development CI passes.
 [ ] Strict certificate mode fails if certificates/minimal_witnesses.jsonl is missing.
 [ ] Strict certificate mode fails if certificates/minimal_witnesses.jsonl is empty.
 [ ] Strict certificate mode fails if MANIFEST.sha256 is missing.
+[ ] Strict certificate mode fails if schema validation fails.
+[ ] Strict certificate mode fails if canonical count audit fails.
+[ ] Strict certificate mode fails if manifest completeness check fails.
+[ ] Strict certificate mode fails if SHA256 coverage check fails.
+[ ] Strict certificate mode fails if overclaim detection fails.
+[ ] CI docs-only classification works (scripts/ci_classify.sh used).
 [ ] Strict certificate mode passes after release artifacts are committed.
 ```
 

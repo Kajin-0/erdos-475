@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
 """Validate the JSON schema of finite certificate files.
 
-Checks:
-  - JSONL lines parse correctly
-  - Required fields (p, B, final_order) are present with correct types
-  - verified_domains.json conforms to expected schema
-
 Usage:
-    validate_certificate_schema.py <file.jsonl> [file2.jsonl ...]
+    validate_certificate_schema.py [--strict] <file.jsonl> [file2.jsonl ...]
     validate_certificate_schema.py --domains certificates/verified_domains.json
 """
 
@@ -18,14 +13,47 @@ import json
 import sys
 from pathlib import Path
 
+# Fields that are never trusted in strict mode
+UNTRUSTED_FIELDS = frozenset({
+    "partial_sums", "trace_status", "repair_steps",
+    "claimed_valid", "valid", "canonical_id", "coverage_count",
+})
 
-def check_jsonl(path: Path) -> int:
+KNOWN_DOMAIN_FIELDS = frozenset({
+    "name", "p", "b_min", "b_max", "method", "trust_tier", "artifact_class",
+})
+
+KNOWN_ARTIFACT_CLASSES = frozenset({
+    "tier_1a_committed_repo_checkable",
+    "tier_1b_verified_external_jsonl",
+    "tier_1b_verified_summary_digest",
+    "tier_3_unhardened",
+})
+
+
+def is_strict_int(val) -> bool:
+    return isinstance(val, int) and not isinstance(val, bool)
+
+
+def is_strict_int_list(val) -> bool:
+    if not isinstance(val, list):
+        return False
+    return all(is_strict_int(x) for x in val)
+
+
+def check_jsonl(path: Path, strict: bool) -> int:
     errors = 0
+    rows = 0
+    if path.stat().st_size == 0:
+        print(f"ERROR {path}: file is empty (use --allow-empty to skip)")
+        return 1
+
     with path.open("r", encoding="utf-8") as f:
         for lineno, line in enumerate(f, start=1):
             line = line.strip()
             if not line:
                 continue
+            rows += 1
             line_id = f"{path}:{lineno}"
             try:
                 obj = json.loads(line)
@@ -45,23 +73,31 @@ def check_jsonl(path: Path) -> int:
                     errors += 1
 
             p = obj.get("p")
-            if p is not None and not isinstance(p, int):
-                print(f"ERROR {line_id}: p must be an integer, got {type(p).__name__}")
-                errors += 1
+            if p is not None:
+                if not is_strict_int(p):
+                    print(f"ERROR {line_id}: p must be an integer (not bool), got {type(p).__name__}")
+                    errors += 1
+                elif p < 2:
+                    print(f"ERROR {line_id}: p must be >= 2, got {p}")
+                    errors += 1
 
             for field in ("B", "final_order"):
                 val = obj.get(field)
-                if val is not None and (not isinstance(val, list) or not all(isinstance(x, int) for x in val)):
-                    print(f"ERROR {line_id}: {field} must be a list of integers, got {type(val).__name__}")
-                    errors += 1
+                if val is not None:
+                    if not is_strict_int_list(val):
+                        print(f"ERROR {line_id}: {field} must be a list of integers (not bools), got {type(val).__name__}")
+                        errors += 1
 
-    if errors == 0:
-        print(f"PASS schema={path}")
+            if strict:
+                for key in obj:
+                    if key in UNTRUSTED_FIELDS:
+                        print(f"WARN {line_id}: strict mode found untrusted field {key!r}")
 
+    print(f"schema={path} rows={rows} errors={errors}")
     return errors
 
 
-def check_domains_json(path: Path) -> int:
+def check_domains_json(path: Path, strict: bool, allow_unknown_class: bool) -> int:
     errors = 0
     try:
         doc = json.loads(path.read_text(encoding="utf-8"))
@@ -89,14 +125,16 @@ def check_domains_json(path: Path) -> int:
                     print(f"ERROR {path}: domains[{i}] is not an object")
                     errors += 1
                     continue
-                for field in ("name", "p", "b_min", "b_max", "method", "trust_tier", "artifact_class"):
+                for field in KNOWN_DOMAIN_FIELDS:
                     if field not in d:
                         print(f"ERROR {path}: domains[{i}] missing field {field!r}")
                         errors += 1
+                ac = d.get("artifact_class")
+                if ac is not None and ac not in KNOWN_ARTIFACT_CLASSES and not allow_unknown_class:
+                    print(f"ERROR {path}: domains[{i}] unknown artifact_class {ac!r}")
+                    errors += 1
 
-    if errors == 0:
-        print(f"PASS schema={path}")
-
+    print(f"domains_schema={path} domains={len(domains) if isinstance(domains, list) else '?'} errors={errors}")
     return errors
 
 
@@ -104,6 +142,9 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("files", nargs="+", help="Certificate files (.jsonl) or --domains flag")
     ap.add_argument("--domains", action="store_true", help="Validate verified_domains.json instead of JSONL")
+    ap.add_argument("--strict", action="store_true", help="Enable strict checks")
+    ap.add_argument("--allow-empty", action="store_true", help="Allow empty files")
+    ap.add_argument("--allow-unknown-class", action="store_true", help="Allow unknown artifact classes")
     args = ap.parse_args()
 
     total = 0
@@ -113,10 +154,13 @@ def main() -> int:
             print(f"ERROR file not found: {path}")
             total += 1
             continue
-        if args.domains:
-            total += check_domains_json(path)
+        if args.domains or path.suffix == ".json":
+            total += check_domains_json(path, args.strict, args.allow_unknown_class)
         else:
-            total += check_jsonl(path)
+            if path.stat().st_size == 0 and args.allow_empty:
+                print(f"SKIP {path}: empty file allowed by --allow-empty")
+                continue
+            total += check_jsonl(path, args.strict)
 
     if total > 0:
         print(f"FAIL schema validation: {total} files with errors")

@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Scan local JSONL witness files and produce a structured manifest.
 
+Expected-count file format (JSON, passed via --expected):
+  [{"p": 29, "b": 8, "count": 111041}, ...]
+
 Usage:
-    batch_local_jsonl_manifest.py --root <dir> --outdir <dir>
+    batch_local_jsonl_manifest.py --root <dir> --expected <file> --outdir <dir>
 """
 
 import argparse
@@ -11,33 +14,19 @@ import hashlib
 import json
 import os
 import re
+import sys
 import time
 from pathlib import Path
 
-EXPECTED = {
-    (29, 8): 111041,
-    (29, 9): 246675,
-    (29, 10): 468754,
-    (29, 11): 766935,
-    (29, 12): 1086601,
-    (29, 13): 1337220,
-    (29, 14): 1432860,
-    (29, 15): 1337220,
-
-    (31, 7): 67860,
-    (31, 8): 195143,
-    (31, 9): 476913,
-    (31, 10): 1001603,
-    (31, 11): 1820910,
-    (31, 12): 2883289,
-    (31, 13): 3991995,
-    (31, 14): 4847637,
-    (31, 15): 5170604,
-    (31, 16): 4847637,
-    (31, 17): 3991995,
-}
-
 PAT = re.compile(r"p(?P<p>\d+)_b(?P<b>\d+).*\.jsonl$", re.IGNORECASE)
+
+
+def load_expected(path: str) -> dict:
+    with open(path) as f:
+        entries = json.load(f)
+    if isinstance(entries, dict):
+        return {(int(k.split(":")[0]), int(k.split(":")[1])): v for k, v in entries.items()}
+    return {(e["p"], e["b"]): e["count"] for e in entries}
 
 
 def hash_and_count(path: Path):
@@ -57,26 +46,30 @@ def hash_and_count(path: Path):
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--root", required=True, help="Directory containing JSONL witness files")
+    ap.add_argument("--expected", required=True, help="Path to JSON file with expected counts")
     ap.add_argument("--outdir", required=True, help="Output directory for manifest files")
-    ap.add_argument("--expected", help="Path to JSON file overriding built-in EXPECTED dict", default=None)
+    ap.add_argument("--allow-empty", action="store_true", help="Do not fail when no matching files are found")
+    ap.add_argument("--allow-unknown", action="store_true", help="Do not fail on domains not in expected counts")
     args = ap.parse_args()
 
     ROOT = Path(args.root)
+    if not ROOT.is_dir():
+        raise SystemExit(f"Input root directory does not exist: {ROOT}")
+
     OUTDIR = Path(args.outdir)
     OUTDIR.mkdir(parents=True, exist_ok=True)
 
-    expected_counts = dict(EXPECTED)
-    if args.expected:
-        with open(args.expected) as f:
-            expected_counts.update({(k["p"], k["b"]): k["count"] for k in json.load(f)})
+    expected_counts = load_expected(args.expected)
 
     files = sorted(ROOT.glob("*.jsonl"))
+    if not files:
+        msg = f"No JSONL files found in {ROOT}"
+        if args.allow_empty:
+            print(msg)
+            return 0
+        raise SystemExit(msg)
+
     rows: list[dict] = []
-
-    print(f"root={ROOT}")
-    print(f"jsonl_files_found={len(files)}")
-    print()
-
     t0 = time.time()
 
     for i, path in enumerate(files, start=1):
@@ -92,8 +85,11 @@ def main() -> int:
         print(f"[{i}/{len(files)}] hashing/counting p={p} b={b} file={path.name}")
         sha, lines, size = hash_and_count(path)
 
-        status = "UNKNOWN_EXPECTED"
-        if expected is not None:
+        if expected is None:
+            if not args.allow_unknown:
+                raise SystemExit(f"Unknown domain p={p} b={b} in file {path.name}. Use --allow-unknown to skip this check.")
+            status = "UNKNOWN_EXPECTED"
+        else:
             status = "PASS_LINE_COUNT" if lines == expected else "FAIL_LINE_COUNT"
 
         row = {
@@ -125,12 +121,13 @@ def main() -> int:
         writer.writeheader()
         writer.writerows(rows)
 
+    gen_time = int(time.time())
     with json_path.open("w", encoding="utf-8") as f:
         json.dump(
             {
                 "schema": "erdos475.local_jsonl_artifact_manifest.v1",
                 "root": str(ROOT),
-                "generated_at_unix": int(time.time()),
+                "generated_at_unix": gen_time,
                 "elapsed_seconds": round(time.time() - t0, 3),
                 "artifacts": rows,
             },
@@ -140,6 +137,7 @@ def main() -> int:
 
     with md_path.open("w", encoding="utf-8") as f:
         f.write("# Local JSONL artifact manifest\n\n")
+        f.write(f"Generated at UNIX timestamp: {gen_time}\n\n")
         f.write("This manifest records local witness JSONL artifacts that may be too large to commit directly.\n\n")
         f.write("| p | b | lines | expected | status | size MiB | sha256 | filename |\n")
         f.write("|---:|---:|---:|---:|---|---:|---|---|\n")

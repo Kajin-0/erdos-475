@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Check MANIFEST.required completeness and cross-reference against verified_domains.json.
 
+This is the MANIFEST.required checker. The MANIFEST.sha256 checker is a separate
+script (check_sha256_manifest_completeness.py).
+
 Validates:
   1. All paths listed in MANIFEST.required exist.
-  2. All `certificate_source` rules are satisfied (cert exists or all traces exist).
+  2. All certificate_source rules are satisfied (cert exists or all traces exist).
   3. Every tier_1a domain in verified_domains.json has a corresponding entry in
      MANIFEST.required (either as a required certificate path or as a certificate_source).
   4. No duplicate entries in the manifest.
@@ -83,12 +86,10 @@ def main() -> int:
     required, certs = parse_manifest(manifest)
     failures: list[str] = []
 
-    # Check 1: all required paths exist
     for item in required:
         if not item.path.exists():
             failures.append(f"missing required path: {item.path} (line {item.lineno})")
 
-    # Check 2: all certificate_source rules are satisfied
     for item in certs:
         if item.certificate.exists():
             continue
@@ -99,7 +100,7 @@ def main() -> int:
                 f"(line {item.lineno})"
             )
 
-    # Check 3: cross-reference tier_1a domains against manifest
+    # Cross-reference tier_1a domains against manifest
     domains_path = Path(args.domains)
     if domains_path.exists():
         domains = load_domains(domains_path)

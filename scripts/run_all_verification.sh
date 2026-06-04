@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# Strict finite-certificate verification runner.
+#
+# Normal mode:
+#   bash scripts/run_all_verification.sh
+#
+# Strict release-grade mode:
+#   STRICT_CERT=1 bash scripts/run_all_verification.sh
+
 set -euo pipefail
 
 PYTHON="${PYTHON:-python3}"
@@ -18,7 +26,7 @@ else
 fi
 
 if [[ "$STRICT_CERT" == "1" ]]; then
-  echo "[verify] strict certificate mode enabled"
+  echo "[verify] strict mode enabled"
 
   if [[ ! -s "$CERT_FILE" ]]; then
     echo "[verify] strict mode requires nonempty $CERT_FILE" >&2
@@ -29,7 +37,40 @@ if [[ "$STRICT_CERT" == "1" ]]; then
     echo "[verify] strict mode requires MANIFEST.sha256" >&2
     exit 2
   fi
+
+  # ----- Strict-mode audit checks -----
+  echo "[verify] validating certificate JSON schema"
+  "$PYTHON" scripts/validate_certificate_schema.py --strict "$CERT_FILE" "$P29_B8_CERT"
+
+  echo "[verify] validating verified_domains.json schema"
+  "$PYTHON" scripts/validate_certificate_schema.py --domains certificates/verified_domains.json
+
+  echo "[verify] auditing canonical B counts"
+  "$PYTHON" scripts/audit_canonical_counts.py \
+    "$CERT_FILE" "$P29_B8_CERT" \
+    --domain 17:3 --domain 19:3-5 --domain 23:3-9 \
+    --domain 29:3-8 --domain 31:3-6 \
+    --require-canonical
+
+  echo "[verify] checking manifest completeness"
+  "$PYTHON" scripts/check_manifest_completeness.py
+
+  echo "[verify] checking SHA256 manifest coverage"
+  "$PYTHON" scripts/check_sha256_manifest_completeness.py
+
+  echo "[verify] checking claim boundary consistency"
+  "$PYTHON" scripts/check_claim_boundary_consistency.py
+
+  echo "[verify] scanning for unsafe overclaims"
+  "$PYTHON" scripts/check_no_overclaiming.py
+
+  echo "[verify] running regression tests"
+  "$PYTHON" -m pytest tests/ -v 2>/dev/null || "$PYTHON" -m unittest discover tests -v
+
+  echo "[verify] checking hash manifest"
+  sha256sum -c MANIFEST.sha256
 else
+  # ----- Development mode -----
   if [[ -f traces/p29_r3_to_r7_repair_traces_strict.jsonl ]]; then
     TRACE_ARGS+=(--trace traces/p29_r3_to_r7_repair_traces_strict.jsonl)
   fi
@@ -46,6 +87,13 @@ else
       echo "[verify] add certificates/minimal_witnesses.jsonl or trace files first" >&2
       exit 2
     fi
+  fi
+
+  if [[ -f MANIFEST.sha256 ]]; then
+    echo "[verify] checking MANIFEST.sha256"
+    sha256sum -c MANIFEST.sha256
+  else
+    echo "[verify] MANIFEST.sha256 not present; skipping hash check in development mode"
   fi
 fi
 
@@ -71,16 +119,5 @@ echo "[verify] checking minimal witnesses"
   --domain 31:3-6 \
   --require-canonical \
   --require-coverage
-
-if [[ -f MANIFEST.sha256 ]]; then
-  echo "[verify] checking MANIFEST.sha256"
-  sha256sum -c MANIFEST.sha256
-else
-  if [[ "$STRICT_CERT" == "1" ]]; then
-    echo "[verify] strict mode requires MANIFEST.sha256" >&2
-    exit 2
-  fi
-  echo "[verify] MANIFEST.sha256 not present; skipping hash check in development mode"
-fi
 
 echo "[verify] PASS all configured finite-certificate checks"

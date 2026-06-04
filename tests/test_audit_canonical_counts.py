@@ -47,11 +47,11 @@ def test_rejects_missing_domain():
 
 
 def test_passes_full_coverage():
-    """All canonical B sets for p=5 |B|=1 should pass."""
+    """All canonical B sets for p=5 |B|=2 should pass (2 canonical classes)."""
     lines = [
-        json.dumps({"p": 5, "B": [1], "final_order": [2, 3, 4]}),
-        json.dumps({"p": 5, "B": [2], "final_order": [1, 3, 4]}),
+        json.dumps({"p": 5, "B": [1, 2], "final_order": [3, 4]}),
+        json.dumps({"p": 5, "B": [1, 4], "final_order": [2, 3]}),
     ]
-    r = run_auditor(lines, ["5:1"])
+    r = run_auditor(lines, ["5:2"])
     assert r.returncode == 0
     assert "PASS" in r.stdout

@@ -13,7 +13,7 @@
       "t_max_expr": "20",
       "parameters": {},
       "confidence": "high",
-      "notes": "Proves |A| <= 20 for any abelian group (including F_p*). This is an effective explicit bound for all primes."
+      "notes": "Proves |A| <= 20 for the additive cyclic group F_p, with A subset F_p \\ {0}. This is an effective explicit bound for all primes."
     },
     {
       "source_id": "costa_della_fiore_fontana_vena_2026_zerosum",

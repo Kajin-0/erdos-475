@@ -1,19 +1,28 @@
 #!/usr/bin/env python3
 """Parse summary-only artifact logs and produce a structured manifest.
 
+Expected-count file format (JSON, passed via --expected):
+  [{"p": 31, "b": 17, "count": 3991995}, ...]
+
 Usage:
-    parse_summary_only_artifacts.py --root <repo_root>
+    parse_summary_only_artifacts.py --root <repo_root> --expected <file>
 """
 
 import argparse
 import csv
 import json
 import re
+import sys
+import time
 from pathlib import Path
 
-EXPECTED = {
-    (31, 17): 3991995,
-}
+
+def load_expected(path: str) -> dict:
+    with open(path) as f:
+        entries = json.load(f)
+    if isinstance(entries, dict):
+        return {(int(k.split(":")[0]), int(k.split(":")[1])): v for k, v in entries.items()}
+    return {(e["p"], e["b"]): e["count"] for e in entries}
 
 
 def read_text(path: Path) -> str:
@@ -30,20 +39,37 @@ def grab(pattern: str, text: str, default=None, cast=str):
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--root", default=".", help="Repository root directory (default: current dir)")
+    ap.add_argument("--expected", required=True, help="Path to JSON file with expected counts")
     ap.add_argument("--summary-dir", default="local_artifacts/summary_only",
                     help="Directory containing summary-only pass log files (relative to root)")
     ap.add_argument("--outdir", default="local_artifacts/batch_manifest",
                     help="Output directory for manifest files (relative to root)")
+    ap.add_argument("--allow-empty", action="store_true", help="Do not fail when no matching files are found")
+    ap.add_argument("--allow-unknown", action="store_true", help="Do not fail on domains not in expected counts")
     args = ap.parse_args()
 
     ROOT = Path(args.root).resolve()
     SUMMARY_DIR = ROOT / args.summary_dir
+    if not SUMMARY_DIR.is_dir():
+        raise SystemExit(f"Summary directory does not exist: {SUMMARY_DIR}")
+
     OUTDIR = ROOT / args.outdir
     OUTDIR.mkdir(parents=True, exist_ok=True)
 
-    rows: list[dict] = []
+    expected_counts = load_expected(args.expected)
 
-    for path in sorted(SUMMARY_DIR.glob("*summary_only*pass*.txt")):
+    paths = sorted(SUMMARY_DIR.glob("*summary_only*pass*.txt"))
+    if not paths:
+        msg = f"No summary-only pass files found in {SUMMARY_DIR}"
+        if args.allow_empty:
+            print(msg)
+            return 0
+        raise SystemExit(msg)
+
+    rows: list[dict] = []
+    t0 = time.time()
+
+    for path in paths:
         text = read_text(path)
 
         cases = grab(r"^cases=(\S+)", text)
@@ -51,7 +77,6 @@ def main() -> int:
         max_nodes = grab(r"^max_nodes=(\d+)", text, cast=int)
         restarts = grab(r"^restarts=(\d+)", text, cast=int)
         greedy_restarts = grab(r"^greedy_restarts=(\d+)", text, cast=int)
-
         total_processed = grab(r"^total_processed=(\d+)", text, cast=int)
         total_solved = grab(r"^total_solved=(\d+)", text, cast=int)
         failed = grab(r"^failed=(\d+)", text, cast=int)
@@ -65,10 +90,13 @@ def main() -> int:
         p_str, b_str = cases.split(":")
         p = int(p_str)
         b = int(b_str)
-        expected = EXPECTED.get((p, b))
+        expected = expected_counts.get((p, b))
 
-        status = "UNKNOWN_EXPECTED"
-        if expected is not None:
+        if expected is None:
+            if not args.allow_unknown:
+                raise SystemExit(f"Unknown domain p={p} b={b} in file {path.name}. Use --allow-unknown to skip this check.")
+            status = "UNKNOWN_EXPECTED"
+        else:
             status = "PASS_SUMMARY_COUNT" if total_processed == expected and total_solved == expected and failed == 0 else "FAIL_SUMMARY_COUNT"
 
         rows.append({
@@ -106,10 +134,13 @@ def main() -> int:
         writer.writeheader()
         writer.writerows(rows)
 
+    gen_time = int(time.time())
     with json_path.open("w", encoding="utf-8") as f:
         json.dump(
             {
                 "schema": "erdos475.summary_only_artifact_manifest.v1",
+                "generated_at_unix": gen_time,
+                "elapsed_seconds": round(time.time() - t0, 3),
                 "artifacts": rows,
             },
             f,
@@ -118,6 +149,7 @@ def main() -> int:
 
     with md_path.open("w", encoding="utf-8") as f:
         f.write("# Summary-only artifact manifest\n\n")
+        f.write(f"Generated at UNIX timestamp: {gen_time}\n\n")
         f.write("| p | b | processed | solved | failed | expected | status | aggregate_sha256 | verdict | filename |\n")
         f.write("|---:|---:|---:|---:|---:|---:|---|---|---|---|\n")
         for r in rows:

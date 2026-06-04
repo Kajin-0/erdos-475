@@ -150,9 +150,32 @@ Before this repository is linked externally as a hardened finite-certificate wor
 6. No empty trace placeholders are presented as evidence.
 7. README.md, docs/CLAIM_BOUNDARY.md, docs/VERIFIED_DOMAIN.md, and docs/EXTERNAL_REVIEW_PACKET.md are synchronized.
 8. certificates/verified_domains.json remains the single source of truth for finite-domain audit rules.
+9. Schema validation passes in strict mode (no untrusted fields, no bool-as-int, valid domain structure).
+10. Canonical count audit passes (no noncanonical, malformed, or duplicate rows).
+11. MANIFEST.required completeness check passes.
+12. MANIFEST.sha256 coverage check passes (all trusted files have hashes).
+13. Overclaim scan passes (no unsafe completeness claims in high-risk docs).
 ```
 
 ---
+
+## Release audit suite
+
+The hardened release verification suite includes the following checks, all runnable via `scripts/run_all_verification.sh`:
+
+| Check                      | Script                                                  | Purpose                                                                      |
+| -------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Schema validation          | `scripts/validate_certificate_schema.py --strict`       | Rejects untrusted fields, bool-as-int, empty files, unknown artifact classes |
+| Canonical count audit      | `scripts/audit_canonical_counts.py --require-canonical` | Ensures all rows are canonical, no duplicates, complete domain coverage      |
+| Manifest completeness      | `scripts/check_manifest_completeness.py`                | Verifies all required files from MANIFEST.required exist                     |
+| SHA256 coverage            | `scripts/check_sha256_manifest_completeness.py`         | Verifies all trusted files have entries in MANIFEST.sha256                   |
+| Claim boundary consistency | `scripts/check_claim_boundary_consistency.py`           | Ensures declared domains match certificate coverage                          |
+| Overclaim detection        | `scripts/check_no_overclaiming.py`                      | Scans high-risk docs for unsafe completeness claims                          |
+| CI classification          | `scripts/ci_classify.sh`                                | Determines which CI jobs to run based on changed files                       |
+
+---
+
+## Development verification
 
 ## Minimal witness certificates
 
