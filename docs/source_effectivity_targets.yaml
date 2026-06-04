@@ -1,0 +1,116 @@
+# Source effectivity target queue for Erdos 475 / Graham's rearrangement problem.
+#
+# This file is a research task ledger, not a proof dependency ledger.
+# A target is proof-level usable only when:
+#   1. its source theorem has an explicit or mechanically extractable statement;
+#   2. all constants and finite exceptions needed by the residue audit are recorded;
+#   3. docs/source_theorems.yaml marks the corresponding source as effective; and
+#   4. scripts/reduction_residue_audit.py can consume the resulting rule without placeholders.
+
+- target_id: pham_sauermann_C_alpha_bridge
+  source_id: pham_sauermann_2026_large_prime
+  priority: 1
+  research_role: "central_medium_range_bridge"
+  object_to_extract:
+    - "C_alpha in Theorem 1.2"
+    - "any p >= P_alpha or sufficiently-large-prime threshold used in the complete-resolution corollary"
+    - "all dependencies between alpha, anticoncentration constants, and absorption thresholds"
+    - "whether Theorem 1.3 with C=2^24 gives a numerically traceable input into Theorem 1.2"
+  desired_audit_rule_shape:
+    translation_to_p_t: "C_alpha <= t <= floor(p^(1-alpha)) for p >= P_alpha"
+    translation_to_p_b: "p - 1 - floor(p^(1-alpha)) <= |B| <= p - 1 - C_alpha for p >= P_alpha"
+  status: "pending_pdf_body_extraction"
+  proof_level_usable: false
+  success_condition: "A concrete or recursively computable C_alpha and P_alpha are available for at least one alpha compatible with the large-set exponent."
+  failure_condition: "C_alpha or the prime threshold is genuinely qualitative and cannot be made executable from the written proof."
+  notes: "Highest-leverage target. Without this extraction, the coverage-sandwich bridge remains conditional."
+
+- target_id: bbkmm_large_set_exponent_c
+  source_id: bbkmm_2025_large_sets_general_groups
+  priority: 2
+  research_role: "large_original_set_coverage"
+  object_to_extract:
+    - "absolute exponent c in |G|^(1-c)"
+    - "whether any finite-group threshold or exceptional family is present"
+    - "dependencies from weak arithmetic regularity, absorber construction, and any iterative constants"
+  desired_audit_rule_shape:
+    translation_to_p_t: "t >= ceil(p^(1-c_large)) for p >= P_large"
+    translation_to_p_b: "|B| <= p - 1 - ceil(p^(1-c_large)) for p >= P_large"
+  status: "pending_pdf_body_extraction"
+  proof_level_usable: false
+  success_condition: "A positive explicit c_large is obtained; it does not need to be sharp, only compatible with choosing alpha < c_large."
+  failure_condition: "The proof gives c_large only existentially with no extractable numerical dependence."
+  notes: "Only a very weak explicit c is needed for the sandwich logic, but it must be strictly positive and mechanically usable."
+
+- target_id: kravitz_log_over_loglog_effective_baseline
+  source_id: kravitz_2024_log_over_loglog_small_sets
+  priority: 3
+  research_role: "baseline_small_set_effectivity"
+  object_to_extract:
+    - "exact theorem statement and theorem number"
+    - "endpoint convention for floor(log p / log log p)"
+    - "minimum prime p or finite exceptional cases"
+    - "rectification constants and integer-ordering theorem dependencies"
+  desired_audit_rule_shape:
+    translation_to_p_t: "t <= floor(log(p)/log(log(p))) for p >= P_small_log"
+    translation_to_p_b: "|B| >= p - 1 - floor(log(p)/log(log(p))) for p >= P_small_log"
+  status: "pending_pdf_body_extraction"
+  proof_level_usable: false
+  success_condition: "A conservative explicit P_small_log and endpoint rule can be stated."
+  failure_condition: "The proof relies on non-explicit sufficiently-large assumptions that cannot be replaced by direct finite checking."
+  notes: "Weaker than Bedert-Kravitz but likely easier to audit. Useful as the first effective small-set baseline."
+
+- target_id: bedert_kravitz_exp_quarter_effectivity
+  source_id: bedert_kravitz_2024_small_prime_field_sets
+  priority: 4
+  research_role: "strong_small_set_range"
+  object_to_extract:
+    - "large-prime threshold in Theorem 1.2"
+    - "dependence on the arbitrary constant c > 0"
+    - "union-bound bottlenecks, especially around the key probabilistic/dissociated-set lemmas"
+    - "whether the proof can be made executable with conservative constants"
+  desired_audit_rule_shape:
+    translation_to_p_t: "t <= floor(exp(c_small*(log(p))^0.25)) for p >= P_small_exp"
+    translation_to_p_b: "|B| >= p - 1 - floor(exp(c_small*(log(p))^0.25)) for p >= P_small_exp"
+  status: "pending_pdf_body_extraction"
+  proof_level_usable: false
+  success_condition: "A specific c_small > 0 and explicit P_small_exp are extracted."
+  failure_condition: "The large-prime threshold or c-dependence is not extractable from the written proof."
+  notes: "Asymptotically stronger than Kravitz 2024. Probably harder to make useful for an actual finite-residue audit."
+
+- target_id: costa_dellafiore_one_shot_lll_method
+  source_id: costa_dellafiore_2026_cyclic_weak_sequenceability
+  priority: 5
+  research_role: "method_mining_and_cyclic_generalization"
+  object_to_extract:
+    - "the exact sequenceability theorem number for Z_k"
+    - "constant c in exp(c(log p)^(1/3))"
+    - "bad-event probability estimates in the one-shot LLL argument"
+    - "dependency-degree bounds in the local-constraint hypergraph"
+    - "large-k or least-prime-divisor threshold"
+  desired_audit_rule_shape:
+    translation_to_p_t: "t <= floor(exp(c_cyclic*(log(p))^(1/3))) in the prime specialization k=p, once thresholds are extracted"
+    translation_to_p_b: "|B| >= p - 1 - floor(exp(c_cyclic*(log(p))^(1/3))) in the prime specialization, once thresholds are extracted"
+  status: "pending_pdf_body_extraction"
+  proof_level_usable: false
+  success_condition: "The one-shot LLL proof gives explicit constants that can be compared against Bedert-Kravitz and Kravitz."
+  failure_condition: "The cyclic theorem is only qualitative or methodologically useful but not numerically executable."
+  notes: "Secondary for prime fields, primary for future cyclic-group extension. Potentially valuable because the proof architecture may be more constant-trackable than two-step probabilistic methods."
+
+- target_id: mathoverflow_sawin_k_power_k_hint
+  source_id: "informal_mathoverflow_lead"
+  priority: 6
+  research_role: "informal_sanity_check_and_fallback_bound"
+  object_to_extract:
+    - "exact MathOverflow URL and author/comment attribution"
+    - "precise statement of any k^(k/2)-type or related explicit bound"
+    - "whether the argument is complete, conditional, or only heuristic"
+    - "whether it applies to prime fields, cyclic groups, or general abelian groups"
+  desired_audit_rule_shape:
+    translation_to_p_t: "pending; do not encode without source audit"
+    translation_to_p_b: "pending; do not encode without source audit"
+  status: "informal_lead_unverified"
+  proof_level_usable: false
+  success_condition: "The lead yields a citable, complete, explicit bound or a useful lemma to test computationally."
+  failure_condition: "The lead is informal, incomplete, or subsumed by published sources."
+  notes: "Do not include in proof-level audits. Track only as a possible source of explicit fallback estimates."
