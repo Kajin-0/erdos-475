@@ -7,6 +7,11 @@ OUT="${1:-MANIFEST.sha256}"
 POLICY="${2:-release/manifest_policy.json}"
 SELF="make_manifest.sh"
 
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+  echo "[$SELF] ERROR: not inside a git repository" >&2
+  exit 2
+fi
+
 if [[ ! -f "$POLICY" ]]; then
   echo "[$SELF] ERROR: manifest policy not found: $POLICY" >&2
   exit 2
@@ -45,18 +50,12 @@ for f in all_files:
 if missing_trusted:
     for f in sorted(missing_trusted):
         print(f'MISSING TRUSTED FILE: {f}', file=sys.stderr)
+    sys.exit(2)
 
 selected.sort()
 for f in selected:
     print(f)
 " < <(git ls-files) > /tmp/manifest_files.txt
-
-# Check if there were missing trusted files (script exited with message)
-if grep -q 'MISSING TRUSTED FILE' /tmp/manifest_files.txt 2>/dev/null; then
-  echo "[$SELF] ERROR: trusted files missing, see above" >&2
-  cat /tmp/manifest_files.txt >&2
-  exit 2
-fi
 
 # Generate sha256sum
 xargs sha256sum < /tmp/manifest_files.txt > "$OUT"

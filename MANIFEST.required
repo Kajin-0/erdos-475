@@ -27,6 +27,7 @@ required docs/INSERTION_CUT_COVER_PROGRAM.md
 required docs/INSERTION_BLOCK_ANALYZER_RUNBOOK.md
 required docs/RELEASE_HARDENING_CHECKLIST.md
 required docs/AI_PROVENANCE.md
+required docs/AGENT_HANDOFF.md
 required docs/FINITE_CERTIFICATE_RUNBOOK.md
 required docs/FINITE_THEOREM.md
 required certificates/verified_domains.json
@@ -56,6 +57,7 @@ required tests/__init__.py
 required tests/test_verify_minimal_witnesses.py
 required tests/test_validate_certificate_schema.py
 required tests/test_audit_canonical_counts.py
+required tests/test_manifest_policy.py
 required docs/RELEASE_AUDIT_REPORT.md
 required .github/workflows/verify.yml
 

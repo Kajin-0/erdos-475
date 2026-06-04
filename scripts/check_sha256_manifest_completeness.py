@@ -104,13 +104,40 @@ def main() -> int:
         if actual != expected_hex:
             failures.append(f"hash mismatch for {filepath}: expected {expected_hex}, got {actual}")
 
+    has_self = "MANIFEST.sha256" in entries
+    has_forbidden = any(f in entries for f in never)
+    has_excluded = any(
+        any(fnmatch.fnmatch(fp, pat) for pat in excluded)
+        for fp in entries
+    )
+    has_missing_trusted = any(t not in entries for t in trusted)
+    has_hash_mismatch = any(
+        compute_sha256(Path(fp)) != expected
+        for fp, expected in entries.items()
+        if Path(fp).exists()
+    )
+
+    print(f"manifest_path={manifest}")
+    print(f"policy_path={policy_path}")
+    print(f"trusted_release_files={len(trusted)}")
+    print(f"manifest_entries={len(entries)}")
+    print(f"excluded_globs={len(excluded)}")
+    print(f"has_self_entry={has_self}")
+    print(f"has_forbidden_files={has_forbidden}")
+    print(f"has_excluded_paths={has_excluded}")
+    print(f"has_missing_trusted={has_missing_trusted}")
+    print(f"has_hash_mismatch={has_hash_mismatch}")
+
     if failures:
         print("FAIL SHA256 manifest completeness check")
-        for f in failures:
+        for f in failures[:10]:
             print(f"  - {f}")
+        remaining = len(failures) - 10
+        if remaining > 0:
+            print(f"  ... and {remaining} more failure(s)")
         return 2
 
-    print(f"PASS SHA256 manifest completeness: {len(trusted)} trusted files, {len(entries)} manifest entries, no self-entry")
+    print("PASS SHA256 manifest completeness: no self-entry, no forbidden files, no hash mismatches")
     return 0
 
 

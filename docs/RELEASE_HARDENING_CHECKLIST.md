@@ -188,7 +188,28 @@ STRICT_CERT=1 bash scripts/run_all_verification.sh
 [ ] Certificate claims are described as direct machine-checkable witness verification, not AI-derived mathematical authority.
 ```
 
-## 8. Makefile targets
+## 8. Manifest policy tests
+
+```text
+[ ] tests/test_manifest_policy.py exists and passes.
+[ ] check_sha256_manifest_completeness.py fails if MANIFEST.sha256 includes itself.
+[ ] check_sha256_manifest_completeness.py fails if a trusted file is missing from the manifest.
+[ ] check_sha256_manifest_completeness.py fails if an excluded path appears in the manifest.
+[ ] make_manifest.sh fails when a trusted file does not exist.
+[ ] make_manifest.sh excludes MANIFEST.sha256.
+[ ] make_manifest.sh excludes logs/*.jsonl.
+```
+
+## 9. Log and research artifact hygiene
+
+```text
+[ ] No deleted research logs are still referenced by release docs, verifiers, or required artifact lists.
+[ ] Deleted logs/*.jsonl files are confirmed safe to remove (script output paths are not inputs).
+[ ] docs/AGENT_HANDOFF.md is maintained and updated during active sessions.
+[ ] AGENT_HANDOFF.md records known issues that future agents must not rediscover.
+```
+
+## 10. Makefile targets
 
 ```text
 [ ] make verify passes
@@ -203,7 +224,7 @@ STRICT_CERT=1 bash scripts/run_all_verification.sh
 [ ] make release-audit passes (full suite)
 ```
 
-## 9. External database-link readiness
+## 11. External database-link readiness
 
 Before opening an issue or PR in `teorth/erdosproblems`, the recommended minimum is:
 

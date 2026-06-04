@@ -1,11 +1,11 @@
 # Release Audit Report
 
 **Date**: 2026-06-04
-**Starting commit**: `994fe3a`
+**Starting commit**: `140b06e`
 **Final commit**: determined on push
 **Branch**: `main`
-**Scope**: Third hardening pass: manifest policy, verifier self-containment, CI direct strict gate, Makefile
-**Auditor**: Automated audit suite (ci_classify.sh + 7 audit scripts + verifiers)
+**Scope**: Fourth hardening pass: manifest policy missing-file fix, manifest policy tests, log deletion audit, checker output improvement, doc synchronization
+**Auditor**: Automated audit suite (ci_classify.sh + 7 audit scripts + verifiers + Rust verifier run locally)
 
 ## Summary
 
@@ -19,7 +19,7 @@
 | Claim boundary consistency       | PASS   | `scripts/check_claim_boundary_consistency.py`: declared domains match certificate coverage                        |
 | Overclaim detection              | PASS   | `scripts/check_no_overclaiming.py`: no unsafe phrases found in high-risk docs                                     |
 | Python verifier (self-contained) | PASS   | 247,416 rows, all domains covered, canonical coverage confirmed; strict type checks (no bool, no string coercion) |
-| Rust verifier                    | SKIP   | No Rust toolchain in this environment; CI handles it                                                              |
+| Rust verifier                    | PASS   | 247,416 rows, all domains covered; Rust toolchain available locally                                               |
 | Regression tests                 | PASS   | pytest tests pass                                                                                                 |
 | Release gate                     | PASS   | `STRICT_CERT=1 bash scripts/run_all_verification.sh` passes                                                       |
 | Makefile targets                 | PASS   | `make verify-strict`, `make validate-schema`, `make audit-counts`, `make check-manifest`, `make test` all pass    |
@@ -92,11 +92,13 @@ Expected counts are the number of orbits of the multiplicative action of F_p^\* 
 
 ## Known Issues
 
-1. **Rust verifier not run locally**: No Rust toolchain available in this environment. CI handles it. Python-only verification confirms all 247,416 rows pass.
+1. **Rust verifier**: Run locally in this session (Rust 1.85.1 available). Both Python and Rust confirm 247,416 rows pass. CI also runs the Rust verifier independently.
 
-2. **Tier 1b external domains**: p=29 b=9-15 and p=31 b=7-17 use artifacts outside Git. Their verification depends on external artifact ledgers. See `docs/EXTERNAL_ARTIFACT_VERIFICATION_MODEL.md` for per-class reproducibility details.
+2. **Deleted research logs**: 12 `logs/*.jsonl` files were removed in a prior hardening push. No release docs, verifiers, or manifest policies reference them. Research docs (`docs/ANALYTIC_PROGRESS_HANDOFF.md`, `docs/INSERTION_CUT_COVER_PROGRAM.md`) mention them historically but do not require them. Safe to keep deleted.
 
-3. **CI status not confirmed from this run**: CI must be confirmed after push by checking the GitHub Actions workflow run for the pushed commit.
+3. **Tier 1b external domains**: p=29 b=9-15 and p=31 b=7-17 use artifacts outside Git. Their verification depends on external artifact ledgers. See `docs/EXTERNAL_ARTIFACT_VERIFICATION_MODEL.md` for per-class reproducibility details.
+
+4. **CI status not confirmed from this run**: CI must be confirmed after push by checking the GitHub Actions workflow run for the pushed commit. The workflow is configured to run `STRICT_CERT=1 bash scripts/run_all_verification.sh` on push to `main` and on PRs.
 
 ## Changes Made in This Hardening Pass
 
@@ -113,6 +115,17 @@ Expected counts are the number of orbits of the multiplicative action of F_p^\* 
 - Updated `README.md` — Fixed duplicate heading, added Makefile reference, made CI wording conservative, updated release audit suite table
 - Updated `docs/RELEASE_HARDENING_CHECKLIST.md` — Hash locking section references policy-driven checker
 - Updated `docs/EXTERNAL_ARTIFACT_VERIFICATION_MODEL.md` — Per-class reproducibility details
+
+**Fourth pass (this session):**
+
+- Fixed `scripts/make_manifest.sh` missing-trusted-file detection: embedded Python now calls `sys.exit(2)` when trusted files are missing (was silently printing to stderr with Bash grep post-check against stdout). Added git-repository check.
+- Added `tests/test_manifest_policy.py` — 7 tests covering: self-entry rejection, missing trusted file, excluded path in manifest, duplicate entry, missing trusted file via policy logic, MANIFEST.sha256 exclusion, `logs/*.jsonl` exclusion
+- Verified 12 deleted `logs/*.jsonl` files are unreferenced by release docs, verifiers, or manifest policies. Research docs reference them historically but do not require them.
+- Tightened `release/manifest_policy.json` — Added `docs/AGENT_HANDOFF.md` and `tests/test_manifest_policy.py` as trusted release files (45 total)
+- Updated `MANIFEST.required` — Added `docs/AGENT_HANDOFF.md` and `tests/test_manifest_policy.py` (47 required paths)
+- Improved `scripts/check_sha256_manifest_completeness.py` output: prints manifest path, policy path, trusted count, entry count, excluded glob count, self-entry status, forbidden/excluded/missing/hash flags; limits failure output to first 10 entries
+- Updated `docs/RELEASE_HARDENING_CHECKLIST.md` — Added sections for manifest policy tests (sec 8), log artifact hygiene (sec 9); renumbered sections 10-12
+- Ran Rust verifier locally (Rust 1.85.1): PASS 247,416 rows
 
 ## Commands Run
 
@@ -156,6 +169,19 @@ python -m pytest tests/ -v
 # Strict release gate
 STRICT_CERT=1 bash scripts/run_all_verification.sh
 # PASS
+
+# Manifest policy tests
+python -m pytest tests/test_manifest_policy.py -v
+# PASS 7/7
+
+# Rust independent verifier (run locally)
+cd rust-verifier && cargo run --release -- \
+  ../certificates/minimal_witnesses.jsonl \
+  ../certificates/witnesses_p29_b08.jsonl \
+  --domain 17:3 --domain 19:3-5 --domain 23:3-9 \
+  --domain 29:3-8 --domain 31:3-6 \
+  --require-canonical --require-coverage
+# PASS rust minimal witness verification
 ```
 
 ## Recommendations
