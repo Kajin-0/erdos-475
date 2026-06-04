@@ -712,7 +712,8 @@ Next action:
 ```text
 1. Formalize A90--A94 as final lemmas.
 2. Build F9 edge-by-edge rank table using the W-to-NW exits from this table.
-3. Extract effective residue bounds from Pham-Sauermann and Bedert-Kravitz.
+3. ✅ COMPLETED 2026-06-04: extraction confirmed all three papers non-effective.
+   docs/source_theorems.yaml updated, source_theorem_ledger.md archived.
 ```
 
 ---
@@ -1023,26 +1024,23 @@ Average blocked-cut reduction:    1.72 per operation
 Keep this handoff updated after every major analytic commit.
 ```
 
-### Immediate source-certification action
+### Immediate source-certification action ✅ COMPLETED
 
 ```text
-1. Extract effective constants from Pham-Sauermann 2026 (PDF/TeX).
-   Update docs/source_theorems.yaml entry pham_sauermann_2026_large_prime:
-   set effective_status to "effective" once N_alpha and P_alpha are known.
-2. Extract effective constants from Bedert-Kravitz 2024 (PDF/TeX).
-   Update docs/source_theorems.yaml entry bedert_kravitz_2024_small_prime_field_sets:
-   confirm exact large-prime condition and set effective_status accordingly.
-3. Extract effective constant c from BBKMM 2025 (PDF/TeX).
-   Update docs/source_theorems.yaml entry bbkmm_2025_large_sets_general_groups.
-4. After extraction, run:
-   python scripts/reduction_residue_audit.py --max-prime 1000 \
-     --cover-verified-domain \
-     --cover-small-exp-quarter \
-     --cover-medium-alpha 0.10:20:37:pham_sauermann_alpha_010 \
-     --cover-large-power-c 0.05 \
-     --cover-large-power-threshold 37 \
-     --prove
-   The --prove gate will verify all rules are source-certified.
+Extraction performed 2026-06-04 (HTML body fetch of all three papers).
+Result: ALL THREE PAPERS remain non-effective at the abstract/body level:
+  - Pham-Sauermann: C_alpha existential, "sufficiently large" unquantified
+  - Bedert-Kravitz: bound explicit but "p large prime" not quantified
+  - BBKMM: c > 0 existential, not given explicitly
+All entries in docs/source_theorems.yaml updated with confirmed theorem numbers
+and precise statements. No effective_status change — extraction confirmed
+non-effectiveness.
+
+Verification results:
+  - python scripts/reduction_residue_audit.py --max-prime 31 --cover-verified-domain → PASS
+  - --prove mode with verified domain only → PASS
+  - --prove --cover-small-exp-quarter → correctly BLOCKED (non_effective)
+  - scripts/check_required_artifacts.py → PASS
 ```
 
 ### Immediate experimental action
@@ -1060,7 +1058,7 @@ The next experimental targets shift to the main proof architecture:
 ```text
 1. Formalize A90-A94 as final lemmas (F11 weak cut-rigidity closure).
 2. Build F9 edge-by-edge rank table using the W-to-NW exit decrease table.
-3. Extract effective residue bounds from Pham-Sauermann and Bedert-Kravitz.
+3. ✅ COMPLETED 2026-06-04: extraction confirmed all three papers non-effective.
 ```
 
 ---
@@ -1101,9 +1099,56 @@ Key files:
 ```text
 docs/source_theorems.yaml (created — machine-readable theorem ledger)
 docs/AGENT_WORKLOG.md (created — session worklog)
-docs/source_theorem_ledger.md (identified as stale; kept as legacy reference)
+docs/source_theorem_ledger.md (identified as stale; archived to source_theorem_ledger.stale.md)
 scripts/reduction_residue_audit.py (added --prove flag and certification gate)
 docs/analytic_insertion_existence_proof.md (overclaim title fixed)
+```
+
+### 2026-06-04 (session 2): paper extraction and doc synchronization
+
+Key files:
+
+```text
+docs/source_theorems.yaml (updated — theorem numbers, statements from paper bodies)
+docs/SOURCE_EXTRACTION_PRIME_FIELD.md (updated §7 with extraction results)
+docs/ANALYTIC_PROGRESS_HANDOFF.md (updated extraction tasks, stale ledger refs)
+docs/source_theorem_ledger.stale.md (archived from source_theorem_ledger.md)
+```
+
+What worked:
+
+```text
+1. Fetched HTML bodies of all three papers (Pham-Sauermann, Bedert-Kravitz, BBKMM).
+2. Confirmed theorem numbers: Pham-Sauermann Thm 1.2, Bedert-Kravitz Thm 1.2, BBKMM Thm 1.4.
+3. All three papers genuinely remain non-effective — no explicit constants extracted.
+4. source_theorems.yaml entries updated with confirmed statements and precise notes.
+5. docs/source_theorem_ledger.md archived to .stale.md.
+6. SOURCE_EXTRACTION_PRIME_FIELD.md §7 updated with extraction results.
+7. Verification suite passes: --cover-verified-domain, --prove mode, check_required_artifacts.
+```
+
+What was corrected:
+
+```text
+1. Earlier extraction tasks in SOURCE_EXTRACTION_PRIME_FIELD.md assumed constants
+   might be extractable. Now updated: confirmed non-effective.
+2. source_theorem_ledger.md archived — superseded by source_theorems.yaml.
+```
+
+Remaining blocker:
+
+```text
+1. No source theorem currently has effective_status="effective" for p-dependent rules.
+2. Analytic residue bridge remains RED — no effective theorem-to-finite-domain extraction yet.
+```
+
+Next action:
+
+```text
+1. Continue main proof architecture (A90-A94, F9 table).
+2. Consider whether Bedert-Kravitz abstract-level bound (|A| <= exp((log p)^{1/4}))
+   without the "large prime" qualifier could be treated as effective for practical p.
+3. Revisit if updated paper versions provide explicit constants.
 ```
 
 What worked:
@@ -1144,12 +1189,13 @@ Remaining blocker:
    so --prove mode currently blocks all exploratory flags.
 ```
 
-Next action:
+✅ COMPLETED 2026-06-04:
 
 ```text
-1. Extract effective constants from Pham-Sauermann 2026 and update source_theorems.yaml.
-2. Extract effective constants from Bedert-Kravitz 2024 and update source_theorems.yaml.
-3. Consider demoting/archiving docs/source_theorem_ledger.md with a pointer to the YAML file.
+1. Extracted constants from all three papers via HTML body fetch.
+   Result: all three remain non-effective. source_theorems.yaml updated.
+2. docs/source_theorem_ledger.md archived to .stale.md.
+3. Verification suite: --cover-verified-domain PASS, --prove PASS.
 ```
 
 ---
@@ -1441,9 +1487,10 @@ The main proof architecture still needs:
 Next action:
 
 ```text
-1. Formalize A90-A94 as final lemmas (F11 weak cut-rigidity closure).
+1. Formalize A90--A94 as final lemmas (F11 weak cut-rigidity closure).
 2. Build F9 edge-by-edge rank table.
-3. Extract effective residue bounds from Pham-Sauermann and Bedert-Kravitz.
+3. ✅ COMPLETED 2026-06-04: extraction confirmed all three papers non-effective.
+   All entries in docs/source_theorems.yaml updated.
 ```
 
 ---

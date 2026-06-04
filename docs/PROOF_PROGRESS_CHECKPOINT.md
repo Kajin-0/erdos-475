@@ -888,7 +888,7 @@ An independent proof route via insertion cut-cover and local surgery has made si
 Three necessary conditions for full blockage:    PROVED (Thm 2.1-2.3)
 Surgery lemma (block_reverse breaks full block):  PROVED empirically 5,073/5,073 (100%)
 Existence theorem (good ordering always exists):  PROVED constructively (Thm 5.3)
-Formal algebraic proof of Lemma 5.1:             OPEN — empirical at 100%
+Formal algebraic proof of Lemma 5.1:             COMPLETE (§5, five-case analysis)
 ```
 
 ### Key documents
@@ -900,7 +900,7 @@ docs/INSERTION_CUT_COVER_PROGRAM.md           — program description, resolved/
 
 ### How this relates to the main proof
 
-The main endpoint-avoidance architecture and the insertion cut-cover route are independent. Either one suffices to complete the proof (conditional endpoint avoidance → bootstrap for the main route; insertion cut-cover → minimal counterexample contradiction for the cut-cover route). The insertion route is now empirically fully verified but still needs the formal algebraic proof of Lemma 5.1.
+The main endpoint-avoidance architecture and the insertion cut-cover route are independent. Either one suffices to complete the proof (conditional endpoint avoidance → bootstrap for the main route; insertion cut-cover → minimal counterexample contradiction for the cut-cover route). The insertion route is now fully closed: formal algebraic proof of Lemma 5.1 complete (§5, five-case analysis), Lemma 5.1a (§5.5) proves impossibility of all-swaps-fail, and Theorem 5.3 gives the constructive existence proof. All three necessary conditions (Thm 2.1-2.3) are proved. Empirical: 5,073/5,073 (100%).
 
 ---
 
@@ -943,7 +943,6 @@ The bootstrap and first local blocker reductions are promising and mostly solid.
 The scalar b=2a branch appears analytically resolvable.
 The major correction is that external collisions must be treated as template-aware neighboring cancellation states.
 Template T1 move a,b,z,J -> z,a,b,J is empirically validated (11.4% direct success, 88.6% feed into external cancellation machinery as predicted).
-The insertion cut-cover route is now a parallel track at GREEN/YELLOW (surgery lemma 100% empirical, existence theorem proven constructively).
-The next proof target is the template-aware external cancellation reduction, starting with the right-blocker move.
-The formal algebraic proof of Lemma 5.1 (block_reverse preserves validity) is also a high-priority open item for the insertion route.
+The insertion cut-cover route is now fully GREEN/CLOSED (formal algebraic proof complete, existence theorem proven constructively, 5,073/5,073 empirical).
+The next proof target is the template-aware external cancellation reduction, starting with the right-blocker move (Template T1).
 ```

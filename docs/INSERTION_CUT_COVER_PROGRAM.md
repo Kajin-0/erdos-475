@@ -543,9 +543,11 @@ analyze_cut_n.py:
 3. **Small-set proof**: RESOLVED by the general constructive theorem. The
    surgery lemma works across all tested |S| = 3..26, p = 17..31.
 
-### Remaining analytic gaps
+### Resolved analytic gaps (2026-06-04)
 
-1. **Formal algebraic proof of Lemma 5.1**: show that for any fully blocked
-   (C, x), the short block_reverse at an appropriate position necessarily
-   preserves Graham validity. Case analysis follows the three necessary
-   conditions. The empirical evidence is 100% (5,073/5,073).
+1. **Formal algebraic proof of Lemma 5.1**: RESOLVED. The five-case
+   algebraic analysis in `docs/analytic_insertion_existence_proof.md` §5
+   proves that for any fully blocked (C, x), the short block_reverse at
+   an appropriate position necessarily preserves Graham validity.
+   Lemma 5.1a (§5.5) proves impossibility of all-swaps-fail.
+   All components closed.

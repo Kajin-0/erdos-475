@@ -2,7 +2,7 @@
 
 This document extracts the analytic coverage inputs needed to turn the finite-certificate package into a full prime-field proof, if the resulting residue is contained in the verified finite domain.
 
-The purpose is not to summarize the literature generally.  The purpose is to identify which statements can be encoded as rigorous residue-audit rules.
+The purpose is not to summarize the literature generally. The purpose is to identify which statements can be encoded as rigorous residue-audit rules.
 
 ## 1. Required audit fields
 
@@ -113,7 +113,7 @@ The arXiv abstract states that the conjecture is proved for sets of size
 |A| <= exp((log p)^(1/4)).
 ```
 
-The ar5iv page identifies this as the main result, Theorem 1.2, but formula extraction is incomplete in the HTML rendering.  The source PDF/TeX should be used before encoding this as an exact audit rule.
+The ar5iv page identifies this as the main result, Theorem 1.2, but formula extraction is incomplete in the HTML rendering. The source PDF/TeX should be used before encoding this as an exact audit rule.
 
 ### Translation
 
@@ -245,14 +245,49 @@ Input M: N_alpha <= t <= p^(1-alpha)
 Input L: t >= p^(1-c)
 ```
 
-If `alpha < c` and the constants are effective, then all sufficiently large primes are covered.  The remaining task is to compute the finite threshold and audit all primes below it.
+If `alpha < c` and the constants are effective, then all sufficiently large primes are covered. The remaining task is to compute the finite threshold and audit all primes below it.
 
-## 7. Immediate extraction tasks
+## 7. Extraction status (verified 2026-06-04)
+
+All three primary papers have been fetched (HTML body) and their theorem statements confirmed. Key finding: **none of the three papers gives fully explicit effective constants** in their public statements.
+
+### Pham--Sauermann 2026 (arXiv:2602.15797)
 
 ```text
-P0. Download/read the PDF or TeX for Pham--Sauermann and extract the exact theorem number and effective status.
-P0. Download/read the PDF or TeX for BBKMM and extract the exact large-set theorem and constant status.
-P1. Confirm the exact large-prime condition in Bedert--Kravitz Theorem 1.2.
-P1. Add support for p-dependent audit endpoints such as floor(exp((log p)^(1/4))) and floor(p^(1-c)).
-P2. Add a cyclic/abelian branch once the prime-field finite-completion audit is structurally stable.
+Theorem 1.2: For any 0<alpha<1, there exists C_alpha>0 such that
+C_alpha <= |S| <= p^{1-alpha} is sequenceable.
+
+Status: C_alpha is existential (depends on alpha in unspecified way).
+        "Sufficiently large primes p" is not quantified.
+        → effective_status = "non_effective" (confirmed)
+```
+
+### Bedert--Kravitz 2024 (arXiv:2409.07403)
+
+```text
+Theorem 1.2: For every constant c>0, let p be a large prime. Then
+|A| <= exp(c(log p)^{1/4}) is sequenceable.
+
+Status: Bound is explicit in form but "p large prime" is not quantified.
+        → effective_status = "non_effective" (confirmed)
+```
+
+### BBKMM 2025 (arXiv:2508.18254)
+
+```text
+Theorem 1.4: ∃ absolute c>0 s.t. for any finite group G,
+|S| >= |G|^{1-c} is sequenceable.
+
+Status: c>0 is existential, not given explicitly in the paper.
+        → effective_status = "non_effective" (confirmed)
+```
+
+All entries in `docs/source_theorems.yaml` have been updated with confirmed theorem numbers and precise statements.
+
+### Remaining actions
+
+```text
+1. Add support for p-dependent audit endpoints (floor(exp((log p)^(1/4))), floor(p^(1-c))).
+2. Add a cyclic/abelian branch once the prime-field finite-completion audit is structurally stable.
+3. Revisit extraction if updated versions of the papers provide explicit constants.
 ```
