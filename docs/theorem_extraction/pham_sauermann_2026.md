@@ -21,9 +21,10 @@ It is an extraction worksheet for determining whether Theorem 1.2 can become an 
 Current verdict:
 
 ```text
-Effectivity level: 2 provisional.
-The theorem/proof dependency skeleton is now identified from the arXiv HTML.
-The constants are not yet executable.
+Effectivity level: 2+ provisional.
+The theorem/proof dependency skeleton is identified.
+The Section 5 top-level C_alpha inequalities are extracted from the PDF.
+The Corollary 4.2 constants C_1 and C_D are still black-box constants, so the theorem is not yet executable.
 Not proof-mode usable.
 ```
 
@@ -39,32 +40,16 @@ effective_status: non_effective
 
 ## 1. Exact theorem role
 
-The arXiv abstract states that the paper proves Graham's conjecture for all subsets
+Theorem 1.2 states that for every `0 < alpha < 1`, there is a constant `C_alpha > 0` such that if `p` is prime and
 
 ```text
-S subset Z_p \ {0}
+S subset Z_p \ {0},
+C_alpha <= |S| <= p^(1-alpha),
 ```
 
-with:
+then `S` has a valid ordering.
 
-```text
-|S| <= p^(1-alpha)
-```
-
-and `|S|` sufficiently large with respect to `alpha`, for every `alpha in (0,1)`.
-
-Theorem 1.2 is the precise source theorem. It states, in repo-paraphrase:
-
-```text
-For any 0 < alpha < 1, there exists a constant C_alpha such that:
-if p is prime and S subset Z_p \ {0} satisfies
-
-  C_alpha <= |S| <= p^(1-alpha),
-
-then S has a valid ordering.
-```
-
-The paper also states that combining this with earlier results resolves Graham's rearrangement conjecture for all sufficiently large primes.
+This is the repo's desired medium-range source theorem.
 
 ---
 
@@ -106,48 +91,143 @@ p - 1 - floor(p^(1-alpha)) <= |B| <= p - 1 - C_alpha.
 
 ---
 
-## 3. Constants required for executable use
+## 3. Top-level constants extracted from the PDF
 
-To use this theorem in:
+The proof of Theorem 1.2 starts Section 5 by reducing to:
 
 ```text
-scripts/reduction_residue_audit.py --prove
+0 < alpha < 1/2.
 ```
 
-we need at minimum:
+This is valid because proving the result for a smaller exponent parameter implies it for larger `alpha` values.
+
+It then defines:
 
 ```text
-alpha: chosen rational/decimal in (0,1)
-C_alpha: explicit integer lower threshold for t
-P_alpha or P_0: explicit prime lower threshold, if the proof requires one
+D = ceil(3 / alpha).
 ```
 
-An executable medium-range rule has form:
+Let `C_1` and `C_D` denote the constants from Corollary 4.2 for:
 
 ```text
-covers if:
-  p >= P_alpha
-  C_alpha <= t <= floor(p^(1-alpha))
+k = 1,
+k = D.
 ```
 
-Current status:
+The proof chooses `C_alpha` large enough so that all of the following hold.
+
+### C_alpha lower-bound condition A
 
 ```text
-C_alpha: structurally located in Section 5 proof setup, but not extracted numerically.
-P_alpha/P_0: not separately identified; may be absorbed into C_alpha if all arguments only require |S| large.
+C_alpha >= (10^4 * 2^(40D))^(1/alpha).
 ```
 
-Important observation:
+### C_alpha lower-bound condition B
+
+The PDF line wrapping is awkward, but the displayed chain is:
 
 ```text
-Theorem 1.2 itself is phrased using only C_alpha and p prime.
-The Section 5 proof starts by choosing constants depending on alpha and then takes |S| large enough.
-This suggests the theorem may be effective in principle if the constants in Corollary 4.2 and Lemmas 5.1--5.3 are unwound.
+C_alpha >= (D + 1) * 2^D * D^(14D^2)
+          >= 100 * (5D)^(2D)
+          >= (40D)^D.
+```
+
+For executable extraction, use the direct sufficient condition:
+
+```text
+C_alpha >= max(
+  (D + 1) * 2^D * D^(14D^2),
+  100 * (5D)^(2D),
+  (40D)^D
+).
+```
+
+The first term appears intended to dominate the latter two, but an implementation should not assume domination without checking.
+
+### C_alpha analytic inequality condition C
+
+For all integers/reals `n >= C_alpha`, require:
+
+```text
+4 * max(C_D, C_1) * sqrt(log(n) / n^(1/2)) <= n^(-alpha).
+```
+
+Equivalently, because `sqrt(log(n) / n^(1/2)) = sqrt(log n) / n^(1/4)`, require:
+
+```text
+4 * max(C_D, C_1) * sqrt(log n) <= n^(1/4 - alpha).
+```
+
+This is only eventually possible when:
+
+```text
+alpha < 1/4
+```
+
+if transcribed exactly. The PDF line may instead intend:
+
+```text
+4 * max(C_D, C_1) * sqrt(log n / n) <= n^(-alpha),
+```
+
+which is eventually possible for all `alpha < 1/2`.
+
+**Extraction warning:** the PDF text parser may have ambiguously parsed the radical/denominator. This exact inequality must be checked against the TeX source before executable coding.
+
+### Consequences used immediately
+
+For `S` satisfying Theorem 1.2, the proof records:
+
+```text
+|S| / p <= p^(-alpha) <= |S|^(-alpha),
+4*C_1*sqrt(log |S| / |S|^(?)) <= |S|^(-alpha),
+4*C_D*sqrt(log |S| / |S|^(?)) <= |S|^(-alpha).
+```
+
+The same radical ambiguity applies. The consequence is used repeatedly in Lemma 5.1--5.6 estimates.
+
+---
+
+## 4. Corollary 4.2 extracted statement
+
+Corollary 4.2 states that for every positive integer `k`, there is a constant `C_k > 0` such that for prime `p`, subset `S subset Z_p`, and a uniformly random chain
+
+```text
+R_1 subset ... subset R_k subset S,
+|R_i| = m_i,
+1 <= m_1 < ... < m_k < |S|,
+```
+
+for any `z_1,...,z_k in Z_p`,
+
+```text
+P[ Sigma(R_i) = z_i for i=1,...,k ]
+  <= sum_{j=0}^k product_{i in {0,...,k}\{j}}
+       ( 1/p + C_k * sqrt(log |S| / ( |S| * (m_{i+1}-m_i) )) )
+```
+
+where the PDF displays the factor in a line-wrapped form. The intended denominator must be checked from TeX, but subsequent uses have the schematic factor:
+
+```text
+1/p + C_k * sqrt(log |S| / |S|) / sqrt(gap)
+```
+
+or equivalently:
+
+```text
+1/p + C_k * sqrt(log |S| / (|S| * gap)).
+```
+
+This corollary is the main black-box dependency for Section 5. Section 5 needs:
+
+```text
+C_1 = C_k for k=1,
+C_D = C_k for k=D=ceil(3/alpha).
 ```
 
 ---
 
-## 4. Proof structure map
+## 5. Proof structure map
 
 The paper organization is:
 
@@ -160,143 +240,41 @@ Section 5: proof of Theorem 1.2 using Corollary 4.2 and Lemmas 5.1--5.3.
 
 ### Theorem 1.3
 
-Role:
+Theorem 1.3 gives an anticoncentration bound for a random fixed-size subset `R`:
 
 ```text
-Anticoncentration for sums of random subsets of fixed size.
+max_z P[Sigma(R)=z] <= 1/p + C/( |S| * sqrt(m) ).
 ```
 
-Ledger note:
+The proof of Section 3 says it proves the theorem with:
 
 ```text
-The source_theorems.yaml entry records an explicit-looking absolute constant C=2^24 for Theorem 1.3,
-but this still needs verification from the paper body because arXiv HTML strips some displayed math.
-```
-
-Dependency status:
-
-```text
-Likely quantitative/effective.
-Depends on Section 3 lemmas using Chernoff/hypergeometric concentration, Fourier bounds, Cauchy-Davenport, and union bounds.
+C = 2^24.
 ```
 
 ### Corollary 1.4
 
-Role:
+Corollary 1.4 extends the bound to all `m <= (1-epsilon)|S|`:
 
 ```text
-Extends Theorem 1.3 to a larger size range needed later.
+max_z P[Sigma(R)=z] <= 1/p + C'_epsilon * sqrt( log |S| / (|S| * m) ).
 ```
 
-Effectivity issue:
-
-```text
-The proof says small |S| can be handled by choosing a large constant.
-This introduces a constant depending on alpha/gamma-like parameters.
-Need to extract exact dependency.
-```
+The constant `C'_epsilon` is not yet explicitly unwound.
 
 ### Corollary 4.2
 
-Role:
-
-```text
-Anticoncentration for a uniformly random chain of subsets of prescribed sizes.
-```
-
-Effectivity issue:
-
-```text
-For every positive integer d, there exists a constant used to bound chain-sum probabilities.
-Section 5 uses these constants for d=3 and d=5.
-```
+Corollary 4.2 gives the chain version with constants `C_k`. Its constants depend on Corollary 1.4 and `k`.
 
 ### Lemma 4.3
 
-Role:
-
-```text
-Sums the Corollary 4.2 bounds over many tuple choices.
-```
-
-Effectivity issue:
-
-```text
-Appears quantitative once the Corollary 4.2 constant is explicit.
-```
+Lemma 4.3 sums the Corollary 4.2 right-hand side over all choices of chain sizes. It is used in Lemmas 5.2, 5.5, and 5.6.
 
 ### Lemmas 5.1--5.3
 
-Role:
+These bound the bad events used in the random-bijection repair argument.
 
-```text
-Bad-event bounds for the random starting bijection and admissible transposition repair process.
-```
-
-In the proof of Theorem 1.2, the authors choose a random bijection avoiding the bad events in Lemmas 5.1--5.3, then greedily construct transpositions to eliminate zero-sum intervals.
-
-Effectivity issue:
-
-```text
-The proof uses constants chosen at the start of Section 5 so that the union of bad-event probabilities is < 1.
-The required inequalities must be extracted to define C_alpha.
-```
-
-### Lemmas 5.4--5.6
-
-Role:
-
-```text
-Auxiliary probability bounds used to prove Lemmas 5.2 and 5.3.
-```
-
-Effectivity issue:
-
-```text
-These contain union bounds over admissible permutations and chains.
-Need to track powers/exponents to build explicit size threshold.
-```
-
----
-
-## 5. Section 5 constant choice: current extraction
-
-The proof of Theorem 1.2 begins by fixing a parameter from `alpha` and then choosing constants large enough.
-
-The arXiv HTML math is partially stripped, but the prose gives the dependency shape:
-
-```text
-Let [parameter depending on alpha].
-Let [constant] be large enough such that [several inequalities hold]
-where constants from Corollary 4.2 for d=3 and d=5 appear.
-```
-
-More concretely, Section 5 states that the proof uses constants from Corollary 4.2 for:
-
-```text
-d = 3,
-d = 5.
-```
-
-and chooses the main lower threshold large enough so that several inequalities hold for all relevant sizes.
-
-Current interpretation:
-
-```text
-C_alpha is probably a maximum of finitely many explicit threshold inequalities involving:
-  - alpha or a derived beta/gamma parameter;
-  - constants from Corollary 4.2 for d=3 and d=5;
-  - polynomial/exponential union-bound exponents in Lemmas 5.1--5.6.
-```
-
-This is encouraging because it suggests the proof is likely effective in principle.
-
-However:
-
-```text
-The repo does not yet have the displayed inequalities because arXiv HTML strips much of the math.
-The PDF or TeX source must be inspected to extract them exactly.
-```
+The proof of Theorem 1.2 first chooses a bijection avoiding three bad events, then greedily picks admissible transpositions. Lemmas 5.1--5.3 make the union of the bad-event probabilities small enough to guarantee such a bijection exists.
 
 ---
 
@@ -304,40 +282,38 @@ The PDF or TeX source must be inspected to extract them exactly.
 
 | Constant | Source location | Depends on | Needed for | Current status |
 |---|---|---|---|---|
-| `C_alpha` | Theorem 1.2 / Section 5 setup | `alpha`, Corollary 4.2 constants, Lemmas 5.1--5.3 thresholds | lower endpoint `t >= C_alpha` | structural dependencies identified; numeric formula pending |
-| `P_alpha` or `P_0` | not explicit in theorem statement | possibly none separately if absorbed by `C_alpha` | prime lower threshold if required | pending |
-| `C_AC` for Theorem 1.3 | Theorem 1.3 / Section 3 | absolute constants from Fourier/Chernoff estimates | random subset anticoncentration | likely explicit; ledger says `2^24`, verify from PDF/TeX |
-| `C_gamma` for Corollary 1.4 | Corollary 1.4 | Theorem 1.3 constant plus gamma/alpha parameters | larger subset anticoncentration | pending |
-| `C_d` for Corollary 4.2 | Corollary 4.2 | Corollary 1.4 constants and `d` | chain anticoncentration | pending; Section 5 uses d=3,5 |
-| Lemma 5.1 threshold | Section 5 | `C_3` or `C_5`, alpha-derived parameters | bad event probability | pending |
-| Lemma 5.2 threshold | Section 5 | Lemma 5.4, Corollary 4.2, Lemma 4.3 | bad event probability | pending |
-| Lemma 5.3 threshold | Section 5 | Lemmas 5.5, 5.6, Corollary 4.2, Lemma 4.3 | blocked-elements event probability | pending |
-| earlier-result interface | introduction / combined claim | Bedert--Kravitz, BBKMM, others | full sufficiently-large-prime closure | not part of Theorem 1.2 executable medium rule |
+| `C_alpha` | Theorem 1.2 / Section 5 setup | `alpha`, `D`, `C_1`, `C_D`, Lemma 5 thresholds | lower endpoint `t >= C_alpha` | top-level inequalities extracted; radical ambiguity pending TeX check |
+| `D` | Section 5 | `alpha` | bad-event thresholds | extracted: `D=ceil(3/alpha)` |
+| `C_1` | Corollary 4.2 | Corollary 1.4 with `k=1` | Section 5 estimates | black-box constant; not numeric |
+| `C_D` | Corollary 4.2 | Corollary 1.4 with `k=D` | Section 5 estimates | black-box constant; not numeric |
+| `C` for Theorem 1.3 | Section 3 | absolute Fourier/Chernoff estimates | base anticoncentration | extracted from prose as `2^24`; verify exact theorem-vs-proof constant from TeX |
+| `C'_epsilon` | Corollary 1.4 | Theorem 1.3 constant and epsilon | larger subset anticoncentration | pending |
+| `C_k` | Corollary 4.2 | `C'_epsilon`, `k` | chain anticoncentration | pending |
+| `P_alpha` or `P_0` | not explicit in Theorem 1.2 | possibly absorbed by `C_alpha` | prime lower threshold if required | likely none separately; pending TeX check |
 
 ---
 
-## 7. Effectivity assessment after first proof-structure pass
+## 7. Effectivity assessment after PDF constant pass
 
 Current assessment:
 
 ```text
-Theorem 1.2 appears likely effective in principle.
+Theorem 1.2 appears effective in principle.
 It is not executable yet.
-The current blocker is extraction of displayed inequalities and constants from the PDF/TeX source, especially Section 5 setup and Corollary 4.2.
+The top-level C_alpha recipe is now visible, but it depends on non-extracted C_1 and C_D from Corollary 4.2.
 ```
 
 Reason:
 
 ```text
-The proof uses finite probabilistic estimates, union bounds, hypergeometric Chernoff bounds, Cauchy-Davenport, and explicit chain-anticoncentration deductions.
-No non-effective compactness or infinitary regularity argument has been identified in the first pass.
+The proof uses finite probabilistic estimates, union bounds, hypergeometric Chernoff bounds, Cauchy-Davenport, and chain-anticoncentration estimates.
+No non-effective compactness or infinitary regularity argument has been identified.
 ```
 
-Caveat:
+Remaining caveat:
 
 ```text
-This is only a first pass based on arXiv HTML and visible prose.
-Displayed equations are heavily stripped in the HTML and must be recovered from PDF or TeX before the status can be upgraded to Level 3.
+The PDF parser gives enough structure for the C_alpha threshold, but TeX source is still needed to remove radical/denominator ambiguity and to unwind C_k constants.
 ```
 
 Therefore:
@@ -351,23 +327,29 @@ Do not mark pham_sauermann_2026_large_prime effective.
 
 ## 8. Proposed executable extraction target
 
-The target is a symbolic recipe:
+A symbolic executable recipe should eventually be:
 
 ```text
-Given alpha in (0,1):
-  beta = beta(alpha) from Section 5.
-  C3 = constant from Corollary 4.2 with d=3 and beta/gamma parameter.
-  C5 = constant from Corollary 4.2 with d=5 and beta/gamma parameter.
-  C_alpha = max(thresholds from Section 5 setup, Lemmas 5.1, 5.2, 5.3).
+input alpha in (0,1):
+  alpha0 = min(alpha, 1/3 or other value sufficient for the Section 5 reduction)
+  D = ceil(3 / alpha0)
+  C1 = corollary_4_2_constant(k=1)
+  CD = corollary_4_2_constant(k=D)
+  C_alpha = least integer N such that for all n>=N:
+      N >= (10^4 * 2^(40D))^(1/alpha0)
+      N >= (D+1)*2^D*D^(14D^2)
+      N >= 100*(5D)^(2D)
+      N >= (40D)^D
+      4*max(CD,C1)*sqrt(log n / n) <= n^(-alpha0)   # pending TeX check
 ```
 
-A later executable rule may not need a clean closed form. It can be recursive/pseudocode if every dependency is explicit and finite.
+The final line must be corrected after TeX extraction if the denominator is `n^(1/2)` rather than `n` under the radical.
 
 ---
 
 ## 9. Source-access status
 
-The arXiv abstract page exposes a TeX Source link for `2602.15797`. Browser access through the current assistant toolchain could not safely fetch the source bundle, but this is an environment limitation rather than evidence that the source is unavailable.
+The arXiv PDF is accessible and was sufficient for the first constant pass. The arXiv abstract page also exposes a TeX Source link for `2602.15797`.
 
 A local helper has been added:
 
@@ -385,19 +367,10 @@ python scripts/fetch_arxiv_source_bundle.py 2602.15797 \
 Then search the extracted `.tex` files for:
 
 ```bash
-grep -R "Theorem" data/theorem_extraction/pham_sauermann_2026_source
-grep -R "Corollary" data/theorem_extraction/pham_sauermann_2026_source
-grep -R "Lemma 5" data/theorem_extraction/pham_sauermann_2026_source
-grep -R "large enough" data/theorem_extraction/pham_sauermann_2026_source
+grep -R "D =" data/theorem_extraction/pham_sauermann_2026_source
+grep -R "C_\\alpha" data/theorem_extraction/pham_sauermann_2026_source
+grep -R "Corollary 4.2" data/theorem_extraction/pham_sauermann_2026_source
 grep -R "2^{24}\|2\\^" data/theorem_extraction/pham_sauermann_2026_source
-```
-
-Expected files to inspect:
-
-```text
-main .tex source;
-any macro/style file defining theorem environments;
-any bibliography file only for dependency references.
 ```
 
 ---
@@ -428,17 +401,17 @@ with a new effective entry or revise the existing one:
   audit_rule_status: "proof_mode_usable"
 ```
 
-Do not add this until the proof-body extraction supports it.
+Do not add this until the Corollary 4.2 constants are made recursively explicit.
 
 ---
 
 ## 11. Current blockers
 
 ```text
-1. Need PDF/TeX extraction of the displayed inequalities in Section 5 setup.
-2. Need exact Corollary 4.2 constant dependency for d=3 and d=5.
-3. Need verification of Theorem 1.3's constant and whether it feeds quantitatively into Corollary 1.4.
-4. Need explicit formulas/inequalities from Lemmas 5.1--5.6.
+1. Need TeX check of the radical/denominator in the Section 5 inequality.
+2. Need exact Corollary 4.2 constant dependency for k=1 and k=D.
+3. Need verification of Theorem 1.3 constant C=2^24 and how it feeds into Corollary 1.4.
+4. Need explicit formulas/inequalities from Lemmas 5.1--5.6 if they impose further thresholds beyond the Section 5 setup.
 5. Need decision whether all thresholds can be absorbed into C_alpha with no separate P_alpha.
 ```
 
@@ -449,14 +422,5 @@ Do not add this until the proof-body extraction supports it.
 Next agent task:
 
 ```text
-Run scripts/fetch_arxiv_source_bundle.py for 2602.15797.
-Inspect the extracted TeX.
-Patch this file with exact displayed inequalities.
-```
-
-Expected next file update:
-
-```text
-Upgrade this audit from Level 2 provisional to Level 2 complete,
-with a concrete constant-dependency graph and unresolved formula entries.
+Use TeX source or careful PDF screenshots to resolve the Section 5 radical ambiguity and unwind Corollary 4.2 constants.
 ```
