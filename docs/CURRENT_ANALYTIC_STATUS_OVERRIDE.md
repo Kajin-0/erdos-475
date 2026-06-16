@@ -20,6 +20,45 @@ No unconditional proof of endpoint avoidance is claimed.
 
 ---
 
+## 0. Current operating mode
+
+Primary working mode:
+
+```text
+Use ChatGPT + GitHub connector + public web/PDF extraction as the main agent environment.
+Do not assume VPS access.
+Do not instruct future agents to use the VPS except for genuinely necessary empirical runs or local script execution that cannot be done through GitHub/web tools.
+```
+
+Permitted from this environment:
+
+```text
+1. read and edit repository files through GitHub;
+2. inspect public papers through web/PDF access;
+3. add scripts, schemas, audit docs, and proof-workflow infrastructure;
+4. commit conservative documentation and code hardening changes.
+```
+
+Avoid by default:
+
+```text
+1. asking the user to run scripts on the VPS;
+2. assuming a local checkout is available;
+3. making proof claims that depend on scripts that have not been run;
+4. treating helper scripts as executed evidence merely because they were added to the repo.
+```
+
+Use local/VPS script execution only when:
+
+```text
+1. empirical data must be generated or regenerated;
+2. a source bundle must be downloaded/extracted and cannot be accessed by web/PDF tools;
+3. CI-style validation requires actual script execution;
+4. the user explicitly makes the VPS available for that task.
+```
+
+---
+
 ## 1. Current primary route
 
 The currently preferred high-level route is the phase-aware strong nonzero-sum repair program:
