@@ -365,7 +365,44 @@ A later executable rule may not need a clean closed form. It can be recursive/ps
 
 ---
 
-## 9. Proposed YAML rule if extraction succeeds
+## 9. Source-access status
+
+The arXiv abstract page exposes a TeX Source link for `2602.15797`. Browser access through the current assistant toolchain could not safely fetch the source bundle, but this is an environment limitation rather than evidence that the source is unavailable.
+
+A local helper has been added:
+
+```text
+scripts/fetch_arxiv_source_bundle.py
+```
+
+Run on a machine with ordinary network access:
+
+```bash
+python scripts/fetch_arxiv_source_bundle.py 2602.15797 \
+  --out-dir data/theorem_extraction/pham_sauermann_2026_source
+```
+
+Then search the extracted `.tex` files for:
+
+```bash
+grep -R "Theorem" data/theorem_extraction/pham_sauermann_2026_source
+grep -R "Corollary" data/theorem_extraction/pham_sauermann_2026_source
+grep -R "Lemma 5" data/theorem_extraction/pham_sauermann_2026_source
+grep -R "large enough" data/theorem_extraction/pham_sauermann_2026_source
+grep -R "2^{24}\|2\\^" data/theorem_extraction/pham_sauermann_2026_source
+```
+
+Expected files to inspect:
+
+```text
+main .tex source;
+any macro/style file defining theorem environments;
+any bibliography file only for dependency references.
+```
+
+---
+
+## 10. Proposed YAML rule if extraction succeeds
 
 Only after constants are extracted, update:
 
@@ -395,7 +432,7 @@ Do not add this until the proof-body extraction supports it.
 
 ---
 
-## 10. Current blockers
+## 11. Current blockers
 
 ```text
 1. Need PDF/TeX extraction of the displayed inequalities in Section 5 setup.
@@ -407,20 +444,14 @@ Do not add this until the proof-body extraction supports it.
 
 ---
 
-## 11. Current action item
+## 12. Current action item
 
 Next agent task:
 
 ```text
-Fetch arXiv TeX source for 2602.15797.
-Search for:
-  Theorem 1.2;
-  Theorem 1.3;
-  Corollary 1.4;
-  Corollary 4.2;
-  Lemmas 5.1--5.6;
-  Section 5 initial constant choice.
-Extract displayed inequalities exactly.
+Run scripts/fetch_arxiv_source_bundle.py for 2602.15797.
+Inspect the extracted TeX.
+Patch this file with exact displayed inequalities.
 ```
 
 Expected next file update:
